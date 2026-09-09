@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Patient Visit Sheet — September 2026</title>
+<style>
+:root{
+  --teal:#1A5276;--teal2:#1F618D;--teal-lt:#AED6F1;--blue-pale:#D6EAF8;
+  --gold-lt:#FCF3CF;--gold:#D4AC0D;
+  --doc-bg:#E8F5E9;--doc-fg:#1B5E20;
+  --nur-bg:#E3F2FD;--nur-fg:#0D47A1;
+  --psy-bg:#F3E5F5;--psy-fg:#6A1B9A;
+  --can-bg:#FFEBEE;--can-fg:#B71C1C;
+  --sat-bg:#FEF9E7;--sun-bg:#FDEDEC;
+  --row-alt:#EAF4FB;
+  --rem-ok:#EAFAF1;--rem-warn:#FFFDE7;--rem-zero:#FBE9E7;
+  --shadow:0 2px 14px rgba(26,82,118,.14);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#eef2f7;padding:10px;min-height:100vh;}
+
+/* ── Title ── */
+.title-bar{
+  background:linear-gradient(135deg,var(--teal),var(--teal2));
+  color:#fff;text-align:center;padding:13px 20px;
+  border-radius:10px 10px 0 0;box-shadow:var(--shadow);
+}
+.title-bar h1{font-size:1.25rem;font-weight:800;letter-spacing:.3px;}
+.title-bar p{font-size:.76rem;opacity:.85;margin-top:2px;}
+
+/* ── Controls ── */
+.ctrl{
+  background:#fff;border:1px solid var(--teal-lt);border-top:none;
+  padding:8px 13px;display:flex;align-items:center;gap:9px;flex-wrap:wrap;
+  box-shadow:var(--shadow);
+}
+.ctrl label{font-size:.74rem;font-weight:700;color:var(--teal);}
+.ctrl input[type=text]{
+  border:1.5px solid var(--teal-lt);border-radius:6px;
+  padding:4px 9px;font-size:.75rem;outline:none;width:155px;
+}
+.ctrl input:focus{border-color:var(--teal);}
+.btn{
+  background:var(--teal);color:#fff;border:none;border-radius:6px;
+  padding:5px 12px;font-size:.73rem;font-weight:700;cursor:pointer;
+  display:flex;align-items:center;gap:4px;transition:background .15s;
+}
+.btn:hover{background:var(--teal2);}
+.btn.sec{background:#6c757d;}.btn.sec:hover{background:#5a6268;}
+.legend{display:flex;gap:9px;align-items:center;margin-left:auto;flex-wrap:wrap;}
+.leg{display:flex;align-items:center;gap:4px;font-size:.69rem;color:#444;}
+.leg-sq{width:12px;height:12px;border-radius:3px;border:1px solid #bbb;}
+
+/* ── Table wrap ── */
+.wrap{overflow-x:auto;border-radius:0 0 10px 10px;box-shadow:var(--shadow);
+      background:#fff;border:1px solid var(--teal-lt);border-top:none;}
+table{border-collapse:collapse;width:max-content;font-size:.69rem;}
+
+/* ── Header ── */
+thead th{border:1px solid #b0cfe0;white-space:nowrap;text-align:center;vertical-align:middle;padding:3px 3px;}
+
+/* Row 1 – big title */
+.rTitle th{background:var(--teal);color:#fff;font-size:.8rem;font-weight:800;padding:7px 4px;}
+
+/* Row 2 – column group labels */
+.rGrp th{background:var(--gold-lt);color:var(--teal);font-weight:700;font-size:.7rem;padding:5px 3px;}
+.rGrp th.wk{background:var(--teal2);color:#fff;border-color:var(--teal);}
+.rGrp th.doc{background:var(--doc-bg);color:var(--doc-fg);}
+.rGrp th.nur{background:var(--nur-bg);color:var(--nur-fg);}
+.rGrp th.psy{background:var(--psy-bg);color:var(--psy-fg);}
+.rGrp th.tot{background:#E0F7FA;color:#006064;}
+.rGrp th.rem{background:#F3E5F5;color:#4A148C;}
+.rGrp th.med{background:#FFF3E0;color:#E65100;}
+
+/* Row 3 – sub-labels (visits / date numbers) */
+.rSub th{background:var(--gold-lt);color:var(--teal);font-weight:600;font-size:.65rem;padding:3px 2px;}
+.rSub th.doc{background:var(--doc-bg);color:var(--doc-fg);}
+.rSub th.nur{background:var(--nur-bg);color:var(--nur-fg);}
+.rSub th.psy{background:var(--psy-bg);color:var(--psy-fg);}
+.rSub th.tot{background:#E0F7FA;color:#006064;}
+.rSub th.rem{background:#F3E5F5;color:#4A148C;}
+.rSub th.med{background:#FFF3E0;color:#E65100;}
+.rSub th.date{background:var(--teal-lt);color:var(--teal);font-weight:700;}
+.rSub th.sat{background:var(--sat-bg);}
+.rSub th.sun{background:var(--sun-bg);}
+
+/* Row 4 – day letters */
+.rDay th{background:var(--blue-pale);color:var(--teal);font-size:.65rem;font-weight:700;padding:2px 2px;}
+.rDay th.sat{background:var(--sat-bg);color:#e65c00;}
+.rDay th.sun{background:var(--sun-bg);color:var(--can-fg);}
+.rDay th.blank{background:var(--gold-lt);}
+
+/* Row 5 – D / N+Phy / Psy per day */
+.rType th{font-size:.6rem;font-weight:700;padding:2px 1px;}
+.rType th.td{background:var(--doc-bg);color:var(--doc-fg);}
+.rType th.tn{background:var(--nur-bg);color:var(--nur-fg);}
+.rType th.tp{background:var(--psy-bg);color:var(--psy-fg);}
+.rType th.sat.td,.rType th.sat.tn,.rType th.sat.tp{filter:brightness(.97);}
+.rType th.sun.td,.rType th.sun.tn,.rType th.sun.tp{filter:brightness(.95);}
+.rType th.blank{background:var(--gold-lt);}
+
+/* Week boundary divider */
+th.wk-start,td.wk-start{border-left:3px solid var(--teal)!important;}
+
+/* sort btn */
+.sb{background:none;border:none;cursor:pointer;font:inherit;color:inherit;
+    font-weight:700;display:inline-flex;align-items:center;gap:2px;}
+.sb:hover{text-decoration:underline;}
+
+/* ── Data rows ── */
+tbody tr:nth-child(odd)  td{background:#fff;}
+tbody tr:nth-child(even) td{background:var(--row-alt);}
+tbody tr:hover td{background:#cfe2f3!important;}
+td{border:1px solid #c5daea;vertical-align:middle;text-align:center;padding:2px 2px;}
+
+td.sno{width:28px;font-weight:700;color:var(--teal);font-size:.7rem;}
+td.name{text-align:left;padding:2px 6px;min-width:150px;font-size:.72rem;font-weight:500;}
+
+/* Package select */
+td.pkg{min-width:112px;padding:1px 2px;}
+td.pkg select{
+  width:100%;border:1.5px solid var(--teal-lt);border-radius:5px;
+  padding:2px 3px;font-size:.67rem;font-weight:700;outline:none;
+  background:var(--gold-lt);color:var(--teal);cursor:pointer;font-family:inherit;
+}
+td.pkg select:focus{border-color:var(--gold);}
+
+/* Total / Remaining cells */
+td.tot-doc{background:var(--doc-bg)!important;color:var(--doc-fg);font-weight:700;font-size:.7rem;min-width:38px;}
+td.tot-nur{background:var(--nur-bg)!important;color:var(--nur-fg);font-weight:700;font-size:.7rem;min-width:38px;}
+td.tot-psy{background:var(--psy-bg)!important;color:var(--psy-fg);font-weight:700;font-size:.7rem;min-width:38px;}
+td.rem-doc{background:var(--rem-ok)!important;color:var(--doc-fg);font-weight:700;font-size:.7rem;min-width:38px;}
+td.rem-nur{background:var(--rem-ok)!important;color:var(--nur-fg);font-weight:700;font-size:.7rem;min-width:38px;}
+td.rem-psy{background:var(--rem-ok)!important;color:var(--psy-fg);font-weight:700;font-size:.7rem;min-width:38px;}
+
+/* Medicine cells (Rs.) */
+td.med-total{background:#FFF3E0!important;color:#E65100;font-weight:700;font-size:.66rem;width:34px;min-width:34px;max-width:34px;padding:2px 1px;}
+td.med-input{background:#FFF8E1!important;width:52px;min-width:52px;max-width:56px;padding:1px 2px;}
+td.med-input input{
+  width:100%;border:1.5px solid #FFCC80;border-radius:4px;
+  padding:1px 2px;font-size:.68rem;font-weight:700;outline:none;
+  text-align:center;color:#E65100;background:#fff;font-family:inherit;
+}
+td.med-input input:focus{border-color:#E65100;}
+td.med-rem{font-weight:800;font-size:.7rem;min-width:42px;}
+
+
+/* Visit cells */
+td.vc{width:20px;min-width:20px;max-width:20px;cursor:pointer;font-size:.75rem;
+      user-select:none;transition:filter .1s;}
+td.vc:hover{filter:brightness(.85)!important;}
+td.vc.sat{background:var(--sat-bg)!important;}
+td.vc.sun{background:var(--sun-bg)!important;}
+td.vc.vd{background:var(--doc-bg);}
+td.vc.vn{background:var(--nur-bg);}
+td.vc.vp{background:var(--psy-bg);}
+td.vc.vx{background:var(--can-bg);}
+
+/* ── Dropdown ── */
+.ov{position:fixed;inset:0;z-index:900;display:none;}
+.dd{position:fixed;z-index:1000;background:#fff;border:1.5px solid var(--teal);
+    border-radius:10px;box-shadow:0 6px 28px rgba(0,0,0,.22);
+    min-width:185px;overflow:hidden;display:none;animation:pop .12s ease;}
+@keyframes pop{from{opacity:0;transform:scale(.9) translateY(-6px);}to{opacity:1;transform:scale(1) translateY(0);}}
+.dd-hd{background:var(--teal);color:#fff;font-size:.67rem;font-weight:700;padding:5px 12px;}
+.ddi{display:flex;align-items:center;gap:7px;padding:6px 12px;cursor:pointer;
+     font-size:.75rem;font-weight:600;transition:background .1s;}
+.ddi:hover{background:var(--blue-pale);}
+.ddi.clr{color:#999;font-weight:500;}.ddi.clr:hover{background:#f5f5f5;}
+.dd-sep{height:1px;background:#e4eef5;margin:2px 0;}
+.ico{font-size:.88rem;}
+
+/* ── Package modal ── */
+.mbg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.48);z-index:2000;
+     align-items:center;justify-content:center;}
+.mbg.open{display:flex;}
+.modal{background:#fff;border-radius:12px;padding:20px;width:min(620px,96vw);
+       max-height:90vh;overflow-y:auto;box-shadow:0 8px 40px rgba(0,0,0,.28);}
+.modal h2{color:var(--teal);font-size:.92rem;margin-bottom:11px;
+          border-bottom:2px solid var(--teal-lt);padding-bottom:6px;}
+.ptbl{width:100%;border-collapse:collapse;font-size:.73rem;}
+.ptbl th{background:var(--teal);color:#fff;padding:6px 8px;}
+.ptbl td{border:1px solid #d0e5f0;padding:4px 6px;text-align:center;}
+.ptbl td:first-child{text-align:left;font-weight:700;color:var(--teal);}
+.ptbl input{width:48px;border:1.5px solid var(--teal-lt);border-radius:4px;
+            padding:2px 3px;text-align:center;font-size:.72rem;outline:none;}
+.ptbl input:focus{border-color:var(--teal);}
+.mfoot{margin-top:13px;display:flex;gap:8px;justify-content:flex-end;}
+
+@media print{
+  .ctrl,.btn,.ov,.dd,.mbg{display:none!important;}
+  .title-bar{border-radius:0;}td.vc{cursor:default;}
+}
+</style>
+</head>
+<body>
+
+<div class="title-bar">
+  <h1>🏥 Patient Visit Sheet — September 2026</h1>
+  <p>Human Healthcare &nbsp;·&nbsp; <span id="patCount">43</span> Patients &nbsp;·&nbsp; Doctor &nbsp;|&nbsp; Nurse+Physio &nbsp;|&nbsp; Psychiatrist</p>
+</div>
+
+<div class="ctrl">
+  <label>🔍</label>
+  <input type="text" id="srch" placeholder="Search patient…" oninput="render()"/>
+  <button class="btn" onclick="openAddPatient()">➕ Add Patient</button>
+  <button class="btn" onclick="openPkg()">⚙ Packages</button>
+  <button class="btn sec" onclick="resetAll()">↺ Reset</button>
+  <button class="btn" onclick="window.print()">🖨 Print</button>
+  <button class="btn" onclick="exportData()">⬇ Export</button>
+  <button class="btn sec" onclick="document.getElementById('importFile').click()">⬆ Import</button>
+  <input type="file" id="importFile" accept="application/json" style="display:none" onchange="importData(event)"/>
+  <span id="saveStatus" style="font-size:.68rem;color:#2e7d32;font-weight:600;"></span>
+  <div class="legend">
+    <div class="leg"><div class="leg-sq" style="background:var(--doc-bg);border-color:var(--doc-fg)"></div>✔ Doctor</div>
+    <div class="leg"><div class="leg-sq" style="background:var(--nur-bg);border-color:var(--nur-fg)"></div>✔ Nurse+Phy</div>
+    <div class="leg"><div class="leg-sq" style="background:var(--psy-bg);border-color:var(--psy-fg)"></div>✔ Psych</div>
+    <div class="leg"><div class="leg-sq" style="background:var(--can-bg);border-color:var(--can-fg)"></div>✖ Cancelled</div>
+    <div class="leg"><div class="leg-sq" style="background:#aaa"></div>— No Visit</div>
+  </div>
+</div>
+
+<div class="wrap"><table id="tbl">
+  <thead id="thead"></thead>
+  <tbody id="tbody"></tbody>
+</table></div>
+
+<!-- Dropdown -->
+<div class="ov" id="ov" onclick="closeDD()"></div>
+<div class="dd" id="dd">
+  <div class="dd-hd" id="dd-hd">Select status</div>
+  <div class="ddi" id="opt-tick"><span class="ico" id="opt-ico">✔</span><span id="opt-lbl">Visited</span></div>
+  <div class="ddi" id="opt-cross"><span class="ico" style="color:var(--can-fg)">✖</span><span id="opt-lbl2">Cancelled</span></div>
+  <div class="dd-sep"></div>
+  <div class="ddi" onclick="pick('—')"><span class="ico" style="color:#bbb">—</span>No Visit</div>
+  <div class="dd-sep"></div>
+  <div class="ddi clr" onclick="pick('')">⬜ Clear</div>
+</div>
+
+<!-- Package Modal -->
+<div class="mbg" id="mbg">
+<div class="modal">
+  <h2>⚙ Package Definitions</h2>
+  <p style="font-size:.71rem;color:#666;margin-bottom:10px;">
+    Set monthly visit allocations per package. These auto-populate the Total columns when a package is selected for a patient.
+  </p>
+  <table class="ptbl">
+    <thead><tr>
+      <th>Package Name</th>
+      <th style="background:var(--doc-fg)">🩺 Doctor</th>
+      <th style="background:var(--nur-fg)">💉 Nurse+Physio</th>
+      <th style="background:var(--psy-fg)">🧠 Psychiatrist</th>
+      <th style="background:#E65100">💊 Medicine (Rs.)</th>
+      <th>Total</th>
+      <th></th>
+    </tr></thead>
+    <tbody id="pEd"></tbody>
+  </table>
+  <div style="margin-top:9px;font-size:.69rem;color:#888;">
+    💡 Numbers you enter here become the monthly visit quota for each care type, and the medicine budget (in Rs.) for the Medicines columns.
+  </div>
+  <div style="margin-top:10px;">
+    <button class="btn" onclick="addPkgRow()">➕ Add Package</button>
+  </div>
+  <div class="mfoot">
+    <button class="btn sec" onclick="closePkg()">Cancel</button>
+    <button class="btn" onclick="savePkg()">✔ Save &amp; Apply</button>
+  </div>
+</div>
+</div>
+
+<!-- Add Patient Modal -->
+<div class="mbg" id="apbg">
+<div class="modal" style="width:min(380px,94vw);">
+  <h2>➕ Add New Patient</h2>
+  <div style="display:flex;flex-direction:column;gap:10px;">
+    <div>
+      <label style="font-size:.72rem;font-weight:700;color:var(--teal);display:block;margin-bottom:4px;">Patient Name</label>
+      <input type="text" id="ap-name" placeholder="e.g. Ahmed Khan"
+        style="width:100%;border:1.5px solid var(--teal-lt);border-radius:6px;padding:6px 9px;font-size:.78rem;outline:none;font-family:inherit;"/>
+    </div>
+    <div>
+      <label style="font-size:.72rem;font-weight:700;color:var(--teal);display:block;margin-bottom:4px;">Package (optional)</label>
+      <select id="ap-pkg" style="width:100%;border:1.5px solid var(--teal-lt);border-radius:6px;padding:6px 9px;font-size:.78rem;outline:none;font-family:inherit;background:var(--gold-lt);color:var(--teal);font-weight:700;"></select>
+    </div>
+    <div id="ap-err" style="font-size:.71rem;color:var(--can-fg);font-weight:600;display:none;"></div>
+  </div>
+  <div class="mfoot">
+    <button class="btn sec" onclick="closeAddPatient()">Cancel</button>
+    <button class="btn" onclick="confirmAddPatient()">✔ Add Patient</button>
+  </div>
+</div>
+</div>
+
+<script>
+/* ══════════════════════════════════════════
+   CALENDAR  Sep 2026  — day 1 = Tuesday
+   ══════════════════════════════════════════ */
+const DLTR=['M','T','W','T','F','S','S'];
+function wd(d){return(1+(d-1))%7;}  // 0=Mon…6=Sun
+function isSat(d){return wd(d)===5;}
+function isSun(d){return wd(d)===6;}
+function dcls(d){return isSat(d)?'sat':isSun(d)?'sun':'';}
+
+const WEEKS=[
+  {lbl:'Week 1', days:[1,2,3,4,5,6,7]},
+  {lbl:'Week 2', days:[8,9,10,11,12,13,14]},
+  {lbl:'Week 3', days:[15,16,17,18,19,20,21]},
+  {lbl:'Week 4', days:[22,23,24,25,26,27,28]},
+  {lbl:'Week 5', days:[29,30]},
+];
+
+/* ══ PACKAGES ══ */
+let PKGS=[
+  {name:'Basic Care',              doc:0,  nur:0,  psy:0, med:0},
+  {name:'Essential Care',          doc:0,  nur:0,  psy:0, med:0},
+  {name:'Standard Care',           doc:0,  nur:0,  psy:0, med:0},
+  {name:'Premium Care',            doc:0,  nur:0,  psy:0, med:0},
+  {name:'Premium Plus',            doc:0,  nur:0,  psy:0, med:0},
+  {name:'Custom Plan',             doc:0,  nur:0,  psy:0, med:0},
+  {name:'Physiotherapy Package',   doc:0,  nur:0,  psy:0, med:0},
+  {name:'Post Discharge Care',     doc:0,  nur:0,  psy:0, med:0},
+  {name:'Doctor Visit (Same Week)',doc:1,  nur:0,  psy:0, med:0},
+  {name:'Doctor Visit (48 Hours)', doc:1,  nur:0,  psy:0, med:0},
+];
+
+/* ══ PATIENTS ══
+   v[day0..29] = [docVal, nurVal, psyVal]
+   val: ''|'✔'|'✖'|'—'
+*/
+const NAMES=[
+  "M. Arshad Malik","Wasim Ahmed Hashmi","Syed Masood Ahmed","Muhammad Ibrahim",
+  "Safia Suleman","Zainab Masood","Mohammad Akram","Saida Bashir","Anisa Jawed",
+  "Shahbaz Khan","Faiz ur Rehman","Iltifat Uddin","Aziz Jawed","Shafqat Jahan",
+  "Anjum Ara Siddiqui","Muhammad Siddiqui","Shaista Badar","Husain Bano Shafiq Horani",
+  "Seema Tabassum","Muhammad Ghayas Siddiqui","Tanveer Sarwar","Bushra Naeem",
+  "Shazia Akbar","Rukhsana Haq","Arif Rasheed","Madina Rehmani","Shahid Ali",
+  "Sarwar Ali","Nadira Rehmani","Sajida Khatoon","Sarwat Ghouri","Tariq Jafri",
+  "Mubeen Uddin","Farkhanda Rasheed","Naseem Bano","Rana Mohasin",
+  "Abdul Rehman Jawed","Rehana Fareed","Shaheena Parveen","Dil Afroz Bano",
+  "Muhammad Naeem Khalid","Nasim Mukhtar Siddiqui","Sabir Hussain"
+];
+let patients=NAMES.map((name,i)=>({
+  id:i+1, name, pkgIdx:-1,
+  medGiven:0,
+  v:Array.from({length:30},()=>['','',''])  // [D,N,Ps]
+}));
+
+/* ══════════════════════════════════════════
+   PERSISTENCE  (localStorage autosave + JSON export/import)
+   ══════════════════════════════════════════ */
+const STORAGE_KEY='patientVisitSheet_Sep2026_v1';
+let storageOK=true;
+
+function saveState(){
+  if(!storageOK)return;
+  try{
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({PKGS,patients}));
+    flashStatus('✔ Saved '+new Date().toLocaleTimeString(),'#2e7d32');
+  }catch(e){
+    storageOK=false;
+    flashStatus('⚠ Autosave unavailable — use Export instead','#b71c1c');
+  }
+}
+function loadState(){
+  try{
+    const raw=localStorage.getItem(STORAGE_KEY);
+    if(!raw)return false;
+    const data=JSON.parse(raw);
+    if(data.PKGS)PKGS=data.PKGS;
+    if(data.patients)patients=data.patients;
+    return true;
+  }catch(e){storageOK=false;return false;}
+}
+function flashStatus(msg,color){
+  const st=document.getElementById('saveStatus');
+  if(!st)return;
+  st.style.color=color;st.textContent=msg;
+}
+function exportData(){
+  const data={PKGS,patients,exportedAt:new Date().toISOString()};
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download='patient-visit-data-'+new Date().toISOString().slice(0,10)+'.json';
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  flashStatus('⬇ Exported','#1A5276');
+}
+function importData(ev){
+  const file=ev.target.files[0];
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      const data=JSON.parse(e.target.result);
+      if(!data.patients)throw new Error('File is missing patient data');
+      if(data.PKGS)PKGS=data.PKGS;
+      patients=data.patients;
+      saveState();
+      buildHead();render();
+      flashStatus('⬆ Imported','#2e7d32');
+    }catch(err){
+      alert('Could not import file: '+err.message);
+    }
+    ev.target.value='';
+  };
+  reader.readAsText(file);
+}
+
+let sortSt={col:null,dir:1};
+let AC=null; // {pi,day(0-based),type(0/1/2),td}
+
+/* ══════════════════════════════════════════
+   BUILD HEADER  (matches Excel exactly)
+   ══════════════════════════════════════════
+   Column order:
+   S.No | Name | Package |
+   Total Doctor | Total Nur+Phy | Total Psycho |
+   Rem Doctor   | Rem Nur+Phy   | Rem Psycho   |
+   Med Total    | Med Given     | Med Rem/Extra |
+   [Week1: 7 days × 3 cols] [Week2: 7×3] [Week3: 7×3] [Week4: 7×3] [Week5: 2×3]
+*/
+const FIXED_LEFT = 12;   // cols before week data
+const totalDayCols = 30*3;
+const GRAND = FIXED_LEFT + totalDayCols;
+
+function buildHead(){
+  const thead=document.getElementById('thead');
+  thead.innerHTML='';
+
+  /* ── Row 1: Title ── */
+  const r1=mkRow('rTitle');
+  mkTh(r1,'  Patient Visit Sheet  —  September 2026',{cs:GRAND,
+    style:'font-size:.82rem;padding:7px;'});
+  thead.appendChild(r1);
+
+  /* ── Row 2: Group labels ── */
+  const r2=mkRow('rGrp');
+  mkTh(r2,`<button class="sb" onclick="sortBy('sno')">S.No <span id="si-s">⇅</span></button>`,
+    {rs:4,html:true,style:'width:28px;'});
+  mkTh(r2,`<button class="sb" onclick="sortBy('name')">Name <span id="si-n">⇅</span></button>`,
+    {rs:4,html:true,style:'min-width:150px;'});
+  mkTh(r2,`<button class="sb" onclick="sortBy('pkg')">Package <span id="si-p">⇅</span></button>`,
+    {rs:4,html:true,style:'min-width:112px;'});
+  // Total group
+  mkTh(r2,'Total',{cs:3,cls:'tot',style:'font-size:.72rem;'});
+  // Remaining group
+  mkTh(r2,'Remaining',{cs:3,cls:'rem',style:'font-size:.72rem;'});
+  // Medicines group
+  mkTh(r2,'Medicines (Rs.)',{cs:3,cls:'med',style:'font-size:.72rem;'});
+  // Week headers
+  WEEKS.forEach((w,wi)=>{
+    mkTh(r2,w.lbl,{cs:w.days.length*3,cls:'wk'+(wi>0?' wk-start':'')});
+  });
+  thead.appendChild(r2);
+
+  /* ── Row 3: Sub-labels + Date numbers ── */
+  const r3=mkRow('rSub');
+  // Total sub-cols
+  mkTh(r3,'Doctor',  {cls:'doc',rs:3,style:'font-size:.62rem;min-width:38px;'});
+  mkTh(r3,'Nur+Phy', {cls:'nur',rs:3,style:'font-size:.62rem;min-width:38px;'});
+  mkTh(r3,'Psycho',  {cls:'psy',rs:3,style:'font-size:.62rem;min-width:38px;'});
+  // Remaining sub-cols
+  mkTh(r3,'Doctor',  {cls:'doc',rs:3,style:'font-size:.62rem;min-width:38px;'});
+  mkTh(r3,'Nur+Phy', {cls:'nur',rs:3,style:'font-size:.62rem;min-width:38px;'});
+  mkTh(r3,'Psycho',  {cls:'psy',rs:3,style:'font-size:.62rem;min-width:38px;'});
+  // Medicine sub-cols
+  mkTh(r3,'Total',    {cls:'med',rs:3,style:'font-size:.6rem;width:34px;min-width:34px;'});
+  mkTh(r3,'Given',    {cls:'med',rs:3,style:'font-size:.6rem;width:52px;min-width:52px;'});
+  mkTh(r3,'Rem/Extra',{cls:'med',rs:3,style:'font-size:.6rem;min-width:42px;'});
+  // Date numbers (each spans 3 cols = D,N,Ps)
+  WEEKS.forEach((w,wi)=>{
+    w.days.forEach((d,di)=>{
+      const boundary=(wi>0&&di===0)?' wk-start':'';
+      mkTh(r3,d,{cs:3,cls:'date '+(dcls(d))+boundary,style:'font-weight:700;font-size:.67rem;'});
+    });
+  });
+  thead.appendChild(r3);
+
+  /* ── Row 4: Day letters ── */
+  const r4=mkRow('rDay');
+  // blank placeholders for fixed-left cols (already spanned by rs:3 above)
+  // Day letters
+  WEEKS.forEach((w,wi)=>{
+    w.days.forEach((d,di)=>{
+      const boundary=(wi>0&&di===0)?' wk-start':'';
+      mkTh(r4,DLTR[wd(d)],{cs:3,cls:dcls(d)+boundary});
+    });
+  });
+  thead.appendChild(r4);
+
+  /* ── Row 5: D / N+Phy / Psy per day ── */
+  const r5=mkRow('rType');
+  WEEKS.forEach((w,wi)=>{
+    w.days.forEach((d,di)=>{
+      const s=dcls(d);
+      const boundary=(wi>0&&di===0)?' wk-start':'';
+      mkTh(r5,'D',   {cls:'td'+(s?' '+s:'')+boundary});
+      mkTh(r5,'N+Phy',{cls:'tn'+(s?' '+s:'')});
+      mkTh(r5,'Ps',  {cls:'tp'+(s?' '+s:'')});
+    });
+  });
+  thead.appendChild(r5);
+}
+
+function mkRow(cls=''){const r=document.createElement('tr');if(cls)r.className=cls;return r;}
+function mkTh(tr,txt,{cls='',rs=1,cs=1,style='',html=false}={}){
+  const t=document.createElement('th');
+  if(cls)t.className=cls; if(rs>1)t.rowSpan=rs; if(cs>1)t.colSpan=cs;
+  if(style)t.style.cssText=style;
+  if(html)t.innerHTML=txt; else t.textContent=txt;
+  tr.appendChild(t); return t;
+}
+
+/* ══════════════════════════════════════════
+   STATS
+   ══════════════════════════════════════════ */
+function stats(p){
+  const pk=p.pkgIdx>=0?PKGS[p.pkgIdx]:null;
+  let dD=0,nD=0,pD=0;
+  p.v.forEach(([d,n,ps])=>{if(d==='✔')dD++;if(n==='✔')nD++;if(ps==='✔')pD++;});
+  return{
+    dAlloc:pk?pk.doc:null, dDone:dD, dRem:pk?pk.doc-dD:null,
+    nAlloc:pk?pk.nur:null, nDone:nD, nRem:pk?pk.nur-nD:null,
+    pAlloc:pk?pk.psy:null, pDone:pD, pRem:pk?pk.psy-pD:null,
+    medAlloc:pk?(pk.med||0):null,
+  };
+}
+
+/* ══════════════════════════════════════════
+   RENDER BODY
+   ══════════════════════════════════════════ */
+function render(){
+  const tbody=document.getElementById('tbody');
+  tbody.innerHTML='';
+  const q=document.getElementById('srch').value.toLowerCase();
+  const pc=document.getElementById('patCount');
+  if(pc)pc.textContent=patients.length;
+
+  patients.forEach((p,pi)=>{
+    if(q&&!p.name.toLowerCase().includes(q))return;
+    const s=stats(p);
+    const tr=document.createElement('tr');
+    tr.dataset.pi=pi;
+
+    /* fixed-left cells */
+    mkTd(tr,'sno',p.id);
+    mkTd(tr,'name',p.name,true);
+
+    // Package select
+    const tdp=mkTd(tr,'pkg');
+    const sel=document.createElement('select');
+    sel.innerHTML='<option value="-1">— Select —</option>'+
+      PKGS.map((pk,i)=>`<option value="${i}"${p.pkgIdx===i?' selected':''}>${pk.name}</option>`).join('');
+    sel.onchange=e=>{p.pkgIdx=+e.target.value;render();saveState();};
+    tdp.appendChild(sel);
+
+    // Total cols
+    rCell(tr,'tot-doc',s.dAlloc);
+    rCell(tr,'tot-nur',s.nAlloc);
+    rCell(tr,'tot-psy',s.pAlloc);
+    // Remaining cols
+    remCell(tr,'rem-doc',s.dRem);
+    remCell(tr,'rem-nur',s.nRem);
+    remCell(tr,'rem-psy',s.pRem);
+
+    // Medicine cols (Rs.) — Total comes from the selected package
+    rCell(tr,'med-total',s.medAlloc);
+    medGivenCell(tr,p,s);
+    medRemCell(tr,p,s.medAlloc);
+
+    /* visit cells: 30 days × 3 types */
+    WEEKS.forEach((w,wi)=>{
+      w.days.forEach((d,dayIdx)=>{
+        const di=d-1;
+        const dc=dcls(d);
+        const TYPES=['D','N','Ps'];
+        const VCL =['vd','vn','vp'];
+        const FG  =['var(--doc-fg)','var(--nur-fg)','var(--psy-fg)'];
+        const boundary=(wi>0&&dayIdx===0)?' wk-start':'';
+        [0,1,2].forEach(t=>{
+          const val=p.v[di][t];
+          const td=document.createElement('td');
+          td.className='vc'+(dc?' '+dc:'')+(t===0?boundary:'');
+          applyVC(td,val,VCL[t],FG[t]);
+          td.onclick=ev=>{ev.stopPropagation();openDD(ev,pi,di,t,td,TYPES[t],FG[t],VCL[t]);};
+          tr.appendChild(td);
+        });
+      });
+    });
+
+    tbody.appendChild(tr);
+  });
+}
+
+function mkTd(tr,cls,txt='',left=false){
+  const td=document.createElement('td');td.className=cls;
+  if(left)td.style.textAlign='left';
+  if(txt!=='')td.textContent=txt;
+  tr.appendChild(td);return td;
+}
+function rCell(tr,cls,val){
+  const td=document.createElement('td');td.className=cls;
+  td.textContent=val===null?'—':val;tr.appendChild(td);return td;
+}
+function remCell(tr,cls,val){
+  const td=document.createElement('td');td.className=cls;
+  if(val===null){td.textContent='—';}
+  else{
+    td.textContent=val;
+    if(val<=0)td.style.background='#f5cba7';
+    else if(val<=2)td.style.background='#fff9c4';
+  }
+  tr.appendChild(td);return td;
+}
+
+/* ══ Medicine cells (Rs.) ══ */
+function medGivenCell(tr,p,s){
+  const td=document.createElement('td');td.className='med-input';
+  const inp=document.createElement('input');
+  inp.type='number';inp.min='0';inp.step='1';inp.value=p.medGiven||0;
+  inp.oninput=()=>{
+    p.medGiven=+inp.value||0;
+    setMedRem(tr.querySelector('td.med-rem'),s.medAlloc,p.medGiven);
+    saveState();
+  };
+  td.appendChild(inp);tr.appendChild(td);return td;
+}
+function medRemCell(tr,p,alloc){
+  const td=document.createElement('td');td.className='med-rem';
+  setMedRem(td,alloc,p.medGiven);
+  tr.appendChild(td);return td;
+}
+function setMedRem(td,alloc,given){
+  if(!td)return;
+  if(alloc===null){td.textContent='—';td.style.color='';td.style.background='';return;}
+  const diff=alloc-(given||0);
+  td.textContent=diff;
+  if(diff<0){td.style.color='#B71C1C';td.style.background='var(--rem-zero)';}
+  else{td.style.color='#1B5E20';td.style.background='var(--rem-ok)';}
+}
+
+/* ══ Visit cell render ══ */
+function applyVC(td,val,vcls,fg){
+  td.classList.remove('vd','vn','vp','vx');
+  td.style.cssText='';
+  // Restore sat/sun bg
+  const di=+td.dataset?.day;
+  if(td.classList.contains('sat'))td.style.background='var(--sat-bg)';
+  if(td.classList.contains('sun'))td.style.background='var(--sun-bg)';
+  if(!val){td.innerHTML='';return;}
+  if(val==='✔'){td.classList.add(vcls);td.style.background='';
+    td.innerHTML=`<span style="color:${fg};font-size:.8rem;font-weight:800">✔</span>`;}
+  else if(val==='✖'){td.classList.add('vx');
+    td.innerHTML=`<span style="color:var(--can-fg);font-size:.8rem;font-weight:800">✖</span>`;}
+  else if(val==='—'){td.innerHTML=`<span style="color:#bbb;font-size:.75rem">—</span>`;}
+}
+
+/* ══════════════════════════════════════════
+   DROPDOWN
+   ══════════════════════════════════════════ */
+let AC_TYPE_FG='', AC_TYPE_VCL='', AC_TYPE_LBL='';
+function openDD(e,pi,di,type,td,typeLbl,fg,vcls){
+  AC={pi,di,type,td};
+  AC_TYPE_FG=fg; AC_TYPE_VCL=vcls; AC_TYPE_LBL=typeLbl;
+  const d=di+1;
+  document.getElementById('dd-hd').textContent=
+    `Day ${d} (${DLTR[wd(d)]}) · ${patients[pi].name.split(' ')[0]} · ${typeLbl==='N'?'Nurse+Phy':typeLbl==='Ps'?'Psychiatrist':'Doctor'}`;
+  // Style tick option with visit type colour
+  document.getElementById('opt-tick').onclick=()=>pick('✔');
+  document.getElementById('opt-ico').style.color=fg;
+  document.getElementById('opt-cross').onclick=()=>pick('✖');
+  const [dd,ov]=[document.getElementById('dd'),document.getElementById('ov')];
+  ov.style.display='block';dd.style.display='block';
+  let top=e.clientY+8,left=e.clientX-8;
+  if(top+210>window.innerHeight)top=e.clientY-215;
+  if(left+190>window.innerWidth)left=window.innerWidth-193;
+  dd.style.top=top+'px';dd.style.left=left+'px';
+}
+function closeDD(){
+  document.getElementById('dd').style.display='none';
+  document.getElementById('ov').style.display='none';AC=null;
+}
+function pick(val){
+  if(!AC)return;
+  const{pi,di,type,td}=AC;
+  patients[pi].v[di][type]=val;
+  applyVC(td,val,AC_TYPE_VCL,AC_TYPE_FG);
+  updateRow(td.closest('tr'),patients[pi]);
+  closeDD();
+  saveState();
+}
+
+/* live row stats update without full re-render */
+function updateRow(tr,p){
+  const s=stats(p);
+  const tds=[...tr.querySelectorAll('td')];
+  // positions: 0=sno,1=name,2=pkg,3=tot-doc,4=tot-nur,5=tot-psy,6=rem-doc,7=rem-nur,8=rem-psy
+  const setTot=(i,v)=>{tds[i].textContent=v===null?'—':v;};
+  const setRem=(i,v,td)=>{
+    td=tds[i];td.textContent=v===null?'—':v;td.style.background='';
+    if(v!==null){if(v<=0)td.style.background='#f5cba7';else if(v<=2)td.style.background='#fff9c4';}
+  };
+  setTot(3,s.dAlloc);setTot(4,s.nAlloc);setTot(5,s.pAlloc);
+  setRem(6,s.dRem);setRem(7,s.nRem);setRem(8,s.pRem);
+}
+
+/* ══════════════════════════════════════════
+   PACKAGE MODAL
+   ══════════════════════════════════════════ */
+function openPkg(){
+  const b=document.getElementById('pEd');b.innerHTML='';
+  PKGS.forEach((pk,i)=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td><input type="text" value="${pk.name.replace(/"/g,'&quot;')}" id="ed-nm${i}"
+        style="width:130px;text-align:left;font-weight:700;color:var(--teal);border:1.5px solid var(--teal-lt);border-radius:4px;padding:2px 5px;font-size:.72rem;outline:none;font-family:inherit;"/></td>
+      <td><input type="number" min="0" max="99" value="${pk.doc}" id="ed-d${i}"/></td>
+      <td><input type="number" min="0" max="99" value="${pk.nur}" id="ed-n${i}"/></td>
+      <td><input type="number" min="0" max="99" value="${pk.psy}" id="ed-p${i}"/></td>
+      <td><input type="number" min="0" step="1" value="${pk.med||0}" id="ed-m${i}" style="width:64px;"/></td>
+      <td id="ed-t${i}">${pk.doc+pk.nur+pk.psy}</td>
+      <td><button class="btn sec" style="padding:3px 8px;font-size:.65rem;" onclick="deletePkg(${i})">🗑</button></td>`;
+    b.appendChild(tr);
+    document.getElementById(`ed-nm${i}`).oninput=()=>{
+      PKGS[i].name=document.getElementById(`ed-nm${i}`).value||('Package '+(i+1));
+    };
+    ['d','n','p','m'].forEach(f=>{
+      document.getElementById(`ed-${f}${i}`).oninput=()=>{
+        PKGS[i].doc=+document.getElementById(`ed-d${i}`).value||0;
+        PKGS[i].nur=+document.getElementById(`ed-n${i}`).value||0;
+        PKGS[i].psy=+document.getElementById(`ed-p${i}`).value||0;
+        PKGS[i].med=+document.getElementById(`ed-m${i}`).value||0;
+        document.getElementById(`ed-t${i}`).textContent=PKGS[i].doc+PKGS[i].nur+PKGS[i].psy;
+      };
+    });
+  });
+  document.getElementById('mbg').classList.add('open');
+}
+function closePkg(){document.getElementById('mbg').classList.remove('open');}
+function savePkg(){closePkg();render();saveState();}
+document.getElementById('mbg').onclick=function(e){if(e.target===this)closePkg();};
+
+/* Add a brand-new customizable package row */
+function addPkgRow(){
+  PKGS.push({name:'New Package '+(PKGS.length+1),doc:0,nur:0,psy:0,med:0});
+  openPkg();
+  // scroll the new row into view
+  const b=document.getElementById('pEd');
+  if(b.lastElementChild)b.lastElementChild.scrollIntoView({block:'nearest'});
+}
+/* Delete a package (patients referencing it are reset to "— Select —") */
+function deletePkg(i){
+  const pk=PKGS[i];
+  const used=patients.some(p=>p.pkgIdx===i);
+  if(used&&!confirm(`"${pk.name}" is assigned to one or more patients. Delete it anyway? Their package will be cleared.`))return;
+  PKGS.splice(i,1);
+  patients.forEach(p=>{
+    if(p.pkgIdx===i)p.pkgIdx=-1;
+    else if(p.pkgIdx>i)p.pkgIdx--;
+  });
+  openPkg();
+}
+
+/* ══════════════════════════════════════════
+   ADD PATIENT
+   ══════════════════════════════════════════ */
+function openAddPatient(){
+  document.getElementById('ap-name').value='';
+  const sel=document.getElementById('ap-pkg');
+  sel.innerHTML='<option value="-1">— Select —</option>'+
+    PKGS.map((pk,i)=>`<option value="${i}">${pk.name}</option>`).join('');
+  document.getElementById('ap-err').style.display='none';
+  document.getElementById('apbg').classList.add('open');
+  setTimeout(()=>document.getElementById('ap-name').focus(),50);
+}
+function closeAddPatient(){document.getElementById('apbg').classList.remove('open');}
+document.getElementById('apbg').onclick=function(e){if(e.target===this)closeAddPatient();};
+function confirmAddPatient(){
+  const nameInp=document.getElementById('ap-name');
+  const name=nameInp.value.trim();
+  const err=document.getElementById('ap-err');
+  if(!name){
+    err.textContent='Please enter a patient name.';
+    err.style.display='block';
+    nameInp.focus();
+    return;
+  }
+  const pkgIdx=+document.getElementById('ap-pkg').value;
+  const nextId=patients.length?Math.max(...patients.map(p=>p.id))+1:1;
+  patients.push({
+    id:nextId, name, pkgIdx,
+    medGiven:0,
+    v:Array.from({length:30},()=>['','',''])
+  });
+  closeAddPatient();
+  document.getElementById('srch').value='';
+  render();
+  saveState();
+  flashStatus('✔ Patient added','#2e7d32');
+}
+
+/* ══════════════════════════════════════════
+   SORT & RESET
+   ══════════════════════════════════════════ */
+function sortBy(col){
+  sortSt.dir=sortSt.col===col?-sortSt.dir:1;sortSt.col=col;
+  patients.sort((a,b)=>{
+    if(col==='sno') return sortSt.dir*(a.id-b.id);
+    if(col==='name')return sortSt.dir*a.name.localeCompare(b.name);
+    const pa=a.pkgIdx>=0?PKGS[a.pkgIdx].name:'';
+    const pb=b.pkgIdx>=0?PKGS[b.pkgIdx].name:'';
+    return sortSt.dir*pa.localeCompare(pb);
+  });
+  ['s','n','p'].forEach(c=>{
+    const el=document.getElementById('si-'+c);if(!el)return;
+    el.textContent=(c==='s'&&col==='sno')||(c==='n'&&col==='name')||(c==='p'&&col==='pkg')
+      ?(sortSt.dir===1?'▲':'▼'):'⇅';
+  });
+  render();
+}
+function resetAll(){
+  if(!confirm('Reset all visit data and package selections?'))return;
+  patients.forEach(p=>{p.pkgIdx=-1;p.medGiven=0;p.v=Array.from({length:30},()=>['','','']);});
+  document.getElementById('srch').value='';
+  sortSt={col:null,dir:1};
+  ['s','n','p'].forEach(c=>{const el=document.getElementById('si-'+c);if(el)el.textContent='⇅';});
+  render();
+  saveState();
+}
+
+/* ══ INIT ══ */
+const restored=loadState();
+buildHead();
+render();
+if(restored)flashStatus('✔ Restored previous session','#2e7d32');
+</script>
+</body>
+</html>

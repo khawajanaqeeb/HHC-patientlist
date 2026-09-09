@@ -1,0 +1,39 @@
+export type VisitValue = '' | '✔' | '✖' | '—';
+export type DayVisits = [VisitValue, VisitValue, VisitValue]; // [Doctor, Nurse+Physio, Psychiatrist]
+
+export interface Package {
+  id: number;
+  name: string;
+  doc: number;
+  nur: number;
+  psy: number;
+  med: number;
+}
+
+export interface PatientMonthData {
+  id: number;
+  name: string;
+  pkgIdx: number; // 0-based index or -1 if unselected
+  medGiven: number;
+  v: DayVisits[]; // Array of length `daysInMonth`
+}
+
+export interface MonthInfo {
+  id: string; // e.g. "2026-09"
+  year: number;
+  month: number; // 1-12
+  label: string; // e.g. "September 2026"
+  daysInMonth: number;
+}
+
+export interface WeekDefinition {
+  lbl: string;
+  days: number[];
+}
+
+export interface AppStateData {
+  currentMonth: MonthInfo;
+  availableMonths: MonthInfo[];
+  packages: Package[];
+  patients: PatientMonthData[];
+}

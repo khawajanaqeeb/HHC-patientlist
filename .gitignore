@@ -1,0 +1,26 @@
+# Dependencies
+node_modules/
+
+# Next.js build output
+.next/
+out/
+
+# SQLite database (local data — do NOT commit)
+.data/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# TypeScript cache
+*.tsbuildinfo
+next-env.d.ts
