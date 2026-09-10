@@ -43,13 +43,29 @@ export async function ensureDbInitialized() {
         CREATE TABLE IF NOT EXISTS packages (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           name TEXT NOT NULL,
+          price INTEGER NOT NULL DEFAULT 0,
           doc INTEGER NOT NULL DEFAULT 0,
+          nur_phy INTEGER NOT NULL DEFAULT 0,
           nur INTEGER NOT NULL DEFAULT 0,
+          phy INTEGER NOT NULL DEFAULT 0,
           psy INTEGER NOT NULL DEFAULT 0,
           med INTEGER NOT NULL DEFAULT 0,
           sort_order INTEGER NOT NULL DEFAULT 0
         );
       `);
+
+      try {
+        await db.execute('ALTER TABLE packages ADD COLUMN price INTEGER NOT NULL DEFAULT 0');
+      } catch {}
+      try {
+        await db.execute('ALTER TABLE packages ADD COLUMN nur_phy INTEGER NOT NULL DEFAULT 0');
+      } catch {}
+      try {
+        await db.execute('ALTER TABLE packages ADD COLUMN nur INTEGER NOT NULL DEFAULT 0');
+      } catch {}
+      try {
+        await db.execute('ALTER TABLE packages ADD COLUMN phy INTEGER NOT NULL DEFAULT 0');
+      } catch {}
 
       await db.execute(`
         CREATE TABLE IF NOT EXISTS month_patients (
@@ -99,25 +115,34 @@ async function seedInitialData(db: Client) {
   });
 
   const packagesList: Omit<Package, 'id'>[] = (seedData && Array.isArray(seedData.PKGS))
-    ? seedData.PKGS
+    ? seedData.PKGS.map((pkg: any) => ({
+        name: pkg.name,
+        price: pkg.price || 0,
+        doc: pkg.doc || 0,
+        nurPhy: pkg.nurPhy !== undefined ? pkg.nurPhy : (pkg.nur_phy !== undefined ? pkg.nur_phy : (pkg.nur || 0)),
+        nur: pkg.nur_only !== undefined ? pkg.nur_only : 0,
+        phy: pkg.phy || 0,
+        psy: pkg.psy || 0,
+        med: pkg.med || 0,
+      }))
     : [
-        { name: 'Basic Care', doc: 1, nur: 1, psy: 0, med: 0 },
-        { name: 'Essential Care', doc: 1, nur: 2, psy: 0, med: 5000 },
-        { name: 'Standard Care', doc: 1, nur: 3, psy: 0, med: 7500 },
-        { name: 'Premium Care', doc: 1, nur: 4, psy: 0, med: 10000 },
-        { name: 'Premium Plus', doc: 2, nur: 8, psy: 0, med: 15000 },
-        { name: 'Custom Plan', doc: 0, nur: 0, psy: 0, med: 0 },
-        { name: 'Physiotherapy Package', doc: 0, nur: 0, psy: 0, med: 0 },
-        { name: 'Post Discharge Care', doc: 0, nur: 0, psy: 0, med: 0 },
-        { name: 'Doctor Visit (Same Week)', doc: 1, nur: 0, psy: 0, med: 0 },
-        { name: 'Doctor Visit (48 Hours)', doc: 1, nur: 0, psy: 0, med: 0 },
-        { name: 'Customize-Anisa', doc: 2, nur: 3, psy: 0, med: 0 },
-        { name: 'New Package 12', doc: 0, nur: 0, psy: 0, med: 0 }
+        { name: 'Basic Care', price: 0, doc: 1, nurPhy: 1, nur: 0, phy: 0, psy: 0, med: 0 },
+        { name: 'Essential Care', price: 0, doc: 1, nurPhy: 2, nur: 0, phy: 0, psy: 0, med: 5000 },
+        { name: 'Standard Care', price: 0, doc: 1, nurPhy: 3, nur: 0, phy: 0, psy: 0, med: 7500 },
+        { name: 'Premium Care', price: 0, doc: 1, nurPhy: 4, nur: 0, phy: 0, psy: 0, med: 10000 },
+        { name: 'Premium Plus', price: 0, doc: 2, nurPhy: 8, nur: 0, phy: 0, psy: 0, med: 15000 },
+        { name: 'Custom Plan', price: 0, doc: 0, nurPhy: 0, nur: 0, phy: 0, psy: 0, med: 0 },
+        { name: 'Physiotherapy Package', price: 0, doc: 0, nurPhy: 0, nur: 0, phy: 0, psy: 0, med: 0 },
+        { name: 'Post Discharge Care', price: 0, doc: 0, nurPhy: 0, nur: 0, phy: 0, psy: 0, med: 0 },
+        { name: 'Doctor Visit (Same Week)', price: 0, doc: 1, nurPhy: 0, nur: 0, phy: 0, psy: 0, med: 0 },
+        { name: 'Doctor Visit (48 Hours)', price: 0, doc: 1, nurPhy: 0, nur: 0, phy: 0, psy: 0, med: 0 },
+        { name: 'Customize-Anisa', price: 0, doc: 2, nurPhy: 3, nur: 0, phy: 0, psy: 0, med: 0 },
+        { name: 'New Package 12', price: 0, doc: 0, nurPhy: 0, nur: 0, phy: 0, psy: 0, med: 0 }
       ];
 
   const packageStatements: InStatement[] = packagesList.map((pkg, idx) => ({
-    sql: `INSERT INTO packages (name, doc, nur, psy, med, sort_order) VALUES (?, ?, ?, ?, ?, ?)`,
-    args: [pkg.name, pkg.doc, pkg.nur, pkg.psy, pkg.med || 0, idx]
+    sql: `INSERT INTO packages (name, price, doc, nur_phy, nur, phy, psy, med, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    args: [pkg.name, pkg.price || 0, pkg.doc, pkg.nurPhy, pkg.nur, pkg.phy, pkg.psy, pkg.med || 0, idx]
   }));
   await db.batch(packageStatements, 'write');
 
@@ -172,14 +197,17 @@ export async function getMonth(monthId: string): Promise<MonthInfo | null> {
 export async function getPackages(): Promise<Package[]> {
   await ensureDbInitialized();
   const db = getClient();
-  const res = await db.execute('SELECT id, name, doc, nur, psy, med FROM packages ORDER BY sort_order ASC, id ASC');
+  const res = await db.execute('SELECT id, name, price, doc, nur_phy, nur, phy, psy, med FROM packages ORDER BY sort_order ASC, id ASC');
   return res.rows.map(r => ({
     id: Number(r.id),
     name: String(r.name),
-    doc: Number(r.doc),
-    nur: Number(r.nur),
-    psy: Number(r.psy),
-    med: Number(r.med)
+    price: Number(r.price || 0),
+    doc: Number(r.doc || 0),
+    nurPhy: Number(r.nur_phy !== undefined ? r.nur_phy : (r.nur !== undefined ? r.nur : 0)),
+    nur: Number(r.nur || 0),
+    phy: Number(r.phy || 0),
+    psy: Number(r.psy || 0),
+    med: Number(r.med || 0)
   }));
 }
 
@@ -193,8 +221,8 @@ export async function savePackages(packages: Package[]) {
 
   packages.forEach((pkg, idx) => {
     statements.push({
-      sql: 'INSERT INTO packages (name, doc, nur, psy, med, sort_order) VALUES (?, ?, ?, ?, ?, ?)',
-      args: [pkg.name, pkg.doc, pkg.nur, pkg.psy, pkg.med || 0, idx]
+      sql: 'INSERT INTO packages (name, price, doc, nur_phy, nur, phy, psy, med, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      args: [pkg.name, pkg.price || 0, pkg.doc || 0, pkg.nurPhy || 0, pkg.nur || 0, pkg.phy || 0, pkg.psy || 0, pkg.med || 0, idx]
     });
   });
 
@@ -372,9 +400,11 @@ export async function importFullJson(data: any, targetMonthId?: string) {
   if (Array.isArray(data.PKGS)) {
     statements.push({ sql: 'DELETE FROM packages', args: [] });
     data.PKGS.forEach((pkg: any, idx: number) => {
+      const nurPhyVal = pkg.nurPhy !== undefined ? pkg.nurPhy : (pkg.nur_phy !== undefined ? pkg.nur_phy : (pkg.nur !== undefined ? pkg.nur : 0));
+      const nurVal = pkg.nur !== undefined && pkg.nurPhy !== undefined ? pkg.nur : (pkg.nur_only || 0);
       statements.push({
-        sql: 'INSERT INTO packages (name, doc, nur, psy, med, sort_order) VALUES (?, ?, ?, ?, ?, ?)',
-        args: [pkg.name, pkg.doc, pkg.nur, pkg.psy, pkg.med || 0, idx]
+        sql: 'INSERT INTO packages (name, price, doc, nur_phy, nur, phy, psy, med, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        args: [pkg.name, pkg.price || 0, pkg.doc || 0, nurPhyVal, nurVal, pkg.phy || 0, pkg.psy || 0, pkg.med || 0, idx]
       });
     });
   }

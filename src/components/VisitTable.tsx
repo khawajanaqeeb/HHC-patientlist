@@ -46,7 +46,7 @@ export const VisitTable: React.FC<VisitTableProps> = ({
   onOpenDropdown,
 }) => {
   const weeks = getWeeksForMonth(currentMonth.daysInMonth);
-  const fixedLeftCols = 12;
+  const fixedLeftCols = 15;
   const totalDayCols = currentMonth.daysInMonth * 3;
   const grandTotalCols = fixedLeftCols + totalDayCols;
 
@@ -89,9 +89,12 @@ export const VisitTable: React.FC<VisitTableProps> = ({
       dAlloc: pkg ? pkg.doc : null,
       dDone: docDone,
       dRem: pkg ? pkg.doc - docDone : null,
-      nAlloc: pkg ? pkg.nur : null,
-      nDone: nurDone,
-      nRem: pkg ? pkg.nur - nurDone : null,
+      npAlloc: pkg ? (pkg.nurPhy !== undefined ? pkg.nurPhy : pkg.nur) : null,
+      npDone: nurDone,
+      npRem: pkg ? (pkg.nurPhy !== undefined ? pkg.nurPhy : pkg.nur) - nurDone : null,
+      nAlloc: pkg ? (pkg.nur !== undefined ? pkg.nur : null) : null,
+      nRem: pkg ? (pkg.nurPhy !== undefined ? pkg.nurPhy : pkg.nur) - nurDone : null,
+      phyAlloc: pkg ? (pkg.phy !== undefined ? pkg.phy : null) : null,
       pAlloc: pkg ? pkg.psy : null,
       pDone: psyDone,
       pRem: pkg ? pkg.psy - psyDone : null,
@@ -108,14 +111,7 @@ export const VisitTable: React.FC<VisitTableProps> = ({
     <div className="wrap">
       <table>
         <thead>
-          {/* Row 1: Title */}
-          <tr className="rTitle">
-            <th colSpan={grandTotalCols} style={{ fontSize: '0.82rem', padding: '7px' }}>
-              Patient Visit Sheet — {currentMonth.label}
-            </th>
-          </tr>
-
-          {/* Row 2: Group labels */}
+          {/* Row 1: Group labels */}
           <tr className="rGrp">
             <th rowSpan={4} style={{ width: '28px' }}>
               <button className="sb" onClick={() => onSort('sno')}>
@@ -132,7 +128,10 @@ export const VisitTable: React.FC<VisitTableProps> = ({
                 Package <span>{getSortIcon('pkg')}</span>
               </button>
             </th>
-            <th colSpan={3} className="tot" style={{ fontSize: '0.72rem' }}>
+            <th rowSpan={4} className="pkg-price-th" style={{ minWidth: '78px', fontSize: '0.7rem' }}>
+              Price (Rs.)
+            </th>
+            <th colSpan={5} className="tot" style={{ fontSize: '0.72rem' }}>
               Total
             </th>
             <th colSpan={3} className="rem" style={{ fontSize: '0.72rem' }}>
@@ -160,6 +159,12 @@ export const VisitTable: React.FC<VisitTableProps> = ({
             </th>
             <th className="nur" rowSpan={3} style={{ fontSize: '0.62rem', minWidth: '38px' }}>
               Nur+Phy
+            </th>
+            <th className="nur" rowSpan={3} style={{ fontSize: '0.62rem', minWidth: '38px', background: '#e1f5fe' }}>
+              Nurse
+            </th>
+            <th className="nur" rowSpan={3} style={{ fontSize: '0.62rem', minWidth: '38px', background: '#e0f2f1' }}>
+              Physio
             </th>
             <th className="psy" rowSpan={3} style={{ fontSize: '0.62rem', minWidth: '38px' }}>
               Psycho
@@ -244,6 +249,7 @@ export const VisitTable: React.FC<VisitTableProps> = ({
         <tbody>
           {sortedPatients.map((p) => {
             const originalIndex = patients.findIndex((pat) => pat.id === p.id);
+            const pkg = p.pkgIdx >= 0 && packages[p.pkgIdx] ? packages[p.pkgIdx] : null;
             const s = getStats(p);
             const medDiff = s.medAlloc !== null ? s.medAlloc - (p.medGiven || 0) : null;
 
@@ -267,9 +273,16 @@ export const VisitTable: React.FC<VisitTableProps> = ({
                   </select>
                 </td>
 
+                {/* Price */}
+                <td className="pkg-price-cell">
+                  {pkg ? `Rs. ${(pkg.price || 0).toLocaleString()}` : '—'}
+                </td>
+
                 {/* Total columns */}
                 <td className="tot-doc">{s.dAlloc === null ? '—' : s.dAlloc}</td>
-                <td className="tot-nur">{s.nAlloc === null ? '—' : s.nAlloc}</td>
+                <td className="tot-nur">{s.npAlloc === null ? '—' : s.npAlloc}</td>
+                <td className="tot-nur" style={{ background: '#e1f5fe' }}>{s.nAlloc === null ? '—' : s.nAlloc}</td>
+                <td className="tot-nur" style={{ background: '#e0f2f1' }}>{s.phyAlloc === null ? '—' : s.phyAlloc}</td>
                 <td className="tot-psy">{s.pAlloc === null ? '—' : s.pAlloc}</td>
 
                 {/* Remaining columns */}

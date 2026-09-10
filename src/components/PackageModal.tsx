@@ -47,8 +47,11 @@ export const PackageModal: React.FC<PackageModalProps> = ({
       {
         id: nextId,
         name: `New Package ${prev.length + 1}`,
+        price: 0,
         doc: 0,
+        nurPhy: 0,
         nur: 0,
+        phy: 0,
         psy: 0,
         med: 0,
       },
@@ -77,7 +80,7 @@ export const PackageModal: React.FC<PackageModalProps> = ({
 
   return (
     <div className="mbg" onClick={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="modal">
+      <div className="modal" style={{ width: 'min(860px, 98vw)' }}>
         <h2>⚙ Package Definitions</h2>
         <p style={{ fontSize: '0.71rem', color: '#666', marginBottom: '10px' }}>
           Set monthly visit allocations per package. These auto-populate the Total columns when a package is selected for a patient.
@@ -87,8 +90,11 @@ export const PackageModal: React.FC<PackageModalProps> = ({
           <thead>
             <tr>
               <th>Package Name</th>
+              <th style={{ background: '#2e7d32' }}>💰 Price (Rs.)</th>
               <th style={{ background: 'var(--doc-fg)' }}>🩺 Doctor</th>
               <th style={{ background: 'var(--nur-fg)' }}>💉 Nurse+Physio</th>
+              <th style={{ background: '#0288D1' }}>💉 Nurse</th>
+              <th style={{ background: '#00897B' }}>🏋 Physio</th>
               <th style={{ background: 'var(--psy-fg)' }}>🧠 Psychiatrist</th>
               <th style={{ background: '#E65100' }}>💊 Medicine (Rs.)</th>
               <th>Total</th>
@@ -119,6 +125,16 @@ export const PackageModal: React.FC<PackageModalProps> = ({
                   <input
                     type="number"
                     min="0"
+                    step="1"
+                    value={pkg.price || 0}
+                    onChange={(e) => handleChange(i, 'price', e.target.value)}
+                    style={{ width: '70px' }}
+                  />
+                </td>
+                <td>
+                  <input
+                    type="number"
+                    min="0"
                     max="99"
                     value={pkg.doc}
                     onChange={(e) => handleChange(i, 'doc', e.target.value)}
@@ -129,7 +145,16 @@ export const PackageModal: React.FC<PackageModalProps> = ({
                     type="number"
                     min="0"
                     max="99"
-                    value={pkg.nur}
+                    value={pkg.nurPhy || 0}
+                    onChange={(e) => handleChange(i, 'nurPhy', e.target.value)}
+                  />
+                </td>
+                <td>
+                  <input
+                    type="number"
+                    min="0"
+                    max="99"
+                    value={pkg.nur || 0}
                     onChange={(e) => handleChange(i, 'nur', e.target.value)}
                   />
                 </td>
@@ -138,7 +163,16 @@ export const PackageModal: React.FC<PackageModalProps> = ({
                     type="number"
                     min="0"
                     max="99"
-                    value={pkg.psy}
+                    value={pkg.phy || 0}
+                    onChange={(e) => handleChange(i, 'phy', e.target.value)}
+                  />
+                </td>
+                <td>
+                  <input
+                    type="number"
+                    min="0"
+                    max="99"
+                    value={pkg.psy || 0}
                     onChange={(e) => handleChange(i, 'psy', e.target.value)}
                   />
                 </td>
@@ -152,7 +186,9 @@ export const PackageModal: React.FC<PackageModalProps> = ({
                     style={{ width: '64px' }}
                   />
                 </td>
-                <td style={{ fontWeight: 700 }}>{pkg.doc + pkg.nur + pkg.psy}</td>
+                <td style={{ fontWeight: 700 }}>
+                  {(pkg.doc || 0) + (pkg.nurPhy || 0) + (pkg.nur || 0) + (pkg.phy || 0) + (pkg.psy || 0)}
+                </td>
                 <td>
                   <button
                     className="btn sec"

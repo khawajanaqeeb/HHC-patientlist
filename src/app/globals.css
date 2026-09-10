@@ -59,15 +59,13 @@ body {
    TITLE BAR  (glassmorphism card)
 ───────────────────────────────────────────── */
 .title-bar {
-  background: rgba(255, 255, 255, 0.10);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.20);
-  color: #fff;
+  background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 50%, #7dd3fc 100%);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  color: #0c4a6e;
   text-align: center;
   padding: 18px 24px 14px;
   border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-  box-shadow: var(--glass-shadow);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
   position: relative;
 }
 
@@ -79,18 +77,25 @@ body {
   align-items: center;
   justify-content: center;
   gap: 9px;
-  background: linear-gradient(135deg, #ffffff 0%, #d6eaf8 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  text-shadow: none;
+  color: #0f172a;
+  background: none;
+  -webkit-text-fill-color: initial;
+}
+
+.app-logo {
+  height: 105px;
+  max-height: 140px;
+  width: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.25));
+  margin-right: 12px;
 }
 
 .title-bar p {
   font-size: 0.78rem;
-  opacity: 0.78;
+  color: #0369a1;
   margin-top: 4px;
-  font-weight: 400;
+  font-weight: 600;
   letter-spacing: 0.2px;
 }
 
@@ -284,9 +289,12 @@ body {
 
 /* Save status indicator */
 .save-status {
-  font-size: 0.7rem;
-  font-weight: 600;
-  padding: 3px 8px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #ffffff !important;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 4px 10px;
   border-radius: 20px;
   display: inline-flex;
   align-items: center;
@@ -332,21 +340,56 @@ body {
 }
 
 /* ─────────────────────────────────────────────
-   TABLE WRAP  (glass card)
+   TABLE WRAP  (glass card with horizontal scrollbar)
 ───────────────────────────────────────────── */
 .wrap {
   overflow-x: auto;
+  overflow-y: auto;
+  max-height: calc(100vh - 210px);
+  width: 100%;
+  max-width: 100%;
+  scrollbar-width: auto;
+  scrollbar-color: #1f618d #d6eaf8;
   border-radius: 0 0 var(--radius-lg) var(--radius-lg);
-  background: rgba(255, 255, 255, 0.96);
-  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.98);
+  border: 1.5px solid rgba(255, 255, 255, 0.4);
   border-top: none;
-  box-shadow: 0 8px 40px rgba(26, 82, 118, 0.22), 0 2px 8px rgba(0,0,0,0.08);
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.25);
+}
+
+.wrap::-webkit-scrollbar {
+  height: 16px;
+  width: 12px;
+}
+
+.wrap::-webkit-scrollbar-track {
+  background: #d6eaf8;
+  border-radius: 8px;
+  box-shadow: inset 0 0 6px rgba(0,0,0,0.12);
+}
+
+.wrap::-webkit-scrollbar-thumb {
+  background: linear-gradient(90deg, #1f618d 0%, #2980b9 50%, #1a5276 100%);
+  border-radius: 8px;
+  border: 2px solid #d6eaf8;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+}
+
+.wrap::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(90deg, #154360 0%, #1f618d 100%);
 }
 
 table {
   border-collapse: collapse;
   width: max-content;
   font-size: 0.69rem;
+}
+
+thead {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
 }
 
 /* ── Header rows ── */
@@ -491,6 +534,22 @@ td.pkg select {
   transition: border-color 0.15s;
 }
 td.pkg select:focus { border-color: var(--gold); box-shadow: 0 0 0 2px rgba(212, 172, 13, 0.15); }
+
+th.pkg-price-th {
+  background: linear-gradient(135deg, #1b5e20, #2e7d32) !important;
+  color: #fff !important;
+  font-weight: 700;
+}
+
+td.pkg-price-cell {
+  background: #f1f8e9 !important;
+  color: #1b5e20;
+  font-weight: 700;
+  font-size: 0.69rem;
+  min-width: 78px;
+  padding: 3px 6px;
+  text-align: center;
+}
 
 /* Totals / Remaining */
 td.tot-doc { background: var(--doc-bg) !important; color: var(--doc-fg); font-weight: 700; font-size: 0.7rem; min-width: 38px; }

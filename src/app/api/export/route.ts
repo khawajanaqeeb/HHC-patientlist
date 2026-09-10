@@ -15,8 +15,11 @@ export async function GET(request: NextRequest) {
       monthInfo: month,
       PKGS: packages.map(p => ({
         name: p.name,
+        price: p.price || 0,
         doc: p.doc,
+        nurPhy: p.nurPhy,
         nur: p.nur,
+        phy: p.phy,
         psy: p.psy,
         med: p.med
       })),

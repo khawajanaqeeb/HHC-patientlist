@@ -1,43 +1,27 @@
 'use client';
 
-import { Calendar, PlusCircle, ChevronDown } from 'lucide-react';
-import { Month } from '@/lib/types';
+import { Calendar, PlusCircle } from 'lucide-react';
+import { MonthInfo } from '@/lib/types';
 
 interface Props {
-  months: Month[];
-  currentMonthId: string;
-  onMonthChange: (id: string) => void;
-  onAddMonth: () => void;
+  currentMonth: MonthInfo;
+  availableMonths: MonthInfo[];
+  patientCount: number;
+  onSelectMonth: (id: string) => void;
+  onOpenAddMonth: () => void;
 }
 
-export default function TitleBar({ months, currentMonthId, onMonthChange, onAddMonth }: Props) {
-  const current = months.find(m => m.id === currentMonthId);
-  const monthLabel = current?.label ?? 'Patient Visit Sheet';
-
+export default function TitleBar({ currentMonth, availableMonths, patientCount, onSelectMonth, onOpenAddMonth }: Props) {
   return (
     <div className="title-bar">
       <h1>
-        <Calendar size={20} />
-        {monthLabel} — Patient Visit Sheet
+        <img src="/logo.png" alt="Human Healthcare" className="app-logo" />
+        {currentMonth.label} — Patient Visit Sheet
       </h1>
-      <p>Human Healthcare (HHC) · Monthly Tracking Record</p>
+      <p>Human Healthcare (HHC) · Monthly Tracking Record · {patientCount} patient{patientCount !== 1 ? 's' : ''}</p>
 
       <div className="month-nav-container">
-        <div className="month-select-wrapper">
-          <Calendar size={13} color="rgba(255,255,255,0.8)" />
-          <select
-            className="month-select"
-            value={currentMonthId}
-            onChange={e => onMonthChange(e.target.value)}
-          >
-            {months.map(m => (
-              <option key={m.id} value={m.id}>{m.label}</option>
-            ))}
-          </select>
-          <ChevronDown size={13} color="rgba(255,255,255,0.7)" />
-        </div>
-
-        <button className="btn-add-month" onClick={onAddMonth}>
+        <button className="btn-add-month" onClick={onOpenAddMonth}>
           <PlusCircle size={13} />
           Add Month
         </button>

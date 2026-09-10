@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { Package, PatientMonthData, MonthInfo, VisitValue } from '@/lib/types';
-import { TitleBar } from '@/components/TitleBar';
-import { ControlBar } from '@/components/ControlBar';
+import TitleBar from '@/components/TitleBar';
+import ControlBar from '@/components/ControlBar';
 import { VisitTable } from '@/components/VisitTable';
 import { VisitDropdown, ActiveCellContext } from '@/components/VisitDropdown';
 import { PackageModal } from '@/components/PackageModal';
@@ -28,14 +28,14 @@ export default function PatientVisitSheetPage() {
   const [sortDirection, setSortDirection] = useState<1 | -1>(1);
 
   const [saveStatus, setSaveStatus] = useState<string>('');
-  const [saveStatusColor, setSaveStatusColor] = useState<string>('#2e7d32');
+  const [saveStatusColor, setSaveStatusColor] = useState<string>('#ffffff');
 
   const [activeCell, setActiveCell] = useState<ActiveCellContext | null>(null);
   const [isPackageModalOpen, setIsPackageModalOpen] = useState<boolean>(false);
   const [isAddPatientModalOpen, setIsAddPatientModalOpen] = useState<boolean>(false);
   const [isAddMonthModalOpen, setIsAddMonthModalOpen] = useState<boolean>(false);
 
-  const flashStatus = (msg: string, color: string = '#2e7d32') => {
+  const flashStatus = (msg: string, color: string = '#ffffff') => {
     setSaveStatus(msg);
     setSaveStatusColor(color);
   };
@@ -52,7 +52,7 @@ export default function PatientVisitSheetPage() {
       setAvailableMonths(data.availableMonths || []);
       setPackages(data.packages || []);
       setPatients(data.patients || []);
-      flashStatus(`✔ Synced to SQLite (${new Date().toLocaleTimeString()})`, '#2e7d32');
+      flashStatus(`✔ Synced to SQLite (${new Date().toLocaleTimeString()})`, '#ffffff');
     } catch (err: any) {
       console.error(err);
       flashStatus('⚠ Error loading data', '#b71c1c');
@@ -292,9 +292,7 @@ export default function PatientVisitSheetPage() {
         onSearchChange={setSearchQuery}
         onOpenAddPatient={() => setIsAddPatientModalOpen(true)}
         onOpenPackages={() => setIsPackageModalOpen(true)}
-        onReset={handleReset}
-        onExport={handleExport}
-        onImport={handleImport}
+        onSave={() => flashStatus(`✔ Saved (${new Date().toLocaleTimeString()})`, '#ffffff')}
         saveStatus={saveStatus}
         saveStatusColor={saveStatusColor}
       />

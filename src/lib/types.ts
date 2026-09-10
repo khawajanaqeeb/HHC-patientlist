@@ -4,8 +4,11 @@ export type DayVisits = [VisitValue, VisitValue, VisitValue]; // [Doctor, Nurse+
 export interface Package {
   id: number;
   name: string;
+  price: number;
   doc: number;
-  nur: number;
+  nurPhy: number; // Nurse + Physio
+  nur: number;    // Nurse
+  phy: number;    // Physio
   psy: number;
   med: number;
 }
