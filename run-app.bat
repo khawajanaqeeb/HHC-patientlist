@@ -1,6 +1,6 @@
 @echo off
 title HHC Patient Visit Sheet
-cd /d "f:\client-projects\HHC-patientlist"
+cd /d "%~dp0"
 
 echo Starting HHC Patient Visit Sheet...
 echo Opening application in your browser...
