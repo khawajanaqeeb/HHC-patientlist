@@ -52,6 +52,10 @@ src/
 └── patient_visits.db         # Auto-created SQLite database (gitignored)
 ```
 
+## Setup & Desktop Shortcut Guide
+
+For detailed instructions on setting up, cloning, creating the desktop icon, and running this application on any PC, read the **[SETUP_GUIDE.md](file:///f:/client-projects/HHC-patientlist/SETUP_GUIDE.md)**.
+
 ---
 
 ## Getting Started
