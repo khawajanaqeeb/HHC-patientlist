@@ -119,12 +119,12 @@ export const VisitTable: React.FC<VisitTableProps> = ({
         <thead>
           {/* Row 1: Group labels */}
           <tr className="rGrp">
-            <th rowSpan={4} style={{ width: '28px' }}>
+            <th rowSpan={4} className="sticky-sno" style={{ width: '28px' }}>
               <button className="sb" onClick={() => onSort('sno')}>
                 S.No <span>{getSortIcon('sno')}</span>
               </button>
             </th>
-            <th rowSpan={4} style={{ minWidth: '150px' }}>
+            <th rowSpan={4} className="sticky-name" style={{ minWidth: '150px' }}>
               <button className="sb" onClick={() => onSort('name')}>
                 Name <span>{getSortIcon('name')}</span>
               </button>
@@ -272,8 +272,8 @@ export const VisitTable: React.FC<VisitTableProps> = ({
 
             return (
               <tr key={p.id}>
-                <td className="sno">{p.id}</td>
-                <td className="name">{p.name}</td>
+                <td className="sno sticky-sno">{p.id}</td>
+                <td className="name sticky-name">{p.name}</td>
 
                 {/* Package dropdown */}
                 <td className="pkg">

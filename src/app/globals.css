@@ -401,6 +401,44 @@ thead th {
   padding: 3px 3px;
 }
 
+th.sticky-sno,
+td.sticky-sno {
+  position: sticky;
+  left: 0;
+  min-width: 28px;
+  width: 28px;
+  z-index: 12;
+}
+
+th.sticky-name,
+td.sticky-name {
+  position: sticky;
+  left: 28px;
+  min-width: 150px;
+  z-index: 12;
+  box-shadow: 3px 0 5px -4px rgba(15, 58, 88, 0.65);
+}
+
+th.sticky-sno,
+th.sticky-name {
+  background: var(--gold-lt) !important;
+}
+
+tbody tr:nth-child(odd) td.sticky-sno,
+tbody tr:nth-child(odd) td.sticky-name {
+  background: #ffffff !important;
+}
+
+tbody tr:nth-child(even) td.sticky-sno,
+tbody tr:nth-child(even) td.sticky-name {
+  background: #f4faff !important;
+}
+
+tbody tr:hover td.sticky-sno,
+tbody tr:hover td.sticky-name {
+  background: #ddeeff !important;
+}
+
 .rTitle th {
   background: linear-gradient(135deg, var(--teal) 0%, var(--teal2) 60%, var(--teal3) 100%);
   color: #fff;
