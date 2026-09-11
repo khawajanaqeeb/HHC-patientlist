@@ -10,6 +10,8 @@ import { PackageModal } from '@/components/PackageModal';
 import { AddPatientModal } from '@/components/AddPatientModal';
 import { AddMonthModal } from '@/components/AddMonthModal';
 
+const DEFAULT_USD_TO_PKR_RATE = 280;
+
 export default function PatientVisitSheetPage() {
   const [currentMonth, setCurrentMonth] = useState<MonthInfo>({
     id: '2026-09',
@@ -21,6 +23,8 @@ export default function PatientVisitSheetPage() {
   const [availableMonths, setAvailableMonths] = useState<MonthInfo[]>([]);
   const [packages, setPackages] = useState<Package[]>([]);
   const [patients, setPatients] = useState<PatientMonthData[]>([]);
+  const [currency, setCurrency] = useState<'PKR' | 'USD'>('PKR');
+  const [usdToPkrRate, setUsdToPkrRate] = useState(DEFAULT_USD_TO_PKR_RATE);
   const [loading, setLoading] = useState<boolean>(true);
 
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -64,6 +68,23 @@ export default function PatientVisitSheetPage() {
   useEffect(() => {
     loadData();
   }, [loadData]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    fetch('/api/exchange-rate')
+      .then((res) => (res.ok ? res.json() : Promise.reject(new Error('Rate unavailable'))))
+      .then((data: { usdToPkr: number }) => {
+        if (!cancelled && Number.isFinite(data.usdToPkr) && data.usdToPkr > 0) {
+          setUsdToPkrRate(data.usdToPkr);
+        }
+      })
+      .catch(() => {});
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const handleSelectMonth = (monthId: string) => {
     loadData(monthId);
@@ -317,10 +338,13 @@ export default function PatientVisitSheetPage() {
           currentMonth={currentMonth}
           packages={packages}
           patients={patients}
+          currency={currency}
+          usdToPkrRate={usdToPkrRate}
           searchQuery={searchQuery}
           sortColumn={sortColumn}
           sortDirection={sortDirection}
           onSort={handleSort}
+          onCurrencyChange={setCurrency}
           onUpdatePatientPackage={handleUpdatePatientPackage}
           onUpdatePatientMedicine={handleUpdatePatientMedicine}
           onOpenDropdown={(

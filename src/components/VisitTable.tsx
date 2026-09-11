@@ -13,10 +13,13 @@ interface VisitTableProps {
   currentMonth: MonthInfo;
   packages: Package[];
   patients: PatientMonthData[];
+  currency: 'PKR' | 'USD';
+  usdToPkrRate: number;
   searchQuery: string;
   sortColumn: 'sno' | 'name' | 'pkg' | null;
   sortDirection: 1 | -1;
   onSort: (col: 'sno' | 'name' | 'pkg') => void;
+  onCurrencyChange: (currency: 'PKR' | 'USD') => void;
   onUpdatePatientPackage: (patientId: number, pkgIdx: number) => void;
   onUpdatePatientMedicine: (patientId: number, medGiven: number) => void;
   onOpenDropdown: (
@@ -37,10 +40,13 @@ export const VisitTable: React.FC<VisitTableProps> = ({
   currentMonth,
   packages,
   patients,
+  currency,
+  usdToPkrRate,
   searchQuery,
   sortColumn,
   sortDirection,
   onSort,
+  onCurrencyChange,
   onUpdatePatientPackage,
   onUpdatePatientMedicine,
   onOpenDropdown,
@@ -129,7 +135,18 @@ export const VisitTable: React.FC<VisitTableProps> = ({
               </button>
             </th>
             <th rowSpan={4} className="pkg-price-th" style={{ minWidth: '78px', fontSize: '0.7rem' }}>
-              Price (Rs.)
+              <label className="price-currency-label" htmlFor="price-currency">
+                Price
+                <select
+                  id="price-currency"
+                  value={currency}
+                  onChange={(e) => onCurrencyChange(e.target.value as 'PKR' | 'USD')}
+                  aria-label="Select price currency"
+                >
+                  <option value="PKR">PKR</option>
+                  <option value="USD">Dollar</option>
+                </select>
+              </label>
             </th>
             <th colSpan={5} className="tot" style={{ fontSize: '0.72rem' }}>
               Total
@@ -275,7 +292,13 @@ export const VisitTable: React.FC<VisitTableProps> = ({
 
                 {/* Price */}
                 <td className="pkg-price-cell">
-                  {pkg ? `Rs. ${(pkg.price || 0).toLocaleString()}` : '—'}
+                  {pkg
+                    ? new Intl.NumberFormat(undefined, {
+                        style: 'currency',
+                        currency,
+                        maximumFractionDigits: currency === 'USD' ? 2 : 0,
+                      }).format(currency === 'USD' ? (pkg.price || 0) / usdToPkrRate : pkg.price || 0)
+                    : '—'}
                 </td>
 
                 {/* Total columns */}

@@ -541,6 +541,25 @@ th.pkg-price-th {
   font-weight: 700;
 }
 
+.price-currency-label {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+
+.price-currency-label select {
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  border-radius: 4px;
+  padding: 1px 3px;
+  background: #fff;
+  color: #1b5e20;
+  font: inherit;
+  font-size: 0.62rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
 td.pkg-price-cell {
   background: #f1f8e9 !important;
   color: #1b5e20;
