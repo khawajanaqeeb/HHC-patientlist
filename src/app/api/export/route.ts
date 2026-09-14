@@ -26,6 +26,7 @@ export async function GET(request: NextRequest) {
       patients: patients.map(p => ({
         id: p.id,
         name: p.name,
+        subscriber: p.subscriber,
         pkgIdx: p.pkgIdx,
         medGiven: p.medGiven,
         v: p.v

@@ -10,7 +10,7 @@ export interface ActiveCellContext {
   dayIndex: number; // 0-based
   dayNumber: number; // 1-based
   dayLetter: string;
-  typeIndex: 0 | 1 | 2; // 0=Doc, 1=Nur, 2=Psy
+  typeIndex: 0 | 1 | 2 | 3; // 0=Doc, 1=Nur+Phy, 2=Phy, 3=Psy
   typeLabel: string;
   typeColor: string;
   anchorX: number;

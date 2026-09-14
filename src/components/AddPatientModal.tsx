@@ -8,7 +8,7 @@ interface AddPatientModalProps {
   isOpen: boolean;
   packages: Package[];
   onClose: () => void;
-  onAdd: (name: string, pkgIdx: number) => void;
+  onAdd: (name: string, subscriber: string, pkgIdx: number) => void;
 }
 
 export const AddPatientModal: React.FC<AddPatientModalProps> = ({
@@ -18,6 +18,7 @@ export const AddPatientModal: React.FC<AddPatientModalProps> = ({
   onAdd,
 }) => {
   const [name, setName] = useState('');
+    const [subscriber, setSubscriber] = useState('');
   const [pkgIdx, setPkgIdx] = useState<number>(-1);
   const [error, setError] = useState('');
   const nameInputRef = useRef<HTMLInputElement>(null);
@@ -25,6 +26,7 @@ export const AddPatientModal: React.FC<AddPatientModalProps> = ({
   useEffect(() => {
     if (isOpen) {
       setName('');
+        setSubscriber('');
       setPkgIdx(-1);
       setError('');
       setTimeout(() => nameInputRef.current?.focus(), 50);
@@ -40,7 +42,7 @@ export const AddPatientModal: React.FC<AddPatientModalProps> = ({
       nameInputRef.current?.focus();
       return;
     }
-    onAdd(name.trim(), pkgIdx);
+    onAdd(name.trim(), subscriber.trim(), pkgIdx);
     onClose();
   };
 
@@ -50,6 +52,35 @@ export const AddPatientModal: React.FC<AddPatientModalProps> = ({
         <h2>➕ Add New Patient</h2>
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           <div>
+                        <label
+                          style={{
+                            fontSize: '0.72rem',
+                            fontWeight: 700,
+                            color: 'var(--teal)',
+                            display: 'block',
+                            marginBottom: '4px',
+                          }}
+                        >
+                          Subscriber (optional)
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="e.g. Family member or organization"
+                          value={subscriber}
+                          onChange={(e) => setSubscriber(e.target.value)}
+                          style={{
+                            width: '100%',
+                            border: '1.5px solid var(--teal-lt)',
+                            borderRadius: '6px',
+                            padding: '6px 9px',
+                            fontSize: '0.78rem',
+                            outline: 'none',
+                          }}
+                        />
+                      </div>
+
+                      <div>
+              onAdd(name.trim(), subscriber.trim(), pkgIdx);
             <label
               style={{
                 fontSize: '0.72rem',

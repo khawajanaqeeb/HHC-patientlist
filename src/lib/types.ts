@@ -1,5 +1,5 @@
 export type VisitValue = '' | '✔' | '✖' | '—';
-export type DayVisits = [VisitValue, VisitValue, VisitValue]; // [Doctor, Nurse+Physio, Psychiatrist]
+export type DayVisits = [VisitValue, VisitValue, VisitValue, VisitValue]; // [Doctor, Nurse+Physio, Physio, Psychiatrist]
 
 export interface Package {
   id: number;
@@ -16,6 +16,7 @@ export interface Package {
 export interface PatientMonthData {
   id: number;
   name: string;
+  subscriber: string;
   pkgIdx: number; // 0-based index or -1 if unselected
   medGiven: number;
   v: DayVisits[]; // Array of length `daysInMonth`
@@ -39,4 +40,16 @@ export interface AppStateData {
   availableMonths: MonthInfo[];
   packages: Package[];
   patients: PatientMonthData[];
+}
+
+export interface PatientVisitSearchResult {
+  id: number;
+  name: string;
+  visited: DayVisits;
+  remaining: {
+    doctor: number | null;
+    nursePhysio: number | null;
+    physio: number | null;
+    psycho: number | null;
+  };
 }

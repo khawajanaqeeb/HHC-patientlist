@@ -4,6 +4,17 @@ import fs from 'fs';
 import { Package, PatientMonthData, MonthInfo, DayVisits } from './types';
 import { getDaysInMonth, getMonthLabel } from './calendar';
 
+function normalizeDayVisits(raw: unknown): DayVisits {
+  const values = Array.isArray(raw) ? raw : [];
+  if (values.length >= 4) return [values[0], values[1], values[2], values[3]] as DayVisits;
+  return [values[0] || '', values[1] || '', '', values[2] || ''] as DayVisits;
+}
+
+function normalizeVisits(raw: unknown, daysInMonth: number): DayVisits[] {
+  const values = Array.isArray(raw) ? raw : [];
+  return Array.from({ length: daysInMonth }, (_, index) => normalizeDayVisits(values[index]));
+}
+
 const DB_DIR = path.join(process.cwd(), '.data');
 if (!fs.existsSync(DB_DIR)) {
   fs.mkdirSync(DB_DIR, { recursive: true });
@@ -73,12 +84,17 @@ export async function ensureDbInitialized() {
           month_id TEXT NOT NULL,
           patient_id INTEGER NOT NULL,
           name TEXT NOT NULL,
+          subscriber TEXT NOT NULL DEFAULT '',
           pkg_idx INTEGER NOT NULL DEFAULT -1,
           med_given INTEGER NOT NULL DEFAULT 0,
           visits_json TEXT NOT NULL,
           sort_order INTEGER NOT NULL DEFAULT 0
         );
       `);
+
+      try {
+        await db.execute("ALTER TABLE month_patients ADD COLUMN subscriber TEXT NOT NULL DEFAULT ''");
+      } catch {}
 
       const res = await db.execute('SELECT COUNT(*) as count FROM months');
       const count = Number(res.rows[0]?.count || 0);
@@ -148,14 +164,15 @@ async function seedInitialData(db: Client) {
 
   if (seedData && Array.isArray(seedData.patients)) {
     const patientStatements: InStatement[] = seedData.patients.map((p: any, idx: number) => ({
-      sql: `INSERT INTO month_patients (month_id, patient_id, name, pkg_idx, med_given, visits_json, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      sql: `INSERT INTO month_patients (month_id, patient_id, name, subscriber, pkg_idx, med_given, visits_json, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       args: [
         defaultMonthId,
         p.id || idx + 1,
         p.name,
+        p.subscriber || '',
         typeof p.pkgIdx === 'number' ? p.pkgIdx : -1,
         p.medGiven || 0,
-        JSON.stringify(p.v || Array.from({ length: daysInMonth }, () => ['', '', ''])),
+        JSON.stringify(normalizeVisits(p.v, daysInMonth)),
         idx
       ]
     }));
@@ -236,7 +253,7 @@ export async function getMonthPatients(monthId: string): Promise<PatientMonthDat
   const daysInMonth = month ? month.daysInMonth : 30;
 
   const res = await db.execute({
-    sql: `SELECT patient_id as id, name, pkg_idx as pkgIdx, med_given as medGiven, visits_json as visitsJson
+    sql: `SELECT patient_id as id, name, subscriber, pkg_idx as pkgIdx, med_given as medGiven, visits_json as visitsJson
           FROM month_patients
           WHERE month_id = ?
           ORDER BY sort_order ASC, patient_id ASC`,
@@ -246,21 +263,15 @@ export async function getMonthPatients(monthId: string): Promise<PatientMonthDat
   return res.rows.map(r => {
     let v: DayVisits[] = [];
     try {
-      v = JSON.parse(String(r.visitsJson));
+      v = normalizeVisits(JSON.parse(String(r.visitsJson)), daysInMonth);
     } catch {
-      v = Array.from({ length: daysInMonth }, () => ['', '', '']);
-    }
-    if (v.length < daysInMonth) {
-      while (v.length < daysInMonth) {
-        v.push(['', '', '']);
-      }
-    } else if (v.length > daysInMonth) {
-      v = v.slice(0, daysInMonth);
+      v = normalizeVisits([], daysInMonth);
     }
 
     return {
       id: Number(r.id),
       name: String(r.name),
+      subscriber: String(r.subscriber || ''),
       pkgIdx: Number(r.pkgIdx),
       medGiven: Number(r.medGiven),
       v
@@ -282,14 +293,15 @@ export async function updatePatient(monthId: string, patientId: number, data: Pa
   const newMedGiven = data.medGiven !== undefined ? data.medGiven : Number(current.med_given);
   const newVisits = data.v !== undefined ? JSON.stringify(data.v) : String(current.visits_json);
   const newName = data.name !== undefined ? data.name : String(current.name);
+  const newSubscriber = data.subscriber !== undefined ? data.subscriber : String(current.subscriber || '');
 
   await db.execute({
-    sql: `UPDATE month_patients SET name = ?, pkg_idx = ?, med_given = ?, visits_json = ? WHERE month_id = ? AND patient_id = ?`,
-    args: [newName, newPkgIdx, newMedGiven, newVisits, monthId, patientId]
+    sql: `UPDATE month_patients SET name = ?, subscriber = ?, pkg_idx = ?, med_given = ?, visits_json = ? WHERE month_id = ? AND patient_id = ?`,
+    args: [newName, newSubscriber, newPkgIdx, newMedGiven, newVisits, monthId, patientId]
   });
 }
 
-export async function addPatient(monthId: string, name: string, pkgIdx: number): Promise<PatientMonthData> {
+export async function addPatient(monthId: string, name: string, subscriber: string, pkgIdx: number): Promise<PatientMonthData> {
   await ensureDbInitialized();
   const db = getClient();
   const month = await getMonth(monthId);
@@ -308,16 +320,17 @@ export async function addPatient(monthId: string, name: string, pkgIdx: number):
   });
   const sortOrder = Number(countRes.rows[0]?.count || 0);
 
-  const emptyVisits: DayVisits[] = Array.from({ length: daysInMonth }, () => ['', '', '']);
+  const emptyVisits: DayVisits[] = Array.from({ length: daysInMonth }, () => ['', '', '', '']);
 
   await db.execute({
-    sql: `INSERT INTO month_patients (month_id, patient_id, name, pkg_idx, med_given, visits_json, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?)`,
-    args: [monthId, nextId, name, pkgIdx, 0, JSON.stringify(emptyVisits), sortOrder]
+    sql: `INSERT INTO month_patients (month_id, patient_id, name, subscriber, pkg_idx, med_given, visits_json, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+    args: [monthId, nextId, name, subscriber, pkgIdx, 0, JSON.stringify(emptyVisits), sortOrder]
   });
 
   return {
     id: nextId,
     name,
+    subscriber,
     pkgIdx,
     medGiven: 0,
     v: emptyVisits
@@ -338,7 +351,7 @@ export async function resetMonth(monthId: string) {
   const db = getClient();
   const month = await getMonth(monthId);
   const daysInMonth = month ? month.daysInMonth : 30;
-  const emptyVisits = JSON.stringify(Array.from({ length: daysInMonth }, () => ['', '', '']));
+  const emptyVisits = JSON.stringify(Array.from({ length: daysInMonth }, () => ['', '', '', '']));
 
   await db.execute({
     sql: `UPDATE month_patients SET pkg_idx = -1, med_given = 0, visits_json = ? WHERE month_id = ?`,
@@ -367,12 +380,12 @@ export async function createMonth(year: number, month: number, carryOverPatients
 
   if (carryOverPatientsFromMonthId) {
     const prevPatients = await getMonthPatients(carryOverPatientsFromMonthId);
-    const emptyVisits = JSON.stringify(Array.from({ length: daysInMonth }, () => ['', '', '']));
+    const emptyVisits = JSON.stringify(Array.from({ length: daysInMonth }, () => ['', '', '', '']));
 
     prevPatients.forEach((p, idx) => {
       statements.push({
-        sql: `INSERT INTO month_patients (month_id, patient_id, name, pkg_idx, med_given, visits_json, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?)`,
-        args: [monthId, p.id, p.name, p.pkgIdx, 0, emptyVisits, idx]
+        sql: `INSERT INTO month_patients (month_id, patient_id, name, subscriber, pkg_idx, med_given, visits_json, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        args: [monthId, p.id, p.name, p.subscriber || '', p.pkgIdx, 0, emptyVisits, idx]
       });
     });
   }
@@ -416,13 +429,14 @@ export async function importFullJson(data: any, targetMonthId?: string) {
     });
 
     data.patients.forEach((p: any, idx: number) => {
-      let v = p.v || Array.from({ length: daysInMonth }, () => ['', '', '']);
+      let v = normalizeVisits(p.v, daysInMonth);
       statements.push({
-        sql: `INSERT INTO month_patients (month_id, patient_id, name, pkg_idx, med_given, visits_json, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        sql: `INSERT INTO month_patients (month_id, patient_id, name, subscriber, pkg_idx, med_given, visits_json, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
         args: [
           monthId,
           p.id || idx + 1,
           p.name,
+          p.subscriber || '',
           typeof p.pkgIdx === 'number' ? p.pkgIdx : -1,
           p.medGiven || 0,
           JSON.stringify(v),

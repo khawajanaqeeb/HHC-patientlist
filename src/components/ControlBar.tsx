@@ -1,13 +1,14 @@
 'use client';
 
 import React from 'react';
-import { Search, Package2, UserPlus, Save } from 'lucide-react';
+import { Search, Package2, UserPlus, Save, CalendarSearch } from 'lucide-react';
 
 interface Props {
   searchQuery: string;
   onSearchChange: (v: string) => void;
   onOpenPackages: () => void;
   onOpenAddPatient: () => void;
+  onOpenPatientVisitedSearch: () => void;
   onSave?: () => void;
   saveStatus: string;
   saveStatusColor: string;
@@ -18,6 +19,7 @@ export default function ControlBar({
   onSearchChange,
   onOpenPackages,
   onOpenAddPatient,
+  onOpenPatientVisitedSearch,
   onSave,
   saveStatus,
   saveStatusColor,
@@ -44,6 +46,11 @@ export default function ControlBar({
       <button className="btn btn-primary" onClick={onOpenAddPatient}>
         <UserPlus size={13} />
         Add Patient
+      </button>
+
+      <button className="btn btn-primary" onClick={onOpenPatientVisitedSearch}>
+        <CalendarSearch size={13} />
+        Patient Visited Search
       </button>
 
       {/* Save Button */}

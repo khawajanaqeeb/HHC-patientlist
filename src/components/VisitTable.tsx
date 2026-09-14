@@ -21,6 +21,7 @@ interface VisitTableProps {
   onSort: (col: 'sno' | 'name' | 'pkg') => void;
   onCurrencyChange: (currency: 'PKR' | 'USD') => void;
   onUpdatePatientPackage: (patientId: number, pkgIdx: number) => void;
+    onUpdatePatientSubscriber: (patientId: number, subscriber: string) => void;
   onUpdatePatientMedicine: (patientId: number, medGiven: number) => void;
   onOpenDropdown: (
     patientIndex: number,
@@ -28,7 +29,7 @@ interface VisitTableProps {
     dayIndex: number,
     dayNumber: number,
     dayLetter: string,
-    typeIndex: 0 | 1 | 2,
+    typeIndex: 0 | 1 | 2 | 3,
     typeLabel: string,
     typeColor: string,
     clientX: number,
@@ -48,12 +49,13 @@ export const VisitTable: React.FC<VisitTableProps> = ({
   onSort,
   onCurrencyChange,
   onUpdatePatientPackage,
+    onUpdatePatientSubscriber,
   onUpdatePatientMedicine,
   onOpenDropdown,
 }) => {
   const weeks = getWeeksForMonth(currentMonth.daysInMonth);
-  const fixedLeftCols = 15;
-  const totalDayCols = currentMonth.daysInMonth * 3;
+  const fixedLeftCols = 17;
+  const totalDayCols = currentMonth.daysInMonth * 4;
   const grandTotalCols = fixedLeftCols + totalDayCols;
 
   // Filter & Sort
@@ -83,12 +85,14 @@ export const VisitTable: React.FC<VisitTableProps> = ({
     const pkg = p.pkgIdx >= 0 && packages[p.pkgIdx] ? packages[p.pkgIdx] : null;
     let docDone = 0;
     let nurDone = 0;
+    let phyDone = 0;
     let psyDone = 0;
 
     p.v.forEach((dayV) => {
       if (dayV && dayV[0] === '✔') docDone++;
       if (dayV && dayV[1] === '✔') nurDone++;
-      if (dayV && dayV[2] === '✔') psyDone++;
+      if (dayV && dayV[2] === '✔') phyDone++;
+      if (dayV && dayV[3] === '✔') psyDone++;
     });
 
     return {
@@ -101,6 +105,7 @@ export const VisitTable: React.FC<VisitTableProps> = ({
       nAlloc: pkg ? (pkg.nur !== undefined ? pkg.nur : null) : null,
       nRem: pkg ? (pkg.nurPhy !== undefined ? pkg.nurPhy : pkg.nur) - nurDone : null,
       phyAlloc: pkg ? (pkg.phy !== undefined ? pkg.phy : null) : null,
+      phyRem: pkg ? (pkg.phy !== undefined ? pkg.phy : 0) - phyDone : null,
       pAlloc: pkg ? pkg.psy : null,
       pDone: psyDone,
       pRem: pkg ? pkg.psy - psyDone : null,
@@ -129,6 +134,7 @@ export const VisitTable: React.FC<VisitTableProps> = ({
                 Name <span>{getSortIcon('name')}</span>
               </button>
             </th>
+            <th rowSpan={4} style={{ minWidth: '130px', width: '130px' }}>Subscriber</th>
             <th rowSpan={4} style={{ minWidth: '112px' }}>
               <button className="sb" onClick={() => onSort('pkg')}>
                 Package <span>{getSortIcon('pkg')}</span>
@@ -151,7 +157,7 @@ export const VisitTable: React.FC<VisitTableProps> = ({
             <th colSpan={5} className="tot" style={{ fontSize: '0.72rem' }}>
               Total
             </th>
-            <th colSpan={3} className="rem" style={{ fontSize: '0.72rem' }}>
+            <th colSpan={4} className="rem" style={{ fontSize: '0.72rem' }}>
               Remaining
             </th>
             <th colSpan={3} className="med" style={{ fontSize: '0.72rem' }}>
@@ -161,7 +167,7 @@ export const VisitTable: React.FC<VisitTableProps> = ({
             {weeks.map((w, wi) => (
               <th
                 key={w.lbl}
-                colSpan={w.days.length * 3}
+                colSpan={w.days.length * 4}
                 className={`wk ${wi > 0 ? 'wk-start' : ''}`}
               >
                 {w.lbl}
@@ -193,6 +199,9 @@ export const VisitTable: React.FC<VisitTableProps> = ({
             <th className="nur" rowSpan={3} style={{ fontSize: '0.62rem', minWidth: '38px' }}>
               Nur+Phy
             </th>
+            <th className="nur" rowSpan={3} style={{ fontSize: '0.62rem', minWidth: '38px', background: '#e0f2f1' }}>
+              Physio
+            </th>
             <th className="psy" rowSpan={3} style={{ fontSize: '0.62rem', minWidth: '38px' }}>
               Psycho
             </th>
@@ -214,7 +223,7 @@ export const VisitTable: React.FC<VisitTableProps> = ({
                 return (
                   <th
                     key={`d-${d}`}
-                    colSpan={3}
+                    colSpan={4}
                     className={`date ${dayClass} ${boundary}`}
                     style={{ fontWeight: 700, fontSize: '0.67rem' }}
                   >
@@ -235,7 +244,7 @@ export const VisitTable: React.FC<VisitTableProps> = ({
                 return (
                   <th
                     key={`dl-${d}`}
-                    colSpan={3}
+                    colSpan={4}
                     className={`${dayClass} ${boundary}`}
                   >
                     {DAY_LETTERS[wd]}
@@ -245,7 +254,7 @@ export const VisitTable: React.FC<VisitTableProps> = ({
             )}
           </tr>
 
-          {/* Row 5: Column care types (D, N+Phy, Ps) */}
+          {/* Row 5: Column care types (D, N+Phy, Phy, Ps) */}
           <tr className="rType">
             {weeks.map((w, wi) =>
               w.days.map((d, di) => {
@@ -255,6 +264,7 @@ export const VisitTable: React.FC<VisitTableProps> = ({
                   <React.Fragment key={`dt-${d}`}>
                     <th className={`td ${s ? s : ''} ${boundary}`}>D</th>
                     <th className={`tn ${s ? s : ''}`}>N+Phy</th>
+                    <th className={`tn ${s ? s : ''}`}>Phy</th>
                     <th className={`tp ${s ? s : ''}`}>Ps</th>
                   </React.Fragment>
                 );
@@ -274,6 +284,14 @@ export const VisitTable: React.FC<VisitTableProps> = ({
               <tr key={p.id}>
                 <td className="sno sticky-sno">{p.id}</td>
                 <td className="name sticky-name">{p.name}</td>
+                <td className="subscriber-cell">
+                  <input
+                    type="text"
+                    value={p.subscriber}
+                    aria-label={`Subscriber for ${p.name}`}
+                    onChange={(e) => onUpdatePatientSubscriber(p.id, e.target.value)}
+                  />
+                </td>
 
                 {/* Package dropdown */}
                 <td className="pkg">
@@ -340,6 +358,21 @@ export const VisitTable: React.FC<VisitTableProps> = ({
                   {s.nRem === null ? '—' : s.nRem}
                 </td>
                 <td
+                  className="rem-nur"
+                  style={{
+                    background:
+                      s.phyRem !== null
+                        ? s.phyRem <= 0
+                          ? '#f5cba7'
+                          : s.phyRem <= 2
+                          ? '#fff9c4'
+                          : 'var(--rem-ok)'
+                        : undefined,
+                  }}
+                >
+                  {s.phyRem === null ? '—' : s.phyRem}
+                </td>
+                <td
                   className="rem-psy"
                   style={{
                     background:
@@ -392,15 +425,15 @@ export const VisitTable: React.FC<VisitTableProps> = ({
                     const dayLetter = DAY_LETTERS[wd];
                     const boundary = wi > 0 && di === 0 ? 'wk-start' : '';
 
-                    const cellValues = p.v[dayIdx] || ['', '', ''];
-                    const TYPE_LABELS = ['Doctor', 'Nurse+Physio', 'Psychiatrist'];
-                    const TYPE_COLORS = ['var(--doc-fg)', 'var(--nur-fg)', 'var(--psy-fg)'];
-                    const TYPE_CLASSES = ['vd', 'vn', 'vp'];
+                    const cellValues = p.v[dayIdx] || ['', '', '', ''];
+                    const TYPE_LABELS = ['Doctor', 'Nurse+Physio', 'Physio', 'Psychiatrist'];
+                    const TYPE_COLORS = ['var(--doc-fg)', 'var(--nur-fg)', 'var(--nur-fg)', 'var(--psy-fg)'];
+                    const TYPE_CLASSES = ['vd', 'vn', 'vn', 'vp'];
 
                     return (
                       <React.Fragment key={`v-${p.id}-${d}`}>
-                        {[0, 1, 2].map((t) => {
-                          const val = cellValues[t as 0 | 1 | 2] || '';
+                        {[0, 1, 2, 3].map((t) => {
+                          const val = cellValues[t as 0 | 1 | 2 | 3] || '';
                           const isBoundary = t === 0 ? boundary : '';
                           const valClass =
                             val === '✔'
@@ -421,7 +454,7 @@ export const VisitTable: React.FC<VisitTableProps> = ({
                                   dayIdx,
                                   d,
                                   dayLetter,
-                                  t as 0 | 1 | 2,
+                                  t as 0 | 1 | 2 | 3,
                                   TYPE_LABELS[t],
                                   TYPE_COLORS[t],
                                   e.clientX,
