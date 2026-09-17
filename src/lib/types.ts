@@ -45,6 +45,9 @@ export interface AppStateData {
 export interface PatientVisitSearchResult {
   id: number;
   name: string;
+  subscriber: string;
+  packageName: string | null;
+  packagePrice: number | null;
   visited: DayVisits;
   remaining: {
     doctor: number | null;

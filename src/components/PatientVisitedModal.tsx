@@ -86,14 +86,19 @@ export const PatientVisitedModal: React.FC<PatientVisitedModalProps> = ({ isOpen
             <table className="patient-search-table">
               <thead>
                 <tr>
-                  <th>Patient</th><th>Doctor</th><th>Nurse+Physio</th><th>Nurse</th><th>Physio</th><th>Psycho</th>
+                  <th>S.No</th><th>Patient</th><th>Subscriber</th><th>Package</th><th>Price</th>
+                  <th>Doctor</th><th>Nurse+Physio</th><th>Nurse</th><th>Physio</th><th>Psycho</th>
                   <th>Doctor rem.</th><th>Nurse+Physio rem.</th><th>Nurse rem.</th><th>Physio rem.</th><th>Psycho rem.</th>
                 </tr>
               </thead>
               <tbody>
-                {results.map((patient) => (
+                {results.map((patient, resultIndex) => (
                   <tr key={patient.id}>
+                    <td>{resultIndex + 1}</td>
                     <td>{patient.name}</td>
+                    <td>{patient.subscriber || '—'}</td>
+                    <td>{patient.packageName || '—'}</td>
+                    <td>{patient.packagePrice === null ? '—' : patient.packagePrice.toLocaleString()}</td>
                     {[0, 1, 2, 3, 4].map((index) => (
                       <td key={index}>{patient.visited[index as 0 | 1 | 2 | 3 | 4] === '✔' ? <Check size={14} /> : '—'}</td>
                     ))}

@@ -54,12 +54,19 @@ export async function GET(request: NextRequest) {
   const [patients, packages] = await Promise.all([getMonthPatients(monthId), getPackages()]);
   const results: PatientVisitSearchResult[] = patients
     .filter((patient) => patient.v[dayIndex]?.some((value) => value === '✔'))
-    .map((patient) => ({
-      id: patient.id,
-      name: patient.name,
-      visited: patient.v[dayIndex] as DayVisits,
-      remaining: getRemaining(patient, packages),
-    }));
+    .map((patient) => {
+      const patientPackage = patient.pkgIdx >= 0 ? packages[patient.pkgIdx] : undefined;
+
+      return {
+        id: patient.id,
+        name: patient.name,
+        subscriber: patient.subscriber,
+        packageName: patientPackage?.name || null,
+        packagePrice: patientPackage ? Number(patientPackage.price || 0) : null,
+        visited: patient.v[dayIndex] as DayVisits,
+        remaining: getRemaining(patient, packages),
+      };
+    });
 
   return NextResponse.json({ date, month: month.label, patients: results });
 }
