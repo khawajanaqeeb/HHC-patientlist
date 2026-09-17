@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "import:supabase": "node scripts/import-local-db-to-supabase.mjs"
   },
   "dependencies": {
     "@libsql/client": "^0.14.0",

@@ -52,8 +52,15 @@ export default function PatientVisitSheetPage() {
     try {
       setLoading(true);
       const url = monthId ? `/api/data?monthId=${monthId}` : '/api/data';
-      const res = await fetch(url);
-      if (!res.ok) throw new Error('Failed to load data');
+      let res = await fetch(url);
+      if (!res.ok) {
+        await new Promise((resolve) => setTimeout(resolve, 500));
+        res = await fetch(url);
+      }
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => null) as { error?: string } | null;
+        throw new Error(errorData?.error || `Failed to load data (${res.status})`);
+      }
       const data = await res.json();
 
       setCurrentMonth(data.currentMonth);
