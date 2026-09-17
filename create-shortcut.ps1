@@ -1,7 +1,12 @@
-# Creates a Desktop Shortcut for HHC Patient Visit Sheet on any PC
+# Creates a Desktop Shortcut for Human Healthcare Log on any PC
 $scriptDir = $PSScriptRoot
 $desktop = [Environment]::GetFolderPath('Desktop')
-$shortcutPath = Join-Path $desktop "HHC Patient Visit Sheet.lnk"
+$shortcutPath = Join-Path $desktop "Human Healthcare Log.lnk"
+$oldShortcutPath = Join-Path $desktop "HHC Patient Visit Sheet.lnk"
+
+if (Test-Path $oldShortcutPath) {
+    Remove-Item $oldShortcutPath -Force
+}
 
 $ws = New-Object -ComObject WScript.Shell
 $s = $ws.CreateShortcut($shortcutPath)
@@ -14,4 +19,4 @@ if (Test-Path $iconPath) {
 }
 
 $s.Save()
-Write-Host "Desktop shortcut successfully created on your Desktop!" -ForegroundColor Green
+Write-Host "Human Healthcare Log shortcut successfully created on your Desktop!" -ForegroundColor Green

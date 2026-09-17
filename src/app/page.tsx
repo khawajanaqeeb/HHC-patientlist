@@ -10,6 +10,7 @@ import { PackageModal } from '@/components/PackageModal';
 import { AddPatientModal } from '@/components/AddPatientModal';
 import { AddMonthModal } from '@/components/AddMonthModal';
 import { PatientVisitedModal } from '@/components/PatientVisitedModal';
+import { PatientSearchModal } from '@/components/PatientSearchModal';
 
 const DEFAULT_USD_TO_PKR_RATE = 280;
 
@@ -29,7 +30,7 @@ export default function PatientVisitSheetPage() {
   const [loading, setLoading] = useState<boolean>(true);
 
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [sortColumn, setSortColumn] = useState<'sno' | 'name' | 'pkg' | null>(null);
+  const [sortColumn, setSortColumn] = useState<'sno' | 'name' | 'subscriber' | 'pkg' | null>(null);
   const [sortDirection, setSortDirection] = useState<1 | -1>(1);
 
   const [saveStatus, setSaveStatus] = useState<string>('');
@@ -40,6 +41,7 @@ export default function PatientVisitSheetPage() {
   const [isAddPatientModalOpen, setIsAddPatientModalOpen] = useState<boolean>(false);
   const [isAddMonthModalOpen, setIsAddMonthModalOpen] = useState<boolean>(false);
   const [isPatientVisitedSearchOpen, setIsPatientVisitedSearchOpen] = useState<boolean>(false);
+  const [isPatientSearchOpen, setIsPatientSearchOpen] = useState<boolean>(false);
 
   const flashStatus = (msg: string, color: string = '#ffffff') => {
     setSaveStatus(msg);
@@ -110,7 +112,7 @@ export default function PatientVisitSheetPage() {
     }
   };
 
-  const handleSort = (col: 'sno' | 'name' | 'pkg') => {
+  const handleSort = (col: 'sno' | 'name' | 'subscriber' | 'pkg') => {
     if (sortColumn === col) {
       setSortDirection((prev) => (prev === 1 ? -1 : 1));
     } else {
@@ -332,6 +334,8 @@ export default function PatientVisitSheetPage() {
         onSearchChange={setSearchQuery}
         onOpenAddPatient={() => setIsAddPatientModalOpen(true)}
         onOpenPatientVisitedSearch={() => setIsPatientVisitedSearchOpen(true)}
+        onOpenPatientSearch={() => setIsPatientSearchOpen(true)}
+        onPrint={() => window.print()}
         onOpenPackages={() => setIsPackageModalOpen(true)}
         onSave={() => flashStatus(`✔ Saved (${new Date().toLocaleTimeString()})`, '#ffffff')}
         saveStatus={saveStatus}
@@ -432,6 +436,16 @@ export default function PatientVisitSheetPage() {
       <PatientVisitedModal
         isOpen={isPatientVisitedSearchOpen}
         onClose={() => setIsPatientVisitedSearchOpen(false)}
+      />
+
+      <PatientSearchModal
+        isOpen={isPatientSearchOpen}
+        currentMonth={currentMonth}
+        packages={packages}
+        patients={patients}
+        currency={currency}
+        usdToPkrRate={usdToPkrRate}
+        onClose={() => setIsPatientSearchOpen(false)}
       />
     </main>
   );

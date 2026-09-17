@@ -7,24 +7,27 @@ function getRemaining(
   packages: Awaited<ReturnType<typeof getPackages>>
 ) {
   const pkg = patient.pkgIdx >= 0 ? packages[patient.pkgIdx] : undefined;
-  if (!pkg) return { doctor: null, nursePhysio: null, physio: null, psycho: null };
+  if (!pkg) return { doctor: null, nursePhysio: null, nurse: null, physio: null, psycho: null };
 
   let doctorDone = 0;
   let nursePhysioDone = 0;
+  let nurseDone = 0;
   let physioDone = 0;
   let psychoDone = 0;
   patient.v.forEach((day) => {
     if (day[0] === '✔') doctorDone += 1;
     if (day[1] === '✔') nursePhysioDone += 1;
-    if (day[2] === '✔') physioDone += 1;
-    if (day[3] === '✔') psychoDone += 1;
+    if (day[2] === '✔') nurseDone += 1;
+    if (day[3] === '✔') physioDone += 1;
+    if (day[4] === '✔') psychoDone += 1;
   });
 
   return {
-    doctor: pkg.doc - doctorDone,
-    nursePhysio: pkg.nurPhy - nursePhysioDone,
-    physio: pkg.phy - physioDone,
-    psycho: pkg.psy - psychoDone,
+    doctor: Number(pkg.doc ?? 0) - doctorDone,
+    nursePhysio: Number(pkg.nurPhy ?? pkg.nur ?? 0) - nursePhysioDone,
+    nurse: Number(pkg.nur ?? 0) - nurseDone,
+    physio: Number(pkg.phy ?? 0) - physioDone,
+    psycho: Number(pkg.psy ?? 0) - psychoDone,
   };
 }
 

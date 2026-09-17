@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { CalendarSearch, Check, X } from 'lucide-react';
+import { CalendarSearch, Check, X, Printer } from 'lucide-react';
 import { PatientVisitSearchResult } from '@/lib/types';
 
 interface PatientVisitedModalProps {
@@ -79,19 +79,20 @@ export const PatientVisitedModal: React.FC<PatientVisitedModalProps> = ({ isOpen
             <table className="patient-search-table">
               <thead>
                 <tr>
-                  <th>Patient</th><th>Doctor</th><th>Nurse+Physio</th><th>Psycho</th>
-                  <th>Doctor rem.</th><th>Nurse+Physio rem.</th><th>Physio rem.</th><th>Psycho rem.</th>
+                  <th>Patient</th><th>Doctor</th><th>Nurse+Physio</th><th>Nurse</th><th>Physio</th><th>Psycho</th>
+                  <th>Doctor rem.</th><th>Nurse+Physio rem.</th><th>Nurse rem.</th><th>Physio rem.</th><th>Psycho rem.</th>
                 </tr>
               </thead>
               <tbody>
                 {results.map((patient) => (
                   <tr key={patient.id}>
                     <td>{patient.name}</td>
-                    {[0, 1, 2, 3].map((index) => (
-                      <td key={index}>{patient.visited[index as 0 | 1 | 2] === '✔' ? <Check size={14} /> : '—'}</td>
+                    {[0, 1, 2, 3, 4].map((index) => (
+                      <td key={index}>{patient.visited[index as 0 | 1 | 2 | 3 | 4] === '✔' ? <Check size={14} /> : '—'}</td>
                     ))}
                     <td>{patient.remaining.doctor ?? '—'}</td>
                     <td>{patient.remaining.nursePhysio ?? '—'}</td>
+                    <td>{patient.remaining.nurse ?? '—'}</td>
                     <td>{patient.remaining.physio ?? '—'}</td>
                     <td>{patient.remaining.psycho ?? '—'}</td>
                   </tr>
@@ -101,7 +102,10 @@ export const PatientVisitedModal: React.FC<PatientVisitedModalProps> = ({ isOpen
           </div>
         )}
 
-        <div className="mfoot"><button type="button" className="btn sec" onClick={onClose}><X size={13} /> Close</button></div>
+        <div className="mfoot">
+          {results.length > 0 && <button type="button" className="btn sec print-search-btn" onClick={() => window.print()}><Printer size={13} /> Print results</button>}
+          <button type="button" className="btn sec" onClick={onClose}><X size={13} /> Close</button>
+        </div>
       </div>
     </div>
   );

@@ -16,9 +16,9 @@ interface VisitTableProps {
   currency: 'PKR' | 'USD';
   usdToPkrRate: number;
   searchQuery: string;
-  sortColumn: 'sno' | 'name' | 'pkg' | null;
+  sortColumn: 'sno' | 'name' | 'subscriber' | 'pkg' | null;
   sortDirection: 1 | -1;
-  onSort: (col: 'sno' | 'name' | 'pkg') => void;
+  onSort: (col: 'sno' | 'name' | 'subscriber' | 'pkg') => void;
   onCurrencyChange: (currency: 'PKR' | 'USD') => void;
   onUpdatePatientPackage: (patientId: number, pkgIdx: number) => void;
     onUpdatePatientSubscriber: (patientId: number, subscriber: string) => void;
@@ -29,7 +29,7 @@ interface VisitTableProps {
     dayIndex: number,
     dayNumber: number,
     dayLetter: string,
-    typeIndex: 0 | 1 | 2 | 3,
+    typeIndex: 0 | 1 | 2 | 3 | 4,
     typeLabel: string,
     typeColor: string,
     clientX: number,
@@ -54,8 +54,8 @@ export const VisitTable: React.FC<VisitTableProps> = ({
   onOpenDropdown,
 }) => {
   const weeks = getWeeksForMonth(currentMonth.daysInMonth);
-  const fixedLeftCols = 17;
-  const totalDayCols = currentMonth.daysInMonth * 4;
+  const fixedLeftCols = 18;
+  const totalDayCols = currentMonth.daysInMonth * 5;
   const grandTotalCols = fixedLeftCols + totalDayCols;
 
   // Filter & Sort
@@ -70,12 +70,15 @@ export const VisitTable: React.FC<VisitTableProps> = ({
       return sortDirection * (a.id - b.id);
     }
     if (sortColumn === 'name') {
-      return sortDirection * a.name.localeCompare(b.name);
+      return sortDirection * (a.name.localeCompare(b.name) || a.id - b.id);
+    }
+    if (sortColumn === 'subscriber') {
+      return sortDirection * (a.subscriber.localeCompare(b.subscriber) || a.id - b.id);
     }
     if (sortColumn === 'pkg') {
       const pa = a.pkgIdx >= 0 && packages[a.pkgIdx] ? packages[a.pkgIdx].name : '';
       const pb = b.pkgIdx >= 0 && packages[b.pkgIdx] ? packages[b.pkgIdx].name : '';
-      return sortDirection * pa.localeCompare(pb);
+      return sortDirection * (pa.localeCompare(pb) || a.id - b.id);
     }
     return 0;
   });
@@ -83,43 +86,60 @@ export const VisitTable: React.FC<VisitTableProps> = ({
   // Calculate patient stats
   const getStats = (p: PatientMonthData) => {
     const pkg = p.pkgIdx >= 0 && packages[p.pkgIdx] ? packages[p.pkgIdx] : null;
+    const nursePhysioAllocation = pkg ? Number(pkg.nurPhy ?? pkg.nur ?? 0) : null;
+    const nurseAllocation = pkg ? Number(pkg.nur ?? 0) : null;
+    const physioAllocation = pkg ? Number(pkg.phy ?? 0) : null;
     let docDone = 0;
     let nurDone = 0;
+    let nurseDone = 0;
     let phyDone = 0;
     let psyDone = 0;
 
     p.v.forEach((dayV) => {
       if (dayV && dayV[0] === '✔') docDone++;
       if (dayV && dayV[1] === '✔') nurDone++;
-      if (dayV && dayV[2] === '✔') phyDone++;
-      if (dayV && dayV[3] === '✔') psyDone++;
+      if (dayV && dayV[2] === '✔') nurseDone++;
+      if (dayV && dayV[3] === '✔') phyDone++;
+      if (dayV && dayV[4] === '✔') psyDone++;
     });
 
     return {
-      dAlloc: pkg ? pkg.doc : null,
+      dAlloc: pkg ? Number(pkg.doc ?? 0) : null,
       dDone: docDone,
-      dRem: pkg ? pkg.doc - docDone : null,
-      npAlloc: pkg ? (pkg.nurPhy !== undefined ? pkg.nurPhy : pkg.nur) : null,
+      dRem: pkg ? Number(pkg.doc ?? 0) - docDone : null,
+      npAlloc: nursePhysioAllocation,
       npDone: nurDone,
-      npRem: pkg ? (pkg.nurPhy !== undefined ? pkg.nurPhy : pkg.nur) - nurDone : null,
-      nAlloc: pkg ? (pkg.nur !== undefined ? pkg.nur : null) : null,
-      nRem: pkg ? (pkg.nurPhy !== undefined ? pkg.nurPhy : pkg.nur) - nurDone : null,
-      phyAlloc: pkg ? (pkg.phy !== undefined ? pkg.phy : null) : null,
-      phyRem: pkg ? (pkg.phy !== undefined ? pkg.phy : 0) - phyDone : null,
-      pAlloc: pkg ? pkg.psy : null,
+      npRem: nursePhysioAllocation === null ? null : nursePhysioAllocation - nurDone,
+      nAlloc: nurseAllocation,
+      nRem: nurseAllocation === null ? null : nurseAllocation - nurseDone,
+      phyAlloc: physioAllocation,
+      phyRem: physioAllocation === null ? null : physioAllocation - phyDone,
+      pAlloc: pkg ? Number(pkg.psy ?? 0) : null,
       pDone: psyDone,
-      pRem: pkg ? pkg.psy - psyDone : null,
-      medAlloc: pkg ? pkg.med || 0 : null,
+      pRem: pkg ? Number(pkg.psy ?? 0) - psyDone : null,
+      medAlloc: pkg ? Number(pkg.med ?? 0) : null,
     };
   };
 
-  const getSortIcon = (col: 'sno' | 'name' | 'pkg') => {
+  const getSortIcon = (col: 'sno' | 'name' | 'subscriber' | 'pkg') => {
     if (sortColumn !== col) return '⇅';
     return sortDirection === 1 ? '▲' : '▼';
   };
 
   return (
     <div className="wrap">
+      <div className="frozen-patient-heading" aria-hidden="true">
+        <div className="frozen-sno-heading">
+          <button className="sb" onClick={() => onSort('sno')} tabIndex={-1}>
+            S.No
+          </button>
+        </div>
+        <div className="frozen-name-heading">
+          <button className="sb" onClick={() => onSort('name')} tabIndex={-1}>
+            Name <span>{getSortIcon('name')}</span>
+          </button>
+        </div>
+      </div>
       <table>
         <thead>
           {/* Row 1: Group labels */}
@@ -134,8 +154,12 @@ export const VisitTable: React.FC<VisitTableProps> = ({
                 Name <span>{getSortIcon('name')}</span>
               </button>
             </th>
-            <th rowSpan={4} style={{ minWidth: '130px', width: '130px' }}>Subscriber</th>
-            <th rowSpan={4} style={{ minWidth: '112px' }}>
+            <th rowSpan={4} style={{ minWidth: '130px', width: '130px' }}>
+              <button className="sb" onClick={() => onSort('subscriber')}>
+                Subscriber <span>{getSortIcon('subscriber')}</span>
+              </button>
+            </th>
+            <th rowSpan={4} style={{ minWidth: '96px', width: '96px' }}>
               <button className="sb" onClick={() => onSort('pkg')}>
                 Package <span>{getSortIcon('pkg')}</span>
               </button>
@@ -157,7 +181,7 @@ export const VisitTable: React.FC<VisitTableProps> = ({
             <th colSpan={5} className="tot" style={{ fontSize: '0.72rem' }}>
               Total
             </th>
-            <th colSpan={4} className="rem" style={{ fontSize: '0.72rem' }}>
+            <th colSpan={5} className="rem" style={{ fontSize: '0.72rem' }}>
               Remaining
             </th>
             <th colSpan={3} className="med" style={{ fontSize: '0.72rem' }}>
@@ -199,6 +223,9 @@ export const VisitTable: React.FC<VisitTableProps> = ({
             <th className="nur" rowSpan={3} style={{ fontSize: '0.62rem', minWidth: '38px' }}>
               Nur+Phy
             </th>
+            <th className="nur" rowSpan={3} style={{ fontSize: '0.62rem', minWidth: '38px', background: '#e1f5fe' }}>
+              Nurse
+            </th>
             <th className="nur" rowSpan={3} style={{ fontSize: '0.62rem', minWidth: '38px', background: '#e0f2f1' }}>
               Physio
             </th>
@@ -223,7 +250,7 @@ export const VisitTable: React.FC<VisitTableProps> = ({
                 return (
                   <th
                     key={`d-${d}`}
-                    colSpan={4}
+                    colSpan={5}
                     className={`date ${dayClass} ${boundary}`}
                     style={{ fontWeight: 700, fontSize: '0.67rem' }}
                   >
@@ -244,7 +271,7 @@ export const VisitTable: React.FC<VisitTableProps> = ({
                 return (
                   <th
                     key={`dl-${d}`}
-                    colSpan={4}
+                    colSpan={5}
                     className={`${dayClass} ${boundary}`}
                   >
                     {DAY_LETTERS[wd]}
@@ -254,7 +281,7 @@ export const VisitTable: React.FC<VisitTableProps> = ({
             )}
           </tr>
 
-          {/* Row 5: Column care types (D, N+Phy, Phy, Ps) */}
+          {/* Row 5: Column care types (D, N+Phy, Nurse, Phy, Ps) */}
           <tr className="rType">
             {weeks.map((w, wi) =>
               w.days.map((d, di) => {
@@ -264,6 +291,7 @@ export const VisitTable: React.FC<VisitTableProps> = ({
                   <React.Fragment key={`dt-${d}`}>
                     <th className={`td ${s ? s : ''} ${boundary}`}>D</th>
                     <th className={`tn ${s ? s : ''}`}>N+Phy</th>
+                    <th className={`tn ${s ? s : ''}`}>Nurse</th>
                     <th className={`tn ${s ? s : ''}`}>Phy</th>
                     <th className={`tp ${s ? s : ''}`}>Ps</th>
                   </React.Fragment>
@@ -274,7 +302,7 @@ export const VisitTable: React.FC<VisitTableProps> = ({
         </thead>
 
         <tbody>
-          {sortedPatients.map((p) => {
+          {sortedPatients.map((p, rowIndex) => {
             const originalIndex = patients.findIndex((pat) => pat.id === p.id);
             const pkg = p.pkgIdx >= 0 && packages[p.pkgIdx] ? packages[p.pkgIdx] : null;
             const s = getStats(p);
@@ -282,7 +310,7 @@ export const VisitTable: React.FC<VisitTableProps> = ({
 
             return (
               <tr key={p.id}>
-                <td className="sno sticky-sno">{p.id}</td>
+                <td className="sno sticky-sno">{rowIndex + 1}</td>
                 <td className="name sticky-name">{p.name}</td>
                 <td className="subscriber-cell">
                   <input
@@ -295,17 +323,23 @@ export const VisitTable: React.FC<VisitTableProps> = ({
 
                 {/* Package dropdown */}
                 <td className="pkg">
-                  <select
-                    value={p.pkgIdx}
-                    onChange={(e) => onUpdatePatientPackage(p.id, parseInt(e.target.value, 10))}
-                  >
-                    <option value="-1">— Select —</option>
-                    {packages.map((pk, i) => (
-                      <option key={pk.id || i} value={i}>
-                        {pk.name}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="package-select-wrap">
+                    <span className="package-selected-label">
+                      {pkg ? pkg.name : '— Select —'}
+                    </span>
+                    <select
+                      value={p.pkgIdx}
+                      aria-label={`Package for ${p.name}`}
+                      onChange={(e) => onUpdatePatientPackage(p.id, parseInt(e.target.value, 10))}
+                    >
+                      <option value="-1">— Select —</option>
+                      {packages.map((pk, i) => (
+                        <option key={pk.id || i} value={i}>
+                          {pk.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </td>
 
                 {/* Price */}
@@ -341,6 +375,21 @@ export const VisitTable: React.FC<VisitTableProps> = ({
                   }}
                 >
                   {s.dRem === null ? '—' : s.dRem}
+                </td>
+                <td
+                  className="rem-nur"
+                  style={{
+                    background:
+                      s.npRem !== null
+                        ? s.npRem <= 0
+                          ? '#f5cba7'
+                          : s.npRem <= 2
+                          ? '#fff9c4'
+                          : 'var(--rem-ok)'
+                        : undefined,
+                  }}
+                >
+                  {s.npRem === null ? '—' : s.npRem}
                 </td>
                 <td
                   className="rem-nur"
@@ -425,15 +474,15 @@ export const VisitTable: React.FC<VisitTableProps> = ({
                     const dayLetter = DAY_LETTERS[wd];
                     const boundary = wi > 0 && di === 0 ? 'wk-start' : '';
 
-                    const cellValues = p.v[dayIdx] || ['', '', '', ''];
-                    const TYPE_LABELS = ['Doctor', 'Nurse+Physio', 'Physio', 'Psychiatrist'];
-                    const TYPE_COLORS = ['var(--doc-fg)', 'var(--nur-fg)', 'var(--nur-fg)', 'var(--psy-fg)'];
-                    const TYPE_CLASSES = ['vd', 'vn', 'vn', 'vp'];
+                    const cellValues = p.v[dayIdx] || ['', '', '', '', ''];
+                    const TYPE_LABELS = ['Doctor', 'Nurse+Physio', 'Nurse', 'Physio', 'Psychiatrist'];
+                    const TYPE_COLORS = ['var(--doc-fg)', 'var(--nur-fg)', 'var(--nur-fg)', 'var(--nur-fg)', 'var(--psy-fg)'];
+                    const TYPE_CLASSES = ['vd', 'vn', 'vn', 'vn', 'vp'];
 
                     return (
                       <React.Fragment key={`v-${p.id}-${d}`}>
-                        {[0, 1, 2, 3].map((t) => {
-                          const val = cellValues[t as 0 | 1 | 2 | 3] || '';
+                        {[0, 1, 2, 3, 4].map((t) => {
+                          const val = cellValues[t as 0 | 1 | 2 | 3 | 4] || '';
                           const isBoundary = t === 0 ? boundary : '';
                           const valClass =
                             val === '✔'
@@ -454,7 +503,7 @@ export const VisitTable: React.FC<VisitTableProps> = ({
                                   dayIdx,
                                   d,
                                   dayLetter,
-                                  t as 0 | 1 | 2 | 3,
+                                  t as 0 | 1 | 2 | 3 | 4,
                                   TYPE_LABELS[t],
                                   TYPE_COLORS[t],
                                   e.clientX,

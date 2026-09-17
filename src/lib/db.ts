@@ -6,8 +6,8 @@ import { getDaysInMonth, getMonthLabel } from './calendar';
 
 function normalizeDayVisits(raw: unknown): DayVisits {
   const values = Array.isArray(raw) ? raw : [];
-  if (values.length >= 4) return [values[0], values[1], values[2], values[3]] as DayVisits;
-  return [values[0] || '', values[1] || '', '', values[2] || ''] as DayVisits;
+  if (values.length >= 5) return [values[0], values[1], values[2], values[3], values[4]] as DayVisits;
+  return [values[0] || '', values[1] || '', '', values[2] || '', values[3] || ''] as DayVisits;
 }
 
 function normalizeVisits(raw: unknown, daysInMonth: number): DayVisits[] {
@@ -320,7 +320,7 @@ export async function addPatient(monthId: string, name: string, subscriber: stri
   });
   const sortOrder = Number(countRes.rows[0]?.count || 0);
 
-  const emptyVisits: DayVisits[] = Array.from({ length: daysInMonth }, () => ['', '', '', '']);
+  const emptyVisits: DayVisits[] = Array.from({ length: daysInMonth }, () => ['', '', '', '', '']);
 
   await db.execute({
     sql: `INSERT INTO month_patients (month_id, patient_id, name, subscriber, pkg_idx, med_given, visits_json, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -351,7 +351,7 @@ export async function resetMonth(monthId: string) {
   const db = getClient();
   const month = await getMonth(monthId);
   const daysInMonth = month ? month.daysInMonth : 30;
-  const emptyVisits = JSON.stringify(Array.from({ length: daysInMonth }, () => ['', '', '', '']));
+  const emptyVisits = JSON.stringify(Array.from({ length: daysInMonth }, () => ['', '', '', '', '']));
 
   await db.execute({
     sql: `UPDATE month_patients SET pkg_idx = -1, med_given = 0, visits_json = ? WHERE month_id = ?`,
@@ -380,7 +380,7 @@ export async function createMonth(year: number, month: number, carryOverPatients
 
   if (carryOverPatientsFromMonthId) {
     const prevPatients = await getMonthPatients(carryOverPatientsFromMonthId);
-    const emptyVisits = JSON.stringify(Array.from({ length: daysInMonth }, () => ['', '', '', '']));
+    const emptyVisits = JSON.stringify(Array.from({ length: daysInMonth }, () => ['', '', '', '', '']));
 
     prevPatients.forEach((p, idx) => {
       statements.push({
