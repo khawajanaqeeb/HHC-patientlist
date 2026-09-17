@@ -1008,30 +1008,43 @@ td.vc.vx { background: var(--can-bg) !important; }
   }
 
   .mbg {
-    position: static;
-    display: block;
+    position: absolute;
+    inset: 0;
+    display: block !important;
     background: #fff;
   }
 
-  .mbg ~ * {
-    display: none !important;
-  }
-
-  body:has(.mbg) > main > :not(.mbg) {
-    display: none !important;
-  }
-
-  body:has(.mbg) > main > .title-bar {
+  body:has(.mbg) > main > .title-bar,
+  body:has(.mbg) > main > .ctrl,
+  body:has(.mbg) > main > .wrap {
     display: none !important;
   }
 
   .modal.patient-search-modal {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    transform: none !important;
+    animation: none !important;
+  }
+
+  .patient-search-modal > form,
+  .patient-search-modal .search-criteria-list,
+  .patient-search-modal .search-fields-form,
+  .patient-search-modal .mfoot,
+  .patient-search-heading p,
+  .patient-search-heading .icon-btn {
+    display: none !important;
+  }
+
+  .patient-search-modal {
     width: 100%;
     height: auto;
     max-height: none;
     padding: 0;
     box-shadow: none;
     border: none;
+    overflow: visible;
   }
 
   .patient-search-table-wrap {
