@@ -5,11 +5,6 @@ export const printHtml = (title: string, content: string) => {
     return;
   }
 
-  printWindow.onload = () => {
-    printWindow.focus();
-    printWindow.print();
-  };
-  printWindow.onafterprint = () => printWindow.close();
   printWindow.document.write(`<!doctype html>
 <html>
   <head>
@@ -17,6 +12,10 @@ export const printHtml = (title: string, content: string) => {
     <style>
       @page { margin: 14mm; }
       body { color: #243b4d; font-family: Arial, sans-serif; margin: 0; }
+      @media print { .toolbar { display: none; } }
+      .toolbar { display: flex; gap: 8px; margin-bottom: 16px; }
+      button { background: #1a5276; border: 0; border-radius: 4px; color: #fff; cursor: pointer; font-size: 13px; padding: 8px 14px; }
+      button.secondary { background: #63788a; }
       h1 { color: #1a5276; font-size: 18px; margin: 0 0 12px; }
       .meta { color: #63788a; font-size: 12px; margin: 0 0 12px; }
       table { border-collapse: collapse; font-size: 11px; width: 100%; }
@@ -25,7 +24,13 @@ export const printHtml = (title: string, content: string) => {
       tbody tr:nth-child(even) { background: #f4faff; }
     </style>
   </head>
-  <body>${content}</body>
+  <body>
+    <div class="toolbar">
+      <button type="button" onclick="window.print()">Print</button>
+      <button type="button" class="secondary" onclick="window.close()">Close</button>
+    </div>
+    ${content}
+  </body>
 </html>`);
   printWindow.document.close();
 };
