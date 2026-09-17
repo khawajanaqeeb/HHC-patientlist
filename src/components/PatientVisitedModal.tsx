@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { CalendarSearch, Check, X, Printer } from 'lucide-react';
 import { PatientVisitSearchResult } from '@/lib/types';
+import { printHtml } from '@/lib/print';
 
 interface PatientVisitedModalProps {
   isOpen: boolean;
@@ -54,6 +55,12 @@ export const PatientVisitedModal: React.FC<PatientVisitedModalProps> = ({ isOpen
     }
   };
 
+  const printResults = () => {
+    const table = document.querySelector('.patient-search-modal .patient-search-table');
+    if (!table) return;
+    printHtml('Patient Visited Search Results', `<h1>Patient Visited Search Results</h1><p class="meta">${monthLabel} · ${results.length} patient${results.length === 1 ? '' : 's'}</p>${table.outerHTML}`);
+  };
+
   return (
     <div className="mbg" onClick={(event) => event.target === event.currentTarget && onClose()}>
       <div className="modal patient-search-modal">
@@ -103,7 +110,7 @@ export const PatientVisitedModal: React.FC<PatientVisitedModalProps> = ({ isOpen
         )}
 
         <div className="mfoot">
-          {results.length > 0 && <button type="button" className="btn sec print-search-btn" onClick={() => window.print()}><Printer size={13} /> Print results</button>}
+          {results.length > 0 && <button type="button" className="btn sec print-search-btn" onClick={printResults}><Printer size={13} /> Print results</button>}
           <button type="button" className="btn sec" onClick={onClose}><X size={13} /> Close</button>
         </div>
       </div>

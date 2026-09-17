@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { Search, X, Printer } from 'lucide-react';
 import { MonthInfo, Package, PatientMonthData } from '@/lib/types';
+import { printHtml } from '@/lib/print';
 
 type SearchField = 'name' | 'date' | 'subscriber' | 'package';
 
@@ -108,6 +109,12 @@ export const PatientSearchModal: React.FC<PatientSearchModalProps> = ({
     return !date;
   });
 
+  const printResults = () => {
+    const table = document.querySelector('.patient-search-modal .patient-search-table');
+    if (!table) return;
+    printHtml('Patient Search Results', `<h1>Patient Search Results</h1><p class="meta">${currentMonth.label} · ${results.length} matching patient${results.length === 1 ? '' : 's'}</p>${table.outerHTML}`);
+  };
+
   return (
     <div className="mbg" onClick={(event) => event.target === event.currentTarget && onClose()}>
       <div className="modal patient-search-modal">
@@ -200,7 +207,7 @@ export const PatientSearchModal: React.FC<PatientSearchModalProps> = ({
         )}
 
         <div className="mfoot">
-          {results.length > 0 && <button type="button" className="btn sec print-search-btn" onClick={() => window.print()}><Printer size={13} /> Print results</button>}
+          {results.length > 0 && <button type="button" className="btn sec print-search-btn" onClick={printResults}><Printer size={13} /> Print results</button>}
           <button type="button" className="btn sec" onClick={onClose}><X size={13} /> Close</button>
         </div>
       </div>
