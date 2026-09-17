@@ -10,7 +10,6 @@
     "import:supabase": "node scripts/import-local-db-to-supabase.mjs"
   },
   "dependencies": {
-    "@libsql/client": "^0.14.0",
     "@supabase/supabase-js": "^2.116.0",
     "clsx": "^2.1.1",
     "lucide-react": "^0.475.0",

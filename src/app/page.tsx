@@ -67,7 +67,7 @@ export default function PatientVisitSheetPage() {
       setAvailableMonths(data.availableMonths || []);
       setPackages(data.packages || []);
       setPatients(data.patients || []);
-      flashStatus(`✔ Synced to SQLite (${new Date().toLocaleTimeString()})`, '#ffffff');
+      flashStatus(`✔ Synced to Supabase (${new Date().toLocaleTimeString()})`, '#ffffff');
     } catch (err: any) {
       console.error(err);
       flashStatus('⚠ Error loading data', '#b71c1c');
