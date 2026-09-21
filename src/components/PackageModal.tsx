@@ -8,6 +8,9 @@ interface PackageModalProps {
   isOpen: boolean;
   packages: Package[];
   patients: PatientMonthData[];
+  currency: 'PKR' | 'USD';
+  usdToPkrRate: number;
+  onCurrencyChange: (c: 'PKR' | 'USD') => void;
   onClose: () => void;
   onSave: (packages: Package[]) => void;
 }
@@ -16,6 +19,9 @@ export const PackageModal: React.FC<PackageModalProps> = ({
   isOpen,
   packages: initialPackages,
   patients,
+  currency,
+  usdToPkrRate,
+  onCurrencyChange,
   onClose,
   onSave,
 }) => {
@@ -81,7 +87,20 @@ export const PackageModal: React.FC<PackageModalProps> = ({
   return (
     <div className="mbg" onClick={(e) => e.target === e.currentTarget && onClose()}>
       <div className="modal" style={{ width: 'min(860px, 98vw)' }}>
-        <h2>⚙ Package Definitions</h2>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
+          <h2 style={{ margin: 0 }}>⚙ Package Definitions</h2>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.75rem', fontWeight: 600, color: 'var(--teal)', cursor: 'pointer' }}>
+            💱 Price in:
+            <select
+              value={currency}
+              onChange={(e) => onCurrencyChange(e.target.value as 'PKR' | 'USD')}
+              style={{ fontSize: '0.74rem', padding: '2px 6px', borderRadius: '5px', border: '1.5px solid var(--teal-lt)', color: 'var(--teal)', fontWeight: 700, cursor: 'pointer' }}
+            >
+              <option value="PKR">PKR (₨)</option>
+              <option value="USD">Dollar ($)</option>
+            </select>
+          </label>
+        </div>
         <p style={{ fontSize: '0.71rem', color: '#666', marginBottom: '10px' }}>
           Set monthly visit allocations per package. These auto-populate the Total columns when a package is selected for a patient.
         </p>
@@ -90,7 +109,9 @@ export const PackageModal: React.FC<PackageModalProps> = ({
           <thead>
             <tr>
               <th>Package Name</th>
-              <th style={{ background: '#2e7d32' }}>💰 Price (Rs.)</th>
+              <th style={{ background: '#2e7d32' }}>
+                💰 Price ({currency === 'USD' ? '$' : 'Rs.'})
+              </th>
               <th style={{ background: 'var(--doc-fg)' }}>🩺 Doctor</th>
               <th style={{ background: 'var(--nur-fg)' }}>💉 Nurse+Physio</th>
               <th style={{ background: '#0288D1' }}>💉 Nurse</th>
@@ -121,15 +142,33 @@ export const PackageModal: React.FC<PackageModalProps> = ({
                     }}
                   />
                 </td>
-                <td>
-                  <input
-                    type="number"
-                    min="0"
-                    step="1"
-                    value={pkg.price || 0}
-                    onChange={(e) => handleChange(i, 'price', e.target.value)}
-                    style={{ width: '70px' }}
-                  />
+                <td style={{ whiteSpace: 'nowrap' }}>
+                  {currency === 'USD' ? (
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                      <span style={{ fontSize: '0.7rem', color: '#888' }}>₨</span>
+                      <input
+                        type="number"
+                        min="0"
+                        step="1"
+                        value={pkg.price || 0}
+                        onChange={(e) => handleChange(i, 'price', e.target.value)}
+                        style={{ width: '60px' }}
+                        title="Always stored in PKR"
+                      />
+                      <span style={{ color: '#2e7d32', fontWeight: 700, fontSize: '0.74rem', minWidth: '52px' }}>
+                        ≈ {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 2 }).format((pkg.price || 0) / usdToPkrRate)}
+                      </span>
+                    </span>
+                  ) : (
+                    <input
+                      type="number"
+                      min="0"
+                      step="1"
+                      value={pkg.price || 0}
+                      onChange={(e) => handleChange(i, 'price', e.target.value)}
+                      style={{ width: '70px' }}
+                    />
+                  )}
                 </td>
                 <td>
                   <input
@@ -206,6 +245,11 @@ export const PackageModal: React.FC<PackageModalProps> = ({
 
         <div style={{ marginTop: '9px', fontSize: '0.69rem', color: '#888' }}>
           💡 Numbers entered here become the monthly visit quota for each care type, and the medicine budget (in Rs.) for the Medicines column.
+          {currency === 'USD' && (
+            <span style={{ marginLeft: '8px', color: '#2e7d32', fontWeight: 600 }}>
+              Live rate: 1 USD = {usdToPkrRate.toFixed(2)} PKR
+            </span>
+          )}
         </div>
 
         <div style={{ marginTop: '10px' }}>

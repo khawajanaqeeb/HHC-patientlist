@@ -1,16 +1,16 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { Package, PatientMonthData, MonthInfo, VisitValue, DayVisits } from '@/lib/types';
+import { Package, PatientMonthData, MonthInfo } from '@/lib/types';
 import TitleBar from '@/components/TitleBar';
 import ControlBar from '@/components/ControlBar';
 import { VisitTable } from '@/components/VisitTable';
-import { VisitDropdown, ActiveCellContext } from '@/components/VisitDropdown';
 import { PackageModal } from '@/components/PackageModal';
 import { AddPatientModal } from '@/components/AddPatientModal';
 import { AddMonthModal } from '@/components/AddMonthModal';
 import { PatientVisitedModal } from '@/components/PatientVisitedModal';
 import { PatientSearchModal } from '@/components/PatientSearchModal';
+import { EnterVisitModal } from '@/components/EnterVisitModal';
 
 const DEFAULT_USD_TO_PKR_RATE = 280;
 
@@ -36,12 +36,12 @@ export default function PatientVisitSheetPage() {
   const [saveStatus, setSaveStatus] = useState<string>('');
   const [saveStatusColor, setSaveStatusColor] = useState<string>('#ffffff');
 
-  const [activeCell, setActiveCell] = useState<ActiveCellContext | null>(null);
   const [isPackageModalOpen, setIsPackageModalOpen] = useState<boolean>(false);
   const [isAddPatientModalOpen, setIsAddPatientModalOpen] = useState<boolean>(false);
   const [isAddMonthModalOpen, setIsAddMonthModalOpen] = useState<boolean>(false);
   const [isPatientVisitedSearchOpen, setIsPatientVisitedSearchOpen] = useState<boolean>(false);
   const [isPatientSearchOpen, setIsPatientSearchOpen] = useState<boolean>(false);
+  const [isEnterVisitModalOpen, setIsEnterVisitModalOpen] = useState<boolean>(false);
 
   const flashStatus = (msg: string, color: string = '#ffffff') => {
     setSaveStatus(msg);
@@ -125,95 +125,6 @@ export default function PatientVisitSheetPage() {
     } else {
       setSortColumn(col);
       setSortDirection(1);
-    }
-  };
-
-  const handleUpdatePatientPackage = async (patientId: number, pkgIdx: number) => {
-    setPatients((prev) =>
-      prev.map((p) => (p.id === patientId ? { ...p, pkgIdx } : p))
-    );
-
-    try {
-      const res = await fetch(`/api/patients/${patientId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ monthId: currentMonth.id, pkgIdx }),
-      });
-      if (!res.ok) throw new Error('Failed to update package');
-      flashStatus(`✔ Saved ${new Date().toLocaleTimeString()}`, '#2e7d32');
-    } catch (err: any) {
-      console.error(err);
-      flashStatus('⚠ Autosave failed', '#b71c1c');
-    }
-  };
-
-  const handleUpdatePatientMedicine = async (patientId: number, medGiven: number) => {
-    setPatients((prev) =>
-      prev.map((p) => (p.id === patientId ? { ...p, medGiven } : p))
-    );
-
-    try {
-      const res = await fetch(`/api/patients/${patientId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ monthId: currentMonth.id, medGiven }),
-      });
-      if (!res.ok) throw new Error('Failed to update medicine');
-      flashStatus(`✔ Saved ${new Date().toLocaleTimeString()}`, '#2e7d32');
-    } catch (err: any) {
-      console.error(err);
-      flashStatus('⚠ Autosave failed', '#b71c1c');
-    }
-  };
-
-  const handleUpdatePatientSubscriber = async (patientId: number, subscriber: string) => {
-    setPatients((prev) => prev.map((p) => (p.id === patientId ? { ...p, subscriber } : p)));
-
-    try {
-      const res = await fetch(`/api/patients/${patientId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ monthId: currentMonth.id, subscriber }),
-      });
-      if (!res.ok) throw new Error('Failed to update subscriber');
-      flashStatus(`✔ Saved ${new Date().toLocaleTimeString()}`, '#2e7d32');
-    } catch (err: any) {
-      console.error(err);
-      flashStatus('⚠ Autosave failed', '#b71c1c');
-    }
-  };
-
-  const handlePickVisit = async (value: VisitValue) => {
-    if (!activeCell) return;
-    const { patientIndex, dayIndex, typeIndex } = activeCell;
-    const targetPatient = patients[patientIndex];
-    if (!targetPatient) return;
-
-    const newV = targetPatient.v.map((row, dIdx) => {
-      if (dIdx === dayIndex) {
-        const newRow = [...row] as DayVisits;
-        newRow[typeIndex] = value;
-        return newRow;
-      }
-      return row;
-    });
-
-    setPatients((prev) =>
-      prev.map((p, idx) => (idx === patientIndex ? { ...p, v: newV } : p))
-    );
-    setActiveCell(null);
-
-    try {
-      const res = await fetch(`/api/patients/${targetPatient.id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ monthId: currentMonth.id, v: newV }),
-      });
-      if (!res.ok) throw new Error('Failed to save visit');
-      flashStatus(`✔ Saved ${new Date().toLocaleTimeString()}`, '#2e7d32');
-    } catch (err: any) {
-      console.error(err);
-      flashStatus('⚠ Autosave failed', '#b71c1c');
     }
   };
 
@@ -342,6 +253,7 @@ export default function PatientVisitSheetPage() {
         onOpenAddPatient={() => setIsAddPatientModalOpen(true)}
         onOpenPatientVisitedSearch={() => setIsPatientVisitedSearchOpen(true)}
         onOpenPatientSearch={() => setIsPatientSearchOpen(true)}
+        onOpenEnterVisit={() => setIsEnterVisitModalOpen(true)}
         onPrint={() => window.print()}
         onOpenPackages={() => setIsPackageModalOpen(true)}
         onSave={() => flashStatus(`✔ Saved (${new Date().toLocaleTimeString()})`, '#ffffff')}
@@ -376,49 +288,17 @@ export default function PatientVisitSheetPage() {
           sortDirection={sortDirection}
           onSort={handleSort}
           onCurrencyChange={setCurrency}
-          onUpdatePatientPackage={handleUpdatePatientPackage}
-          onUpdatePatientSubscriber={handleUpdatePatientSubscriber}
-          onUpdatePatientMedicine={handleUpdatePatientMedicine}
-          onOpenDropdown={(
-            patientIndex,
-            patientName,
-            dayIndex,
-            dayNumber,
-            dayLetter,
-            typeIndex,
-            typeLabel,
-            typeColor,
-            clientX,
-            clientY
-          ) => {
-            setActiveCell({
-              patientIndex,
-              patientName,
-              dayIndex,
-              dayNumber,
-              dayLetter,
-              typeIndex,
-              typeLabel,
-              typeColor,
-              anchorX: clientX,
-              anchorY: clientY,
-            });
-          }}
         />
       )}
-
-      {/* Floating Visit Selection Dropdown */}
-      <VisitDropdown
-        context={activeCell}
-        onSelect={handlePickVisit}
-        onClose={() => setActiveCell(null)}
-      />
 
       {/* Packages Modal */}
       <PackageModal
         isOpen={isPackageModalOpen}
         packages={packages}
         patients={patients}
+        currency={currency}
+        usdToPkrRate={usdToPkrRate}
+        onCurrencyChange={setCurrency}
         onClose={() => setIsPackageModalOpen(false)}
         onSave={handleSavePackages}
       />
@@ -453,6 +333,16 @@ export default function PatientVisitSheetPage() {
         currency={currency}
         usdToPkrRate={usdToPkrRate}
         onClose={() => setIsPatientSearchOpen(false)}
+      />
+
+      {/* Enter Visit Data Modal */}
+      <EnterVisitModal
+        isOpen={isEnterVisitModalOpen}
+        patients={patients}
+        packages={packages}
+        currentMonth={currentMonth}
+        onClose={() => setIsEnterVisitModalOpen(false)}
+        onRefresh={() => loadData(currentMonth.id)}
       />
     </main>
   );

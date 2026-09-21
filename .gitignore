@@ -27,3 +27,6 @@ next-env.d.ts
 
 # Scratch scripts
 scratch/
+
+.vercel
+.env*.local

@@ -7,7 +7,7 @@ A full-stack **Next.js** web application for managing monthly patient visit trac
 ## Features
 
 - **Multi-month support** — Create sheets for upcoming months (October, November, …). Patients and packages carry over automatically with visits reset.
-- **Local SQLite database** (`@libsql/client`) — All data is persisted locally in `.data/patient_visits.db`.
+- **Supabase Cloud Database** (`@supabase/supabase-js`) — All data is persisted directly in Supabase.
 - **Visit tracking** — Click any day/care-type cell to mark ✔ Visited, ✖ Cancelled, — No Visit, or ⬜ Clear.
 - **Package management** — Define monthly allocations per package (Doctor, Nurse+Physio, Psychiatrist, Medicine budget).
 - **Auto-seeded** — Automatically imports all 44 patients and 12 packages from `patient-visit-data-2026-09-09 (2).json` on first run.
@@ -45,11 +45,9 @@ src/
 │   ├── AddPatientModal.tsx   # New patient form
 │   └── AddMonthModal.tsx     # Upcoming month creator with carry-over
 └── lib/
-    ├── db.ts                 # SQLite database layer (@libsql/client)
+    ├── db.ts                 # Supabase database layer (@supabase/supabase-js)
     ├── calendar.ts           # Dynamic calendar utilities (any month/year)
     └── types.ts              # TypeScript interfaces
-.data/
-└── patient_visits.db         # Auto-created SQLite database (gitignored)
 ```
 
 ## Setup & Desktop Shortcut Guide
@@ -64,28 +62,17 @@ For detailed instructions on setting up, cloning, creating the desktop icon, and
 # Install dependencies
 npm install
 
-# Start development server (auto-seeds DB on first run)
+# Start development server
 npm run dev
 ```
 
 Then open [http://localhost:3000](http://localhost:3000).
 
-> **First run**: The app automatically reads `patient-visit-data-2026-09-09 (2).json` from the project root and seeds the SQLite database with all September 2026 patients and packages.
-
----
-
-## Adding an Upcoming Month
-
-1. Click **➕ Add Month** in the header.
-2. Select the month and year (e.g. October 2026).
-3. Check **Carry over patient list & packages** to transfer patients with their package allocations (visits reset to empty).
-4. Click **Create Month** — the sheet instantly switches to the new month.
-
 ---
 
 ## Database
 
-Data is stored in `.data/patient_visits.db` (auto-created). Tables:
+Data is stored in **Supabase** via PostgreSQL. Tables:
 
 | Table | Purpose |
 |---|---|

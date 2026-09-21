@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Package, PatientMonthData, MonthInfo, VisitValue } from '@/lib/types';
+import { Package, PatientMonthData, MonthInfo } from '@/lib/types';
 import {
   DAY_LETTERS,
   getWeekdayIndex,
@@ -20,21 +20,6 @@ interface VisitTableProps {
   sortDirection: 1 | -1;
   onSort: (col: 'sno' | 'name' | 'subscriber' | 'pkg') => void;
   onCurrencyChange: (currency: 'PKR' | 'USD') => void;
-  onUpdatePatientPackage: (patientId: number, pkgIdx: number) => void;
-    onUpdatePatientSubscriber: (patientId: number, subscriber: string) => void;
-  onUpdatePatientMedicine: (patientId: number, medGiven: number) => void;
-  onOpenDropdown: (
-    patientIndex: number,
-    patientName: string,
-    dayIndex: number,
-    dayNumber: number,
-    dayLetter: string,
-    typeIndex: 0 | 1 | 2 | 3 | 4,
-    typeLabel: string,
-    typeColor: string,
-    clientX: number,
-    clientY: number
-  ) => void;
 }
 
 export const VisitTable: React.FC<VisitTableProps> = ({
@@ -48,10 +33,6 @@ export const VisitTable: React.FC<VisitTableProps> = ({
   sortDirection,
   onSort,
   onCurrencyChange,
-  onUpdatePatientPackage,
-    onUpdatePatientSubscriber,
-  onUpdatePatientMedicine,
-  onOpenDropdown,
 }) => {
   const weeks = getWeeksForMonth(currentMonth.daysInMonth);
   const fixedLeftCols = 18;
@@ -303,7 +284,6 @@ export const VisitTable: React.FC<VisitTableProps> = ({
 
         <tbody>
           {sortedPatients.map((p, rowIndex) => {
-            const originalIndex = patients.findIndex((pat) => pat.id === p.id);
             const pkg = p.pkgIdx >= 0 && packages[p.pkgIdx] ? packages[p.pkgIdx] : null;
             const s = getStats(p);
             const medDiff = s.medAlloc !== null ? s.medAlloc - (p.medGiven || 0) : null;
@@ -312,34 +292,17 @@ export const VisitTable: React.FC<VisitTableProps> = ({
               <tr key={p.id}>
                 <td className="sno sticky-sno">{rowIndex + 1}</td>
                 <td className="name sticky-name">{p.name}</td>
+
+                {/* Subscriber — read-only */}
                 <td className="subscriber-cell">
-                  <input
-                    type="text"
-                    value={p.subscriber}
-                    aria-label={`Subscriber for ${p.name}`}
-                    onChange={(e) => onUpdatePatientSubscriber(p.id, e.target.value)}
-                  />
+                  <span className="ro-text">{p.subscriber || '—'}</span>
                 </td>
 
-                {/* Package dropdown */}
+                {/* Package — read-only */}
                 <td className="pkg">
-                  <div className="package-select-wrap">
-                    <span className="package-selected-label">
-                      {pkg ? pkg.name : '— Select —'}
-                    </span>
-                    <select
-                      value={p.pkgIdx}
-                      aria-label={`Package for ${p.name}`}
-                      onChange={(e) => onUpdatePatientPackage(p.id, parseInt(e.target.value, 10))}
-                    >
-                      <option value="-1">— Select —</option>
-                      {packages.map((pk, i) => (
-                        <option key={pk.id || i} value={i}>
-                          {pk.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                  <span className="package-selected-label">
+                    {pkg ? pkg.name : '—'}
+                  </span>
                 </td>
 
                 {/* Price */}
@@ -437,18 +400,10 @@ export const VisitTable: React.FC<VisitTableProps> = ({
                   {s.pRem === null ? '—' : s.pRem}
                 </td>
 
-                {/* Medicine Total, Given, Rem */}
+                {/* Medicine — read-only */}
                 <td className="med-total">{s.medAlloc === null ? '—' : s.medAlloc}</td>
                 <td className="med-input">
-                  <input
-                    type="number"
-                    min="0"
-                    step="1"
-                    value={p.medGiven || 0}
-                    onChange={(e) =>
-                      onUpdatePatientMedicine(p.id, Math.max(0, parseInt(e.target.value, 10) || 0))
-                    }
-                  />
+                  <span className="ro-text">{p.medGiven || 0}</span>
                 </td>
                 <td
                   className="med-rem"
@@ -465,17 +420,14 @@ export const VisitTable: React.FC<VisitTableProps> = ({
                   {medDiff === null ? '—' : medDiff}
                 </td>
 
-                {/* Visit cells (Weeks -> Days -> D, N, Ps) */}
+                {/* Visit cells — read-only display */}
                 {weeks.map((w, wi) =>
                   w.days.map((d, di) => {
                     const dayIdx = d - 1;
                     const dc = getDayClass(currentMonth.year, currentMonth.month, d);
-                    const wd = getWeekdayIndex(currentMonth.year, currentMonth.month, d);
-                    const dayLetter = DAY_LETTERS[wd];
                     const boundary = wi > 0 && di === 0 ? 'wk-start' : '';
 
                     const cellValues = p.v[dayIdx] || ['', '', '', '', ''];
-                    const TYPE_LABELS = ['Doctor', 'Nurse+Physio', 'Nurse', 'Physio', 'Psychiatrist'];
                     const TYPE_COLORS = ['var(--doc-fg)', 'var(--nur-fg)', 'var(--nur-fg)', 'var(--nur-fg)', 'var(--psy-fg)'];
                     const TYPE_CLASSES = ['vd', 'vn', 'vn', 'vn', 'vp'];
 
@@ -494,22 +446,7 @@ export const VisitTable: React.FC<VisitTableProps> = ({
                           return (
                             <td
                               key={`c-${t}`}
-                              className={`vc ${dc} ${isBoundary} ${valClass}`}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                onOpenDropdown(
-                                  originalIndex,
-                                  p.name,
-                                  dayIdx,
-                                  d,
-                                  dayLetter,
-                                  t as 0 | 1 | 2 | 3 | 4,
-                                  TYPE_LABELS[t],
-                                  TYPE_COLORS[t],
-                                  e.clientX,
-                                  e.clientY
-                                );
-                              }}
+                              className={`vc ${dc} ${isBoundary} ${valClass} vc-readonly`}
                             >
                               {val === '✔' && (
                                 <span
