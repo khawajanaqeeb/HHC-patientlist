@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { importFullJson, getMonthPatients, getPackages } from '@/lib/db';
+import { isMonthId } from '@/lib/validation';
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { monthId, data } = body;
 
-    if (!data || (!data.patients && !data.PKGS)) {
+    if (!isMonthId(monthId || '2026-09') || !data || typeof data !== 'object' || (!Array.isArray(data.patients) && !Array.isArray(data.PKGS))) {
       return NextResponse.json({ error: 'Valid JSON data with patients or packages is required' }, { status: 400 });
     }
 

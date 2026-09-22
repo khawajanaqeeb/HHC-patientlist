@@ -1,9 +1,18 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { ClipboardEdit, X, Check, Save, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ClipboardEdit, X, Check, Save, ChevronLeft, ChevronRight, Search } from 'lucide-react';
 import { Package, PatientMonthData, MonthInfo, DayVisits, VisitValue } from '@/lib/types';
 import { DAY_LETTERS, getWeekdayIndex, getDayClass } from '@/lib/calendar';
+
+type SearchField = 'name' | 'date' | 'subscriber' | 'package';
+
+const emptySearchFields: Record<SearchField, boolean> = {
+  name: false,
+  date: false,
+  subscriber: false,
+  package: false,
+};
 
 interface EnterVisitModalProps {
   isOpen: boolean;
@@ -44,9 +53,16 @@ export const EnterVisitModal: React.FC<EnterVisitModalProps> = ({
     : 1;
 
   const [selectedPatientId, setSelectedPatientId] = useState<number | null>(null);
+  const [searchFields, setSearchFields] = useState<Record<SearchField, boolean>>(emptySearchFields);
+  const [searchName, setSearchName] = useState('');
+  const [searchSubscriber, setSearchSubscriber] = useState('');
+  const [searchPackages, setSearchPackages] = useState<number[]>([]);
+  const [searchDate, setSearchDate] = useState('');
+  const [searchResults, setSearchResults] = useState<PatientMonthData[]>([]);
+  const [searchSubmitted, setSearchSubmitted] = useState(false);
   const [selectedDay, setSelectedDay] = useState<number>(defaultDay);
   const [subscriber, setSubscriber] = useState<string>('');
-  const [pkgIdx, setPkgIdx] = useState<number>(-1);
+  const [packageId, setPackageId] = useState<number | null>(null);
   const [medGiven, setMedGiven] = useState<number>(0);
   const [visitValues, setVisitValues] = useState<DayVisits>(['', '', '', '', '']);
   const [saving, setSaving] = useState(false);
@@ -58,11 +74,18 @@ export const EnterVisitModal: React.FC<EnterVisitModalProps> = ({
     if (isOpen) {
       const firstPatient = patients.length > 0 ? patients[0] : null;
       setSelectedPatientId(firstPatient ? firstPatient.id : null);
+      setSearchFields(emptySearchFields);
+      setSearchName('');
+      setSearchSubscriber('');
+      setSearchPackages([]);
+      setSearchDate('');
+      setSearchResults([]);
+      setSearchSubmitted(false);
       setSelectedDay(defaultDay);
       setSaveMsg('');
       if (firstPatient) {
         setSubscriber(firstPatient.subscriber || '');
-        setPkgIdx(firstPatient.pkgIdx);
+        setPackageId(firstPatient.packageId);
         setMedGiven(firstPatient.medGiven || 0);
       }
     }
@@ -73,7 +96,7 @@ export const EnterVisitModal: React.FC<EnterVisitModalProps> = ({
   useEffect(() => {
     if (selectedPatientId === null) {
       setSubscriber('');
-      setPkgIdx(-1);
+      setPackageId(null);
       setMedGiven(0);
       setVisitValues(['', '', '', '', '']);
       return;
@@ -84,7 +107,7 @@ export const EnterVisitModal: React.FC<EnterVisitModalProps> = ({
       return;
     }
     setSubscriber(patient.subscriber || '');
-    setPkgIdx(patient.pkgIdx);
+    setPackageId(patient.packageId);
     setMedGiven(patient.medGiven || 0);
 
     const dayIdx = selectedDay - 1;
@@ -110,7 +133,57 @@ export const EnterVisitModal: React.FC<EnterVisitModalProps> = ({
 
   const selectedPatient = patients.find((p) => p.id === selectedPatientId) ?? null;
   const patientIndex = selectedPatient ? patients.findIndex((p) => p.id === selectedPatient.id) : -1;
-  const currentPkg = pkgIdx >= 0 && packages[pkgIdx] ? packages[pkgIdx] : null;
+  const dateRange = {
+    min: `${currentMonth.year}-${String(currentMonth.month).padStart(2, '0')}-01`,
+    max: `${currentMonth.year}-${String(currentMonth.month).padStart(2, '0')}-${String(currentMonth.daysInMonth).padStart(2, '0')}`,
+  };
+  const subscriberOptions = Array.from(new Set(patients.map((patient) => patient.subscriber.trim()).filter(Boolean)))
+    .sort((a, b) => a.localeCompare(b));
+  const selectedCriteria = (Object.keys(searchFields) as SearchField[]).filter((field) => searchFields[field]);
+  const criteriaMissing = selectedCriteria.some((field) => {
+    if (field === 'name') return !searchName.trim();
+    if (field === 'subscriber') return !searchSubscriber;
+    if (field === 'package') return searchPackages.length === 0;
+    return !searchDate;
+  });
+  const filteredPatients = patients;
+
+  const toggleSearchField = (field: SearchField) => {
+    setSearchFields((previous) => ({ ...previous, [field]: !previous[field] }));
+  };
+
+  const toggleSearchPackage = (packageId: number) => {
+    setSearchPackages((previous) => previous.includes(packageId)
+      ? previous.filter((id) => id !== packageId)
+      : [...previous, packageId]
+    );
+  };
+
+  const searchPatients = (event: React.FormEvent) => {
+    event.preventDefault();
+    setSearchSubmitted(true);
+    if (!selectedCriteria.length || criteriaMissing) {
+      setSearchResults([]);
+      return;
+    }
+
+    const normalizedName = searchName.trim().toLowerCase();
+    const selectedDay = searchDate ? Number(searchDate.slice(-2)) : null;
+    setSearchResults(patients.filter((patient) => {
+      const matchesName = !searchFields.name || patient.name.toLowerCase().includes(normalizedName);
+      const matchesSubscriber = !searchFields.subscriber || patient.subscriber === searchSubscriber;
+      const matchesPackage = !searchFields.package || (patient.packageId !== null && searchPackages.includes(patient.packageId));
+      const matchesDate = !searchFields.date || (selectedDay !== null && patient.v[selectedDay - 1]?.some((visit) => visit === '✔'));
+      return matchesName && matchesSubscriber && matchesPackage && matchesDate;
+    }));
+  };
+
+  const selectPatient = (patientId: number) => {
+    setSelectedPatientId(patientId);
+    setSearchResults([]);
+    setSearchSubmitted(false);
+  };
+  const currentPkg = packages.find((pkg) => pkg.id === packageId) ?? null;
 
   const weekdayIndex = getWeekdayIndex(currentMonth.year, currentMonth.month, selectedDay);
   const dayLetter = DAY_LETTERS[weekdayIndex];
@@ -172,7 +245,7 @@ export const EnterVisitModal: React.FC<EnterVisitModalProps> = ({
         body: JSON.stringify({
           monthId: currentMonth.id,
           subscriber,
-          pkgIdx,
+          packageId,
           medGiven: Number(medGiven) || 0,
           v: newV,
         }),
@@ -218,17 +291,68 @@ export const EnterVisitModal: React.FC<EnterVisitModalProps> = ({
               </span>
             )}
           </div>
+          <form className="ev-search-panel" onSubmit={searchPatients}>
+            <div className="ev-search-title"><Search size={14} /> Search patients</div>
+            <div className="ev-search-criteria" aria-label="Search criteria">
+              {(['name', 'date', 'subscriber', 'package'] as SearchField[]).map((field) => (
+                <label key={field}>
+                  <input type="checkbox" checked={searchFields[field]} onChange={() => toggleSearchField(field)} />
+                  {field === 'package' ? 'Package' : field[0].toUpperCase() + field.slice(1)}
+                </label>
+              ))}
+            </div>
+            <div className="ev-search-fields">
+              {searchFields.name && (
+                <input type="search" value={searchName} onChange={(event) => setSearchName(event.target.value)} placeholder="Patient name" aria-label="Patient name search" />
+              )}
+              {searchFields.date && (
+                <input type="date" min={dateRange.min} max={dateRange.max} value={searchDate} onChange={(event) => setSearchDate(event.target.value)} aria-label="Visit date search" />
+              )}
+              {searchFields.subscriber && (
+                <select value={searchSubscriber} onChange={(event) => setSearchSubscriber(event.target.value)} aria-label="Subscriber search">
+                  <option value="">Select subscriber</option>
+                  {subscriberOptions.map((option) => <option key={option} value={option}>{option}</option>)}
+                </select>
+              )}
+              <button className="btn" type="submit"><Search size={13} /> Search</button>
+            </div>
+            {searchFields.package && (
+              <div className="ev-search-packages">
+                {packages.map((item) => (
+                  <label key={item.id}>
+                    <input type="checkbox" checked={searchPackages.includes(item.id)} onChange={() => toggleSearchPackage(item.id)} />
+                    {item.name}
+                  </label>
+                ))}
+              </div>
+            )}
+            {searchSubmitted && !selectedCriteria.length && <p className="ev-search-empty">Select at least one search field.</p>}
+            {searchSubmitted && selectedCriteria.length > 0 && criteriaMissing && <p className="ev-search-empty">Enter a value for every selected search field.</p>}
+            {searchSubmitted && selectedCriteria.length > 0 && !criteriaMissing && (
+              <div className="ev-search-results">
+                {searchResults.length > 0 ? searchResults.map((patient) => (
+                  <button key={patient.id} type="button" onClick={() => selectPatient(patient.id)}>
+                    #{patients.findIndex((item) => item.id === patient.id) + 1} - {patient.name}
+                    {patient.subscriber ? ` (${patient.subscriber})` : ''}
+                  </button>
+                )) : <span>No patients matched the selected criteria.</span>}
+              </div>
+            )}
+          </form>
           <select
             id="ev-patient"
             className="ev-select"
             value={selectedPatientId ?? ''}
-            onChange={(e) => setSelectedPatientId(Number(e.target.value))}
+            onChange={(e) => setSelectedPatientId(e.target.value ? Number(e.target.value) : null)}
           >
-            {patients.map((p, idx) => (
+            {filteredPatients.map((p) => {
+              const originalIndex = patients.findIndex((patient) => patient.id === p.id);
+              return (
               <option key={p.id} value={p.id}>
-                #{idx + 1} - {p.name} {p.subscriber ? `(${p.subscriber})` : ''}
+                #{originalIndex + 1} - {p.name} {p.subscriber ? `(${p.subscriber})` : ''}
               </option>
-            ))}
+              );
+            })}
           </select>
         </div>
 
@@ -251,12 +375,12 @@ export const EnterVisitModal: React.FC<EnterVisitModalProps> = ({
             <select
               id="ev-package"
               className="ev-select"
-              value={pkgIdx}
-              onChange={(e) => setPkgIdx(parseInt(e.target.value, 10))}
+              value={packageId ?? ''}
+              onChange={(e) => setPackageId(e.target.value ? Number(e.target.value) : null)}
             >
               <option value="-1">— None / Unassigned —</option>
-              {packages.map((pk, i) => (
-                <option key={pk.id || i} value={i}>
+              {packages.map((pk) => (
+                <option key={pk.id} value={pk.id}>
                   {pk.name} (PKR {pk.price})
                 </option>
               ))}

@@ -10,10 +10,13 @@ interface PatientVisitedModalProps {
   onClose: () => void;
 }
 
-const today = new Date().toISOString().slice(0, 10);
+function getToday() {
+  return new Date().toISOString().slice(0, 10);
+}
 
 export const PatientVisitedModal: React.FC<PatientVisitedModalProps> = ({ isOpen, onClose }) => {
-  const [date, setDate] = useState(today);
+  const [date, setDate] = useState('');
+  const [today, setToday] = useState('');
   const [results, setResults] = useState<PatientVisitSearchResult[]>([]);
   const [monthLabel, setMonthLabel] = useState('');
   const [message, setMessage] = useState('');
@@ -21,7 +24,9 @@ export const PatientVisitedModal: React.FC<PatientVisitedModalProps> = ({ isOpen
 
   useEffect(() => {
     if (isOpen) {
-      setDate(today);
+      const currentDate = getToday();
+      setToday(currentDate);
+      setDate(currentDate);
       setResults([]);
       setMonthLabel('');
       setMessage('');

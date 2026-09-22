@@ -10,7 +10,7 @@ A full-stack **Next.js** web application for managing monthly patient visit trac
 - **Supabase Cloud Database** (`@supabase/supabase-js`) — All data is persisted directly in Supabase.
 - **Visit tracking** — Click any day/care-type cell to mark ✔ Visited, ✖ Cancelled, — No Visit, or ⬜ Clear.
 - **Package management** — Define monthly allocations per package (Doctor, Nurse+Physio, Psychiatrist, Medicine budget).
-- **Auto-seeded** — Automatically imports all 44 patients and 12 packages from `patient-visit-data-2026-09-09 (2).json` on first run.
+- **JSON backup/restore** — Import and export monthly patient and package data as JSON.
 - **Search & sort** — Filter patients by name; sort by S.No, Name, or Package.
 - **JSON Export / Import** — Export any month's data as a `.json` backup; import to restore.
 - **Print-ready** — Dedicated print stylesheet hides controls for a clean printout.
@@ -52,7 +52,7 @@ src/
 
 ## Setup & Desktop Shortcut Guide
 
-For detailed instructions on setting up, cloning, creating the desktop icon, and running this application on any PC, read the **[SETUP_GUIDE.md](file:///f:/client-projects/HHC-patientlist/SETUP_GUIDE.md)**.
+For detailed instructions on setting up, cloning, creating the desktop icon, and running this application on Windows, read [SETUP_GUIDE.md](SETUP_GUIDE.md).
 
 ---
 
@@ -72,7 +72,9 @@ Then open [http://localhost:3000](http://localhost:3000).
 
 ## Database
 
-Data is stored in **Supabase** via PostgreSQL. Tables:
+Data is stored in **Supabase** via PostgreSQL. Configure `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` in `.env.local` before starting the app. The service-role key is server-only.
+
+Tables:
 
 | Table | Purpose |
 |---|---|

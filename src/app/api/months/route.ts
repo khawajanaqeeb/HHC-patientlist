@@ -16,11 +16,14 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { year, month, carryOverFrom } = body;
 
-    if (!year || !month || month < 1 || month > 12) {
+    if (!Number.isInteger(year) || !Number.isInteger(month) || year < 1900 || month < 1 || month > 12) {
       return NextResponse.json({ error: 'Valid Year and Month (1-12) are required' }, { status: 400 });
     }
 
-    const newMonth = await createMonth(parseInt(year, 10), parseInt(month, 10), carryOverFrom);
+    if (carryOverFrom !== undefined && (typeof carryOverFrom !== 'string' || !/^\d{4}-(0[1-9]|1[0-2])$/.test(carryOverFrom))) {
+      return NextResponse.json({ error: 'carryOverFrom must be a valid month ID' }, { status: 400 });
+    }
+    const newMonth = await createMonth(year, month, carryOverFrom);
     const months = await getAllMonths();
     return NextResponse.json({ success: true, month: newMonth, months });
   } catch (error: any) {

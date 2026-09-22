@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getPackages, savePackages } from '@/lib/db';
 import { Package } from '@/lib/types';
+import { validatePackageList } from '@/lib/validation';
 
 export async function GET() {
   try {
@@ -20,6 +21,8 @@ export async function POST(request: NextRequest) {
     if (!Array.isArray(packages)) {
       return NextResponse.json({ error: 'Packages array is required' }, { status: 400 });
     }
+    const validationError = validatePackageList(packages);
+    if (validationError) return NextResponse.json({ error: validationError }, { status: 400 });
 
     await savePackages(packages);
     const updated = await getPackages();

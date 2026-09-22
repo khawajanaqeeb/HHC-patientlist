@@ -57,8 +57,8 @@ export const VisitTable: React.FC<VisitTableProps> = ({
       return sortDirection * (a.subscriber.localeCompare(b.subscriber) || a.id - b.id);
     }
     if (sortColumn === 'pkg') {
-      const pa = a.pkgIdx >= 0 && packages[a.pkgIdx] ? packages[a.pkgIdx].name : '';
-      const pb = b.pkgIdx >= 0 && packages[b.pkgIdx] ? packages[b.pkgIdx].name : '';
+      const pa = packages.find((pkg) => pkg.id === a.packageId)?.name || '';
+      const pb = packages.find((pkg) => pkg.id === b.packageId)?.name || '';
       return sortDirection * (pa.localeCompare(pb) || a.id - b.id);
     }
     return 0;
@@ -66,7 +66,7 @@ export const VisitTable: React.FC<VisitTableProps> = ({
 
   // Calculate patient stats
   const getStats = (p: PatientMonthData) => {
-    const pkg = p.pkgIdx >= 0 && packages[p.pkgIdx] ? packages[p.pkgIdx] : null;
+    const pkg = packages.find((candidate) => candidate.id === p.packageId) || null;
     const nursePhysioAllocation = pkg ? Number(pkg.nurPhy ?? pkg.nur ?? 0) : null;
     const nurseAllocation = pkg ? Number(pkg.nur ?? 0) : null;
     const physioAllocation = pkg ? Number(pkg.phy ?? 0) : null;
@@ -172,7 +172,7 @@ export const VisitTable: React.FC<VisitTableProps> = ({
             {weeks.map((w, wi) => (
               <th
                 key={w.lbl}
-                colSpan={w.days.length * 4}
+                colSpan={w.days.length * 5}
                 className={`wk ${wi > 0 ? 'wk-start' : ''}`}
               >
                 {w.lbl}
@@ -284,7 +284,7 @@ export const VisitTable: React.FC<VisitTableProps> = ({
 
         <tbody>
           {sortedPatients.map((p, rowIndex) => {
-            const pkg = p.pkgIdx >= 0 && packages[p.pkgIdx] ? packages[p.pkgIdx] : null;
+            const pkg = packages.find((candidate) => candidate.id === p.packageId) || null;
             const s = getStats(p);
             const medDiff = s.medAlloc !== null ? s.medAlloc - (p.medGiven || 0) : null;
 
@@ -308,7 +308,7 @@ export const VisitTable: React.FC<VisitTableProps> = ({
                 {/* Price */}
                 <td className="pkg-price-cell">
                   {pkg
-                    ? new Intl.NumberFormat(undefined, {
+                    ? new Intl.NumberFormat('en-US', {
                         style: 'currency',
                         currency,
                         maximumFractionDigits: currency === 'USD' ? 2 : 0,

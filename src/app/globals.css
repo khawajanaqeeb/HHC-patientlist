@@ -1319,6 +1319,139 @@ td.vc.vx { background: var(--can-bg) !important; }
   box-shadow: 0 0 0 3px rgba(41, 128, 185, 0.15);
 }
 
+.ev-patient-search {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 8px;
+  padding: 7px 10px;
+  border: 1.5px solid var(--teal-lt);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--teal);
+}
+
+.ev-search-panel {
+  margin-bottom: 10px;
+  padding: 9px;
+  border: 1px solid #c5daea;
+  border-radius: 8px;
+  background: #f4faff;
+}
+
+.ev-search-title {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--teal);
+  font-size: 0.72rem;
+  font-weight: 700;
+  margin-bottom: 7px;
+}
+
+.ev-search-criteria,
+.ev-search-packages {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+}
+
+.ev-search-criteria label,
+.ev-search-packages label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #243b4d;
+  font-size: 0.68rem;
+  font-weight: 600;
+}
+
+.ev-search-criteria input,
+.ev-search-packages input {
+  accent-color: var(--teal);
+}
+
+.ev-search-fields {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 7px;
+}
+
+.ev-search-fields input,
+.ev-search-fields select {
+  flex: 1 1 135px;
+  min-width: 0;
+  padding: 6px 8px;
+  border: 1.5px solid var(--teal-lt);
+  border-radius: 6px;
+  background: #fff;
+  color: var(--teal);
+  font: inherit;
+  font-size: 0.72rem;
+}
+
+.ev-search-packages {
+  margin-top: 7px;
+  padding-top: 7px;
+  border-top: 1px solid #c5daea;
+}
+
+.ev-search-results {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 130px;
+  overflow-y: auto;
+  margin-top: 8px;
+}
+
+.ev-search-results button {
+  border: 1px solid var(--teal-lt);
+  border-radius: 5px;
+  padding: 5px 7px;
+  background: #fff;
+  color: var(--teal);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-align: left;
+}
+
+.ev-search-results button:hover {
+  background: var(--blue-pale);
+}
+
+.ev-search-results span {
+  color: var(--can-fg);
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.ev-patient-search:focus-within {
+  border-color: var(--teal3);
+  box-shadow: 0 0 0 3px rgba(41, 128, 185, 0.15);
+}
+
+.ev-patient-search input {
+  width: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: #1a2b3c;
+  font: inherit;
+  font-size: 0.78rem;
+}
+
+.ev-search-empty {
+  margin-top: 6px;
+  color: var(--can-fg);
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
 .ev-input {
   width: 100%;
   padding: 8px 12px;

@@ -6,7 +6,7 @@ function getRemaining(
   patient: Awaited<ReturnType<typeof getMonthPatients>>[number],
   packages: Awaited<ReturnType<typeof getPackages>>
 ) {
-  const pkg = patient.pkgIdx >= 0 ? packages[patient.pkgIdx] : undefined;
+  const pkg = packages.find((candidate) => candidate.id === patient.packageId);
   if (!pkg) return { doctor: null, nursePhysio: null, nurse: null, physio: null, psycho: null };
 
   let doctorDone = 0;
@@ -55,7 +55,7 @@ export async function GET(request: NextRequest) {
   const results: PatientVisitSearchResult[] = patients
     .filter((patient) => patient.v[dayIndex]?.some((value) => value === '✔'))
     .map((patient) => {
-      const patientPackage = patient.pkgIdx >= 0 ? packages[patient.pkgIdx] : undefined;
+      const patientPackage = packages.find((candidate) => candidate.id === patient.packageId);
 
       return {
         id: patient.id,

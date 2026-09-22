@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { updatePatient, deletePatient } from '@/lib/db';
+import { isMonthId, validatePatientUpdate } from '@/lib/validation';
 
 export async function PATCH(
   request: NextRequest,
@@ -11,9 +12,12 @@ export async function PATCH(
     const body = await request.json();
     const { monthId, ...data } = body;
 
-    if (!monthId || isNaN(patientId)) {
+    if (!isMonthId(monthId) || isNaN(patientId)) {
       return NextResponse.json({ error: 'Valid Month ID and Patient ID are required' }, { status: 400 });
     }
+
+    const validationError = validatePatientUpdate(data);
+    if (validationError) return NextResponse.json({ error: validationError }, { status: 400 });
 
     await updatePatient(monthId, patientId, data);
     return NextResponse.json({ success: true });
@@ -33,7 +37,7 @@ export async function DELETE(
     const { searchParams } = new URL(request.url);
     const monthId = searchParams.get('monthId');
 
-    if (!monthId || isNaN(patientId)) {
+    if (!isMonthId(monthId) || isNaN(patientId)) {
       return NextResponse.json({ error: 'Valid Month ID and Patient ID are required' }, { status: 400 });
     }
 

@@ -128,12 +128,12 @@ export default function PatientVisitSheetPage() {
     }
   };
 
-  const handleAddPatient = async (name: string, subscriber: string, pkgIdx: number) => {
+  const handleAddPatient = async (name: string, subscriber: string, packageId: number | null) => {
     try {
       const res = await fetch('/api/patients', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ monthId: currentMonth.id, name, subscriber, pkgIdx }),
+        body: JSON.stringify({ monthId: currentMonth.id, name, subscriber, packageId }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to add patient');
@@ -256,7 +256,6 @@ export default function PatientVisitSheetPage() {
         onOpenEnterVisit={() => setIsEnterVisitModalOpen(true)}
         onPrint={() => window.print()}
         onOpenPackages={() => setIsPackageModalOpen(true)}
-        onSave={() => flashStatus(`✔ Saved (${new Date().toLocaleTimeString()})`, '#ffffff')}
         saveStatus={saveStatus}
         saveStatusColor={saveStatusColor}
       />

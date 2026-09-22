@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { resetMonth, getMonthPatients } from '@/lib/db';
+import { isMonthId } from '@/lib/validation';
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { monthId } = body;
 
-    if (!monthId) {
+    if (!isMonthId(monthId)) {
       return NextResponse.json({ error: 'Month ID is required' }, { status: 400 });
     }
 

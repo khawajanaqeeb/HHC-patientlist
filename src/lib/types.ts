@@ -17,7 +17,7 @@ export interface PatientMonthData {
   id: number;
   name: string;
   subscriber: string;
-  pkgIdx: number; // 0-based index or -1 if unselected
+  packageId: number | null;
   medGiven: number;
   v: DayVisits[]; // Array of length `daysInMonth`
 }

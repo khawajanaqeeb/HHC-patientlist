@@ -66,7 +66,7 @@ export const PackageModal: React.FC<PackageModalProps> = ({
 
   const handleDeleteRow = (index: number) => {
     const pkg = pkgList[index];
-    const isUsed = patients.some((p) => p.pkgIdx === index);
+    const isUsed = patients.some((p) => p.packageId === pkg.id);
     if (
       isUsed &&
       !window.confirm(

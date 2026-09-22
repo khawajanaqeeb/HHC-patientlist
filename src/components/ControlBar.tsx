@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Search, Package2, UserPlus, Save, CalendarSearch, ListFilter, Printer, ClipboardEdit } from 'lucide-react';
+import { Search, Package2, UserPlus, CalendarSearch, ListFilter, Printer, ClipboardEdit } from 'lucide-react';
 
 interface Props {
   searchQuery: string;
@@ -12,7 +12,6 @@ interface Props {
   onOpenPatientSearch: () => void;
   onOpenEnterVisit: () => void;
   onPrint: () => void;
-  onSave?: () => void;
   saveStatus: string;
   saveStatusColor: string;
 }
@@ -26,7 +25,6 @@ export default function ControlBar({
   onOpenPatientSearch,
   onOpenEnterVisit,
   onPrint,
-  onSave,
   saveStatus,
   saveStatusColor,
 }: Props) {
@@ -73,12 +71,6 @@ export default function ControlBar({
       <button className="btn btn-primary" onClick={onPrint}>
         <Printer size={13} />
         Print
-      </button>
-
-      {/* Save Button */}
-      <button className="btn btn-save" onClick={onSave}>
-        <Save size={13} />
-        Save
       </button>
 
       {/* Save status message */}

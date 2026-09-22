@@ -70,10 +70,10 @@ export const PatientSearchModal: React.FC<PatientSearchModalProps> = ({
     setFields((previous) => ({ ...previous, [field]: !previous[field] }));
   };
 
-  const togglePackage = (packageIndex: number) => {
-    setSelectedPackages((previous) => previous.includes(packageIndex)
-      ? previous.filter((index) => index !== packageIndex)
-      : [...previous, packageIndex]
+  const togglePackage = (packageId: number) => {
+    setSelectedPackages((previous) => previous.includes(packageId)
+      ? previous.filter((id) => id !== packageId)
+      : [...previous, packageId]
     );
   };
 
@@ -91,10 +91,10 @@ export const PatientSearchModal: React.FC<PatientSearchModalProps> = ({
 
     setResults(
       patients.filter((patient) => {
-        const patientPackage = patient.pkgIdx >= 0 && packages[patient.pkgIdx] ? packages[patient.pkgIdx].name : '';
+        const patientPackage = packages.find((pkg) => pkg.id === patient.packageId)?.name || '';
         const matchesName = !fields.name || (normalizedName.length > 0 && patient.name.toLowerCase().includes(normalizedName));
         const matchesSubscriber = !fields.subscriber || (subscriber.length > 0 && patient.subscriber === subscriber);
-        const matchesPackage = !fields.package || selectedPackages.includes(patient.pkgIdx);
+        const matchesPackage = !fields.package || (patient.packageId !== null && selectedPackages.includes(patient.packageId));
         const matchesDate = !fields.date || (selectedDay !== null && patient.v[selectedDay - 1]?.some((visit) => visit === '✔'));
 
         return matchesName && matchesSubscriber && matchesPackage && matchesDate;
@@ -159,9 +159,9 @@ export const PatientSearchModal: React.FC<PatientSearchModalProps> = ({
               <fieldset className="search-package-fieldset">
                 <legend>Package</legend>
                 <div className="search-package-options">
-                  {packages.length > 0 ? packages.map((item, index) => (
-                    <label className="search-package-option" key={item.id || index}>
-                      <input type="checkbox" checked={selectedPackages.includes(index)} onChange={() => togglePackage(index)} />
+                  {packages.length > 0 ? packages.map((item) => (
+                    <label className="search-package-option" key={item.id}>
+                      <input type="checkbox" checked={selectedPackages.includes(item.id)} onChange={() => togglePackage(item.id)} />
                       <span>{item.name}</span>
                     </label>
                   )) : <span className="search-empty-option">No packages available</span>}
@@ -183,8 +183,9 @@ export const PatientSearchModal: React.FC<PatientSearchModalProps> = ({
                   <thead><tr><th>S.No</th><th>Patient</th><th>Subscriber</th><th>Package</th><th>Price</th></tr></thead>
                   <tbody>
                     {results.map((patient, resultIndex) => {
-                      const patientPackage = patient.pkgIdx >= 0 && packages[patient.pkgIdx] ? packages[patient.pkgIdx].name : '—';
-                      const packagePrice = patient.pkgIdx >= 0 && packages[patient.pkgIdx] ? packages[patient.pkgIdx].price || 0 : null;
+                      const patientPackageRecord = packages.find((pkg) => pkg.id === patient.packageId);
+                      const patientPackage = patientPackageRecord?.name || '—';
+                      const packagePrice = patientPackageRecord ? patientPackageRecord.price || 0 : null;
                       return (
                         <tr key={patient.id}>
                           <td>{resultIndex + 1}</td>

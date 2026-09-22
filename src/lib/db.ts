@@ -53,19 +53,40 @@ export async function getPackages(): Promise<Package[]> {
 
 export async function savePackages(packages: Package[]) {
   const db = getSupabase();
-  const { error: deleteError } = await db.from('packages').delete().gte('id', 0);
-  throwIfError(deleteError);
+  const existing = await db.from('packages').select('id');
+  throwIfError(existing.error);
+  const retainedIds = new Set(packages.map((pkg) => pkg.id).filter((id) => id > 0));
+  const removedIds = (existing.data || []).map((row) => Number(row.id)).filter((id) => !retainedIds.has(id));
+
+  if (removedIds.length) {
+    const { error: patientError } = await db.from('month_patients').update({ package_id: null }).in('package_id', removedIds);
+    throwIfError(patientError);
+    const { error: deleteError } = await db.from('packages').delete().in('id', removedIds);
+    throwIfError(deleteError);
+  }
+
   if (!packages.length) return;
-  const { error } = await db.from('packages').insert(packages.map((pkg, index) => ({ name: pkg.name, price: pkg.price || 0, doc: pkg.doc || 0, nur_phy: pkg.nurPhy || 0, nur: pkg.nur || 0, phy: pkg.phy || 0, psy: pkg.psy || 0, med: pkg.med || 0, sort_order: index })));
+  const { error } = await db.from('packages').upsert(packages.map((pkg, index) => ({
+    id: pkg.id,
+    name: pkg.name.trim(),
+    price: pkg.price || 0,
+    doc: pkg.doc || 0,
+    nur_phy: pkg.nurPhy || 0,
+    nur: pkg.nur || 0,
+    phy: pkg.phy || 0,
+    psy: pkg.psy || 0,
+    med: pkg.med || 0,
+    sort_order: index,
+  })), { onConflict: 'id' });
   throwIfError(error);
 }
 
 export async function getMonthPatients(monthId: string): Promise<PatientMonthData[]> {
   const month = await getMonth(monthId);
-  const { data, error } = await getSupabase().from('month_patients').select('patient_id, name, subscriber, pkg_idx, med_given, visits_json').eq('month_id', monthId).order('sort_order').order('patient_id');
+  const { data, error } = await getSupabase().from('month_patients').select('patient_id, name, subscriber, package_id, med_given, visits_json').eq('month_id', monthId).order('sort_order').order('patient_id');
   throwIfError(error);
   const daysInMonth = month?.daysInMonth || 30;
-  return (data || []).map((row) => ({ id: Number(row.patient_id), name: String(row.name), subscriber: String(row.subscriber || ''), pkgIdx: Number(row.pkg_idx), medGiven: Number(row.med_given || 0), v: normalizeVisits(row.visits_json, daysInMonth) }));
+  return (data || []).map((row) => ({ id: Number(row.patient_id), name: String(row.name), subscriber: String(row.subscriber || ''), packageId: row.package_id === null ? null : Number(row.package_id), medGiven: Number(row.med_given || 0), v: normalizeVisits(row.visits_json, daysInMonth) }));
 }
 
 export async function updatePatient(monthId: string, patientId: number, data: Partial<PatientMonthData>) {
@@ -73,18 +94,24 @@ export async function updatePatient(monthId: string, patientId: number, data: Pa
   const current = await db.from('month_patients').select('*').eq('month_id', monthId).eq('patient_id', patientId).maybeSingle();
   throwIfError(current.error);
   if (!current.data) return;
-  const { error } = await db.from('month_patients').update({ name: data.name ?? current.data.name, subscriber: data.subscriber ?? current.data.subscriber, pkg_idx: data.pkgIdx ?? current.data.pkg_idx, med_given: data.medGiven ?? current.data.med_given, visits_json: data.v ?? current.data.visits_json }).eq('month_id', monthId).eq('patient_id', patientId);
+  const { error } = await db.from('month_patients').update({
+    name: data.name ?? current.data.name,
+    subscriber: data.subscriber ?? current.data.subscriber,
+    package_id: 'packageId' in data ? data.packageId : current.data.package_id,
+    med_given: data.medGiven ?? current.data.med_given,
+    visits_json: data.v ?? current.data.visits_json,
+  }).eq('month_id', monthId).eq('patient_id', patientId);
   throwIfError(error);
 }
 
-export async function addPatient(monthId: string, name: string, subscriber: string, pkgIdx: number): Promise<PatientMonthData> {
+export async function addPatient(monthId: string, name: string, subscriber: string, packageId: number | null): Promise<PatientMonthData> {
   const month = await getMonth(monthId);
   const patients = await getMonthPatients(monthId);
   const id = patients.reduce((max, patient) => Math.max(max, patient.id), 0) + 1;
   const visits = Array.from({ length: month?.daysInMonth || 30 }, () => ['', '', '', '', '']);
-  const { error } = await getSupabase().from('month_patients').insert({ month_id: monthId, patient_id: id, name, subscriber, pkg_idx: pkgIdx, med_given: 0, visits_json: visits, sort_order: patients.length });
+  const { error } = await getSupabase().from('month_patients').insert({ month_id: monthId, patient_id: id, name, subscriber, package_id: packageId, med_given: 0, visits_json: visits, sort_order: patients.length });
   throwIfError(error);
-  return { id, name, subscriber, pkgIdx, medGiven: 0, v: visits as DayVisits[] };
+  return { id, name, subscriber, packageId, medGiven: 0, v: visits as DayVisits[] };
 }
 
 export async function deletePatient(monthId: string, patientId: number) {
@@ -95,7 +122,7 @@ export async function deletePatient(monthId: string, patientId: number) {
 export async function resetMonth(monthId: string) {
   const month = await getMonth(monthId);
   const visits = Array.from({ length: month?.daysInMonth || 30 }, () => ['', '', '', '', '']);
-  const { error } = await getSupabase().from('month_patients').update({ pkg_idx: -1, med_given: 0, visits_json: visits }).eq('month_id', monthId);
+  const { error } = await getSupabase().from('month_patients').update({ package_id: null, med_given: 0, visits_json: visits }).eq('month_id', monthId);
   throwIfError(error);
 }
 
@@ -111,7 +138,7 @@ export async function createMonth(year: number, month: number, carryOverPatients
     const previous = await getMonthPatients(carryOverPatientsFromMonthId);
     const visits = Array.from({ length: daysInMonth }, () => ['', '', '', '', '']);
     if (previous.length) {
-      const { error: patientError } = await getSupabase().from('month_patients').insert(previous.map((patient, index) => ({ month_id: monthId, patient_id: patient.id, name: patient.name, subscriber: patient.subscriber, pkg_idx: patient.pkgIdx, med_given: 0, visits_json: visits, sort_order: index })));
+      const { error: patientError } = await getSupabase().from('month_patients').insert(previous.map((patient, index) => ({ month_id: monthId, patient_id: patient.id, name: patient.name, subscriber: patient.subscriber, package_id: patient.packageId, med_given: 0, visits_json: visits, sort_order: index })));
       throwIfError(patientError);
     }
   }
@@ -131,7 +158,21 @@ export async function importFullJson(data: any, targetMonthId = '2026-09') {
   if (Array.isArray(data.patients)) {
     const { error } = await db.from('month_patients').delete().eq('month_id', targetMonthId);
     throwIfError(error);
-    const { error: insertError } = await db.from('month_patients').insert(data.patients.map((patient: any, index: number) => ({ month_id: targetMonthId, patient_id: patient.id || index + 1, name: patient.name, subscriber: patient.subscriber || '', pkg_idx: typeof patient.pkgIdx === 'number' ? patient.pkgIdx : -1, med_given: patient.medGiven || 0, visits_json: normalizeVisits(patient.v, daysInMonth), sort_order: index })));
+    const importedPackages = await getPackages();
+    const { error: insertError } = await db.from('month_patients').insert(data.patients.map((patient: any, index: number) => ({
+      month_id: targetMonthId,
+      patient_id: patient.id || index + 1,
+      name: String(patient.name || '').trim(),
+      subscriber: patient.subscriber || '',
+      package_id: typeof patient.packageId === 'number'
+        ? patient.packageId
+        : typeof patient.pkgIdx === 'number' && importedPackages[patient.pkgIdx]
+          ? importedPackages[patient.pkgIdx].id
+          : null,
+      med_given: Math.max(0, Number(patient.medGiven) || 0),
+      visits_json: normalizeVisits(patient.v, daysInMonth),
+      sort_order: index,
+    })));
     throwIfError(insertError);
   }
 }

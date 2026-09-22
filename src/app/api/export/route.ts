@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getPackages, getMonthPatients, getMonth } from '@/lib/db';
+import { isMonthId } from '@/lib/validation';
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const monthId = searchParams.get('monthId') || '2026-09';
+    if (!isMonthId(monthId)) return NextResponse.json({ error: 'Valid month ID is required' }, { status: 400 });
     const month = await getMonth(monthId);
 
     const packages = await getPackages();
@@ -27,7 +29,8 @@ export async function GET(request: NextRequest) {
         id: p.id,
         name: p.name,
         subscriber: p.subscriber,
-        pkgIdx: p.pkgIdx,
+        packageId: p.packageId,
+        pkgIdx: p.packageId === null ? -1 : packages.findIndex((pkg) => pkg.id === p.packageId),
         medGiven: p.medGiven,
         v: p.v
       })),

@@ -8,7 +8,7 @@ interface AddPatientModalProps {
   isOpen: boolean;
   packages: Package[];
   onClose: () => void;
-  onAdd: (name: string, subscriber: string, pkgIdx: number) => void;
+  onAdd: (name: string, subscriber: string, packageId: number | null) => void;
 }
 
 export const AddPatientModal: React.FC<AddPatientModalProps> = ({
@@ -19,7 +19,7 @@ export const AddPatientModal: React.FC<AddPatientModalProps> = ({
 }) => {
   const [name, setName] = useState('');
   const [subscriber, setSubscriber] = useState('');
-  const [pkgIdx, setPkgIdx] = useState<number>(-1);
+  const [packageId, setPackageId] = useState<number | null>(null);
   const [error, setError] = useState('');
   const nameInputRef = useRef<HTMLInputElement>(null);
 
@@ -27,7 +27,7 @@ export const AddPatientModal: React.FC<AddPatientModalProps> = ({
     if (isOpen) {
       setName('');
       setSubscriber('');
-      setPkgIdx(-1);
+      setPackageId(null);
       setError('');
       setTimeout(() => nameInputRef.current?.focus(), 50);
     }
@@ -42,7 +42,7 @@ export const AddPatientModal: React.FC<AddPatientModalProps> = ({
       nameInputRef.current?.focus();
       return;
     }
-    onAdd(name.trim(), subscriber.trim(), pkgIdx);
+    onAdd(name.trim(), subscriber.trim(), packageId);
     onClose();
   };
 
@@ -124,8 +124,8 @@ export const AddPatientModal: React.FC<AddPatientModalProps> = ({
               Package (optional)
             </label>
             <select
-              value={pkgIdx}
-              onChange={(e) => setPkgIdx(parseInt(e.target.value, 10))}
+              value={packageId ?? ''}
+              onChange={(e) => setPackageId(e.target.value ? Number(e.target.value) : null)}
               style={{
                 width: '100%',
                 border: '1.5px solid var(--teal-lt)',
@@ -138,9 +138,9 @@ export const AddPatientModal: React.FC<AddPatientModalProps> = ({
                 fontWeight: 700,
               }}
             >
-              <option value="-1">— Select —</option>
-              {packages.map((pk, i) => (
-                <option key={pk.id || i} value={i}>
+              <option value="">— Select —</option>
+              {packages.map((pk) => (
+                <option key={pk.id} value={pk.id}>
                   {pk.name}
                 </option>
               ))}

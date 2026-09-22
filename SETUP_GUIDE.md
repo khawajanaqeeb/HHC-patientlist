@@ -53,7 +53,7 @@ Inside the project folder (`HHC-patientlist`), run:
 npm install
 ```
 
-This installs Next.js, React, SQLite client, and all required libraries.
+This installs Next.js, React, Supabase client, and all required libraries.
 
 ---
 
@@ -77,7 +77,18 @@ You will see a confirmation message:
 
 ---
 
-## Step 4: Run the Application
+## Step 4: Configure Supabase
+
+Create `.env.local` in the project folder using `.env.example` as a template:
+
+```env
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=your-server-only-service-role-key
+```
+
+Apply the SQL files in `supabase/migrations/` to the Supabase project before running the app. Do not commit `.env.local` or expose the service-role key in browser code.
+
+## Step 5: Run the Application
 
 You can now start the application in **Clean App Window Mode** anytime by:
 
@@ -86,14 +97,9 @@ You can now start the application in **Clean App Window Mode** anytime by:
 
 ---
 
-## Step 5 (Optional): Transfer Existing Data to New PC
+## Step 6 (Optional): Transfer Existing Data to New PC
 
-The app stores all patients, months, and visit history locally in a SQLite database file located in the `.data/` folder.
-
-To transfer your current patient data from your old PC to the new PC:
-1. Open the project folder on the old PC.
-2. Copy the hidden **`.data`** folder.
-3. Paste the **`.data`** folder into the project directory on the new PC.
+The application stores data in Supabase, so a new PC only needs the repository, dependencies, and the same `.env.local` configuration. Use the in-app JSON export/import controls for an additional backup.
 
 ---
 
@@ -106,7 +112,7 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 ```
 Then run `create-shortcut.ps1` again.
 
-### ❓ Browser doesn't open automatically
+### Browser doesn't open automatically
 Make sure Microsoft Edge is installed (default on Windows 10/11). If you prefer Google Chrome, open `run-app.bat` and change `msedge` to `chrome`.
 
 ---
