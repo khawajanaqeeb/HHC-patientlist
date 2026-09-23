@@ -20,6 +20,7 @@ interface VisitTableProps {
   sortDirection: 1 | -1;
   onSort: (col: 'sno' | 'name' | 'subscriber' | 'pkg') => void;
   onCurrencyChange: (currency: 'PKR' | 'USD') => void;
+  onEditPatient?: (patient: PatientMonthData) => void;
 }
 
 export const VisitTable: React.FC<VisitTableProps> = ({
@@ -33,6 +34,7 @@ export const VisitTable: React.FC<VisitTableProps> = ({
   sortDirection,
   onSort,
   onCurrencyChange,
+  onEditPatient,
 }) => {
   const weeks = getWeeksForMonth(currentMonth.daysInMonth);
   const fixedLeftCols = 18;
@@ -291,7 +293,21 @@ export const VisitTable: React.FC<VisitTableProps> = ({
             return (
               <tr key={p.id}>
                 <td className="sno sticky-sno">{rowIndex + 1}</td>
-                <td className="name sticky-name">{p.name}</td>
+                <td className="name sticky-name">
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+                    <span>{p.name}</span>
+                    {onEditPatient && (
+                      <button
+                        type="button"
+                        className="btn sec"
+                        onClick={() => onEditPatient(p)}
+                        style={{ padding: '3px 7px', fontSize: '0.64rem', minWidth: 'auto', whiteSpace: 'nowrap' }}
+                      >
+                        Edit
+                      </button>
+                    )}
+                  </div>
+                </td>
 
                 {/* Subscriber — read-only */}
                 <td className="subscriber-cell">

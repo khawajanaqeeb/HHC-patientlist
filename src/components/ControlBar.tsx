@@ -58,7 +58,7 @@ export default function ControlBar({
 
       <button className="btn btn-primary" onClick={onOpenAddPatient}>
         <UserPlus size={13} />
-        Add Patient
+        Add and Edit Patient
       </button>
 
       <button className="btn btn-primary" onClick={onPrint}>

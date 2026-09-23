@@ -40,6 +40,7 @@ export default function PatientVisitSheetPage() {
   const [isAddMonthModalOpen, setIsAddMonthModalOpen] = useState<boolean>(false);
   const [isPatientSearchOpen, setIsPatientSearchOpen] = useState<boolean>(false);
   const [isEnterVisitModalOpen, setIsEnterVisitModalOpen] = useState<boolean>(false);
+  const [editingPatient, setEditingPatient] = useState<PatientMonthData | null>(null);
 
   const flashStatus = (msg: string, color: string = '#ffffff') => {
     setSaveStatus(msg);
@@ -126,8 +127,23 @@ export default function PatientVisitSheetPage() {
     }
   };
 
-  const handleAddPatient = async (name: string, subscriber: string, packageId: number | null) => {
+  const handleSavePatient = async (name: string, subscriber: string, packageId: number | null, patientId?: number) => {
     try {
+      if (patientId) {
+        const res = await fetch(`/api/patients/${patientId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ monthId: currentMonth.id, name, subscriber, packageId }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to update patient');
+
+        setPatients((prev) => prev.map((patient) => patient.id === patientId ? { ...patient, name, subscriber, packageId } : patient));
+        setEditingPatient(null);
+        flashStatus('✔ Patient updated', '#2e7d32');
+        return;
+      }
+
       const res = await fetch('/api/patients', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -140,7 +156,7 @@ export default function PatientVisitSheetPage() {
       setSearchQuery('');
       flashStatus('✔ Patient added', '#2e7d32');
     } catch (err: any) {
-      alert(err.message || 'Could not add patient');
+      alert(err.message || 'Could not save patient');
     }
   };
 
@@ -284,6 +300,10 @@ export default function PatientVisitSheetPage() {
           sortDirection={sortDirection}
           onSort={handleSort}
           onCurrencyChange={setCurrency}
+          onEditPatient={(patient) => {
+            setEditingPatient(patient);
+            setIsAddPatientModalOpen(true);
+          }}
         />
       )}
 
@@ -303,8 +323,12 @@ export default function PatientVisitSheetPage() {
       <AddPatientModal
         isOpen={isAddPatientModalOpen}
         packages={packages}
-        onClose={() => setIsAddPatientModalOpen(false)}
-        onAdd={handleAddPatient}
+        patient={editingPatient}
+        onClose={() => {
+          setIsAddPatientModalOpen(false);
+          setEditingPatient(null);
+        }}
+        onAdd={handleSavePatient}
       />
 
       {/* Add Upcoming Month Modal */}

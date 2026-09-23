@@ -7,13 +7,15 @@ import { UserPlus, X, Check } from 'lucide-react';
 interface AddPatientModalProps {
   isOpen: boolean;
   packages: Package[];
+  patient?: { id: number; name: string; subscriber: string; packageId: number | null } | null;
   onClose: () => void;
-  onAdd: (name: string, subscriber: string, packageId: number | null) => void;
+  onAdd: (name: string, subscriber: string, packageId: number | null, patientId?: number) => void;
 }
 
 export const AddPatientModal: React.FC<AddPatientModalProps> = ({
   isOpen,
   packages,
+  patient = null,
   onClose,
   onAdd,
 }) => {
@@ -25,15 +27,17 @@ export const AddPatientModal: React.FC<AddPatientModalProps> = ({
 
   useEffect(() => {
     if (isOpen) {
-      setName('');
-      setSubscriber('');
-      setPackageId(null);
+      setName(patient?.name ?? '');
+      setSubscriber(patient?.subscriber ?? '');
+      setPackageId(patient?.packageId ?? null);
       setError('');
       setTimeout(() => nameInputRef.current?.focus(), 50);
     }
-  }, [isOpen]);
+  }, [isOpen, patient]);
 
   if (!isOpen) return null;
+
+  const isEditing = Boolean(patient);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,14 +46,14 @@ export const AddPatientModal: React.FC<AddPatientModalProps> = ({
       nameInputRef.current?.focus();
       return;
     }
-    onAdd(name.trim(), subscriber.trim(), packageId);
+    onAdd(name.trim(), subscriber.trim(), packageId, patient?.id);
     onClose();
   };
 
   return (
     <div className="mbg" onClick={(e) => e.target === e.currentTarget && onClose()}>
       <div className="modal" style={{ width: 'min(380px, 94vw)' }}>
-        <h2>➕ Add New Patient</h2>
+        <h2>{isEditing ? '✏️ Edit Patient' : '➕ Add New Patient'}</h2>
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           <div>
             <label
@@ -158,7 +162,7 @@ export const AddPatientModal: React.FC<AddPatientModalProps> = ({
               <X size={13} /> Cancel
             </button>
             <button type="submit" className="btn">
-              <Check size={13} /> Add Patient
+              <Check size={13} /> {isEditing ? 'Save Changes' : 'Add Patient'}
             </button>
           </div>
         </form>
