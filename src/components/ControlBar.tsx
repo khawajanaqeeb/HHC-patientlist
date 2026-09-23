@@ -1,14 +1,13 @@
 'use client';
 
 import React from 'react';
-import { Search, Package2, UserPlus, CalendarSearch, ListFilter, Printer, ClipboardEdit } from 'lucide-react';
+import { Search, Package2, UserPlus, ListFilter, Printer, ClipboardEdit } from 'lucide-react';
 
 interface Props {
   searchQuery: string;
   onSearchChange: (v: string) => void;
   onOpenPackages: () => void;
   onOpenAddPatient: () => void;
-  onOpenPatientVisitedSearch: () => void;
   onOpenPatientSearch: () => void;
   onOpenEnterVisit: () => void;
   onPrint: () => void;
@@ -21,7 +20,6 @@ export default function ControlBar({
   onSearchChange,
   onOpenPackages,
   onOpenAddPatient,
-  onOpenPatientVisitedSearch,
   onOpenPatientSearch,
   onOpenEnterVisit,
   onPrint,
@@ -61,11 +59,6 @@ export default function ControlBar({
       <button className="btn btn-primary" onClick={onOpenAddPatient}>
         <UserPlus size={13} />
         Add Patient
-      </button>
-
-      <button className="btn btn-primary" onClick={onOpenPatientVisitedSearch}>
-        <CalendarSearch size={13} />
-        Patient Visited Search
       </button>
 
       <button className="btn btn-primary" onClick={onPrint}>

@@ -8,7 +8,6 @@ import { VisitTable } from '@/components/VisitTable';
 import { PackageModal } from '@/components/PackageModal';
 import { AddPatientModal } from '@/components/AddPatientModal';
 import { AddMonthModal } from '@/components/AddMonthModal';
-import { PatientVisitedModal } from '@/components/PatientVisitedModal';
 import { PatientSearchModal } from '@/components/PatientSearchModal';
 import { EnterVisitModal } from '@/components/EnterVisitModal';
 
@@ -39,7 +38,6 @@ export default function PatientVisitSheetPage() {
   const [isPackageModalOpen, setIsPackageModalOpen] = useState<boolean>(false);
   const [isAddPatientModalOpen, setIsAddPatientModalOpen] = useState<boolean>(false);
   const [isAddMonthModalOpen, setIsAddMonthModalOpen] = useState<boolean>(false);
-  const [isPatientVisitedSearchOpen, setIsPatientVisitedSearchOpen] = useState<boolean>(false);
   const [isPatientSearchOpen, setIsPatientSearchOpen] = useState<boolean>(false);
   const [isEnterVisitModalOpen, setIsEnterVisitModalOpen] = useState<boolean>(false);
 
@@ -251,7 +249,6 @@ export default function PatientVisitSheetPage() {
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
         onOpenAddPatient={() => setIsAddPatientModalOpen(true)}
-        onOpenPatientVisitedSearch={() => setIsPatientVisitedSearchOpen(true)}
         onOpenPatientSearch={() => setIsPatientSearchOpen(true)}
         onOpenEnterVisit={() => setIsEnterVisitModalOpen(true)}
         onPrint={() => window.print()}
@@ -317,11 +314,6 @@ export default function PatientVisitSheetPage() {
         availableMonths={availableMonths}
         onClose={() => setIsAddMonthModalOpen(false)}
         onCreateMonth={handleCreateMonth}
-      />
-
-      <PatientVisitedModal
-        isOpen={isPatientVisitedSearchOpen}
-        onClose={() => setIsPatientVisitedSearchOpen(false)}
       />
 
       <PatientSearchModal
