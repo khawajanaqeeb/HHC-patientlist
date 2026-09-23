@@ -300,10 +300,6 @@ export default function PatientVisitSheetPage() {
           sortDirection={sortDirection}
           onSort={handleSort}
           onCurrencyChange={setCurrency}
-          onEditPatient={(patient) => {
-            setEditingPatient(patient);
-            setIsAddPatientModalOpen(true);
-          }}
         />
       )}
 
@@ -323,6 +319,7 @@ export default function PatientVisitSheetPage() {
       <AddPatientModal
         isOpen={isAddPatientModalOpen}
         packages={packages}
+        patients={patients}
         patient={editingPatient}
         onClose={() => {
           setIsAddPatientModalOpen(false);

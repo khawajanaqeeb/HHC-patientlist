@@ -1,12 +1,13 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Package } from '@/lib/types';
+import { Package, PatientMonthData } from '@/lib/types';
 import { UserPlus, X, Check } from 'lucide-react';
 
 interface AddPatientModalProps {
   isOpen: boolean;
   packages: Package[];
+  patients?: PatientMonthData[];
   patient?: { id: number; name: string; subscriber: string; packageId: number | null } | null;
   onClose: () => void;
   onAdd: (name: string, subscriber: string, packageId: number | null, patientId?: number) => void;
@@ -15,6 +16,7 @@ interface AddPatientModalProps {
 export const AddPatientModal: React.FC<AddPatientModalProps> = ({
   isOpen,
   packages,
+  patients = [],
   patient = null,
   onClose,
   onAdd,
@@ -22,22 +24,28 @@ export const AddPatientModal: React.FC<AddPatientModalProps> = ({
   const [name, setName] = useState('');
   const [subscriber, setSubscriber] = useState('');
   const [packageId, setPackageId] = useState<number | null>(null);
+  const [selectedPatientId, setSelectedPatientId] = useState<number | null>(null);
   const [error, setError] = useState('');
   const nameInputRef = useRef<HTMLInputElement>(null);
 
+  const applyPatientFields = (nextPatient: { id: number; name: string; subscriber: string; packageId: number | null } | null) => {
+    setSelectedPatientId(nextPatient?.id ?? null);
+    setName(nextPatient?.name ?? '');
+    setSubscriber(nextPatient?.subscriber ?? '');
+    setPackageId(nextPatient?.packageId ?? null);
+    setError('');
+  };
+
   useEffect(() => {
     if (isOpen) {
-      setName(patient?.name ?? '');
-      setSubscriber(patient?.subscriber ?? '');
-      setPackageId(patient?.packageId ?? null);
-      setError('');
+      applyPatientFields(patient);
       setTimeout(() => nameInputRef.current?.focus(), 50);
     }
   }, [isOpen, patient]);
 
   if (!isOpen) return null;
 
-  const isEditing = Boolean(patient);
+  const isEditing = Boolean(patient || selectedPatientId);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,8 +54,24 @@ export const AddPatientModal: React.FC<AddPatientModalProps> = ({
       nameInputRef.current?.focus();
       return;
     }
-    onAdd(name.trim(), subscriber.trim(), packageId, patient?.id);
+    onAdd(name.trim(), subscriber.trim(), packageId, selectedPatientId ?? patient?.id);
     onClose();
+  };
+
+  const handleSelectExistingPatient = (value: string) => {
+    const patientId = value ? Number(value) : null;
+    if (!patientId) {
+      applyPatientFields(null);
+      return;
+    }
+
+    const existingPatient = patients.find((item) => item.id === patientId) ?? null;
+    applyPatientFields(existingPatient ? {
+      id: existingPatient.id,
+      name: existingPatient.name,
+      subscriber: existingPatient.subscriber,
+      packageId: existingPatient.packageId,
+    } : null);
   };
 
   return (
@@ -55,6 +79,44 @@ export const AddPatientModal: React.FC<AddPatientModalProps> = ({
       <div className="modal" style={{ width: 'min(380px, 94vw)' }}>
         <h2>{isEditing ? '✏️ Edit Patient' : '➕ Add New Patient'}</h2>
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          {patients.length > 0 && (
+            <div>
+              <label
+                style={{
+                  fontSize: '0.72rem',
+                  fontWeight: 700,
+                  color: 'var(--teal)',
+                  display: 'block',
+                  marginBottom: '4px',
+                }}
+              >
+                Edit existing patient
+              </label>
+              <select
+                value={selectedPatientId ?? ''}
+                onChange={(e) => handleSelectExistingPatient(e.target.value)}
+                style={{
+                  width: '100%',
+                  border: '1.5px solid var(--teal-lt)',
+                  borderRadius: '6px',
+                  padding: '6px 9px',
+                  fontSize: '0.78rem',
+                  outline: 'none',
+                  background: 'var(--gold-lt)',
+                  color: 'var(--teal)',
+                  fontWeight: 700,
+                }}
+              >
+                <option value="">Add new patient</option>
+                {patients.map((item) => (
+                  <option key={item.id} value={item.id}>
+                    {item.name}{item.subscriber ? ` — ${item.subscriber}` : ''}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
           <div>
             <label
               style={{
