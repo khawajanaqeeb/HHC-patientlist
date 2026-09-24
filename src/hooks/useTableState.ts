@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 
 type SortColumn = 'sno' | 'name' | 'subscriber' | 'pkg';
 
@@ -7,20 +7,23 @@ export function useTableState() {
   const [sortColumn, setSortColumn] = useState<SortColumn | null>(null);
   const [sortDirection, setSortDirection] = useState<1 | -1>(1);
 
-  const handleSort = (col: SortColumn) => {
-    if (sortColumn === col) {
-      setSortDirection((prev) => (prev === 1 ? -1 : 1));
-    } else {
-      setSortColumn(col);
-      setSortDirection(1);
-    }
-  };
+  const handleSort = useCallback((col: SortColumn) => {
+    setSortColumn((prevCol) => {
+      if (prevCol === col) {
+        setSortDirection((prevDir) => (prevDir === 1 ? -1 : 1));
+        return prevCol;
+      } else {
+        setSortDirection(1);
+        return col;
+      }
+    });
+  }, []);
 
-  const resetTable = () => {
+  const resetTable = useCallback(() => {
     setSearchQuery('');
     setSortColumn(null);
     setSortDirection(1);
-  };
+  }, []);
 
   return {
     searchQuery,

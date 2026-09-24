@@ -65,6 +65,181 @@ main {
 }
 
 /* ─────────────────────────────────────────────
+   APP BODY  (sidebar + content row)
+───────────────────────────────────────────── */
+.app-body {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* ─────────────────────────────────────────────
+   SIDEBAR
+───────────────────────────────────────────── */
+.sidebar {
+  width: 192px;
+  flex-shrink: 0;
+  background: rgba(10, 35, 60, 0.72);
+  backdrop-filter: blur(24px) saturate(160%);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  border-right: 1px solid rgba(255, 255, 255, 0.10);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 8px;
+  overflow-y: auto;
+  box-shadow: 4px 0 24px rgba(0,0,0,0.18);
+}
+
+/* Scrollbar */
+.sidebar::-webkit-scrollbar { width: 3px; }
+.sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 2px; }
+
+/* ── Main tab button ── */
+.sidebar-tab {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 9px 10px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  color: rgba(255,255,255,0.9);
+  font-size: 0.75rem;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  text-align: left;
+  letter-spacing: 0.2px;
+  transition: all 0.18s;
+}
+
+.sidebar-tab:hover {
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.22);
+}
+
+.sidebar-tab.active {
+  background: linear-gradient(135deg, rgba(41, 128, 185, 0.45), rgba(26, 82, 118, 0.55));
+  border-color: rgba(125, 211, 252, 0.35);
+  color: #fff;
+  box-shadow: 0 2px 12px rgba(41, 128, 185, 0.3);
+}
+
+.sidebar-tab-icon { display: flex; flex-shrink: 0; opacity: 0.85; }
+.sidebar-tab-label { flex: 1; }
+.sidebar-tab-chevron { display: flex; opacity: 0.6; margin-left: auto; }
+
+/* ── Sub-actions container ── */
+.sidebar-sub {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow: hidden;
+  max-height: 0;
+  opacity: 0;
+  transition: max-height 0.28s cubic-bezier(0.4,0,0.2,1), opacity 0.22s ease;
+}
+
+.sidebar-sub.open {
+  max-height: 600px;
+  opacity: 1;
+}
+
+/* ── Action buttons ── */
+.sidebar-action {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  padding: 7px 10px 7px 20px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: rgba(255,255,255,0.75);
+  font-size: 0.72rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.16s;
+  margin-top: 1px;
+}
+
+.sidebar-action:hover {
+  background: rgba(255,255,255,0.09);
+  border-color: rgba(255,255,255,0.12);
+  color: #fff;
+  transform: translateX(2px);
+}
+
+.sidebar-action-icon { display: flex; flex-shrink: 0; }
+.sidebar-action-label { flex: 1; white-space: nowrap; }
+
+/* Highlighted (Enter Visit Data) */
+.sidebar-action.highlight {
+  background: linear-gradient(135deg, rgba(39,174,96,0.25), rgba(46,204,113,0.18));
+  border-color: rgba(46,204,113,0.3);
+  color: #a7f3d0;
+  font-weight: 700;
+}
+
+.sidebar-action.highlight:hover {
+  background: linear-gradient(135deg, rgba(39,174,96,0.38), rgba(46,204,113,0.3));
+  border-color: rgba(46,204,113,0.5);
+  color: #d1fae5;
+  transform: translateX(2px);
+  box-shadow: 0 2px 10px rgba(39,174,96,0.25);
+}
+
+/* Danger (Reset) */
+.sidebar-action.danger { color: rgba(252,165,165,0.85); }
+.sidebar-action.danger:hover {
+  background: rgba(192,57,43,0.2);
+  border-color: rgba(231,76,60,0.3);
+  color: #fca5a5;
+}
+
+/* ─────────────────────────────────────────────
+   APP CONTENT  (right of sidebar)
+───────────────────────────────────────────── */
+.app-content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ── Top strip: search + status + legend ── */
+.content-topbar {
+  background: rgba(255, 255, 255, 0.09);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.13);
+  padding: 7px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  box-shadow: 0 2px 10px rgba(26,82,118,0.10);
+}
+
+/* Loading state */
+.loading-state {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  color: rgba(255,255,255,0.6);
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+
+/* ─────────────────────────────────────────────
    TITLE BAR  (glassmorphism card)
 ───────────────────────────────────────────── */
 .title-bar {

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Package, PatientMonthData, MonthInfo } from '@/lib/types';
 
 const DEFAULT_USD_TO_PKR_RATE = 280;
@@ -28,6 +28,12 @@ export function useAppData({ flashStatus, clearSearch, resetTable }: AppDataCall
   const [usdToPkrRate, setUsdToPkrRate] = useState(DEFAULT_USD_TO_PKR_RATE);
   const [loading, setLoading] = useState(true);
 
+  // Keep callback references stable to prevent re-fetch loops
+  const callbacksRef = useRef({ flashStatus, clearSearch, resetTable });
+  useEffect(() => {
+    callbacksRef.current = { flashStatus, clearSearch, resetTable };
+  });
+
   const loadData = useCallback(async (monthId?: string) => {
     try {
       setLoading(true);
@@ -46,14 +52,14 @@ export function useAppData({ flashStatus, clearSearch, resetTable }: AppDataCall
       setAvailableMonths(data.availableMonths || []);
       setPackages(data.packages || []);
       setPatients(data.patients || []);
-      flashStatus(`✔ Synced to Supabase (${new Date().toLocaleTimeString()})`, '#ffffff');
+      callbacksRef.current.flashStatus(`✔ Synced to Supabase (${new Date().toLocaleTimeString()})`, '#ffffff');
     } catch (err: unknown) {
       console.error(err);
-      flashStatus('⚠ Error loading data', '#b71c1c');
+      callbacksRef.current.flashStatus('⚠ Error loading data', '#b71c1c');
     } finally {
       setLoading(false);
     }
-  }, [flashStatus]);
+  }, []);
 
   // Initial data load
   useEffect(() => {
@@ -89,7 +95,7 @@ export function useAppData({ flashStatus, clearSearch, resetTable }: AppDataCall
       if (!res.ok) throw new Error(data.error || 'Failed to create month');
       setAvailableMonths(data.months);
       await loadData(data.month.id);
-      flashStatus(`✔ Created ${data.month.label}`, '#2e7d32');
+      callbacksRef.current.flashStatus(`✔ Created ${data.month.label}`, '#2e7d32');
     } catch (err: unknown) {
       alert(err instanceof Error ? err.message : 'Could not create month');
     }
@@ -115,7 +121,7 @@ export function useAppData({ flashStatus, clearSearch, resetTable }: AppDataCall
         setPatients((prev) =>
           prev.map((p) => (p.id === patientId ? { ...p, name, subscriber, packageId } : p)),
         );
-        flashStatus('✔ Patient updated', '#2e7d32');
+        callbacksRef.current.flashStatus('✔ Patient updated', '#2e7d32');
         return;
       }
 
@@ -127,8 +133,8 @@ export function useAppData({ flashStatus, clearSearch, resetTable }: AppDataCall
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to add patient');
       setPatients((prev) => [...prev, data.patient]);
-      clearSearch();
-      flashStatus('✔ Patient added', '#2e7d32');
+      callbacksRef.current.clearSearch();
+      callbacksRef.current.flashStatus('✔ Patient added', '#2e7d32');
     } catch (err: unknown) {
       alert(err instanceof Error ? err.message : 'Could not save patient');
     }
@@ -142,7 +148,7 @@ export function useAppData({ flashStatus, clearSearch, resetTable }: AppDataCall
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to delete patient');
       setPatients((prev) => prev.filter((p) => p.id !== patientId));
-      flashStatus('✔ Patient deleted', '#2e7d32');
+      callbacksRef.current.flashStatus('✔ Patient deleted', '#2e7d32');
     } catch (err: unknown) {
       alert(err instanceof Error ? err.message : 'Could not delete patient');
     }
@@ -160,7 +166,7 @@ export function useAppData({ flashStatus, clearSearch, resetTable }: AppDataCall
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to save packages');
       setPackages(data.packages);
-      flashStatus('✔ Packages updated', '#2e7d32');
+      callbacksRef.current.flashStatus('✔ Packages updated', '#2e7d32');
     } catch (err: unknown) {
       alert(err instanceof Error ? err.message : 'Could not save packages');
     }
@@ -179,8 +185,8 @@ export function useAppData({ flashStatus, clearSearch, resetTable }: AppDataCall
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to reset');
       setPatients(data.patients);
-      resetTable();
-      flashStatus('✔ Reset completed', '#2e7d32');
+      callbacksRef.current.resetTable();
+      callbacksRef.current.flashStatus('✔ Reset completed', '#2e7d32');
     } catch (err: unknown) {
       alert(err instanceof Error ? err.message : 'Could not reset');
     }
@@ -200,7 +206,7 @@ export function useAppData({ flashStatus, clearSearch, resetTable }: AppDataCall
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      flashStatus('⬇ Exported', '#1A5276');
+      callbacksRef.current.flashStatus('⬇ Exported', '#1A5276');
     } catch (err: unknown) {
       alert(err instanceof Error ? err.message : 'Could not export');
     }
@@ -221,7 +227,7 @@ export function useAppData({ flashStatus, clearSearch, resetTable }: AppDataCall
         if (!res.ok) throw new Error(data.error || 'Failed to import');
         setPackages(data.packages);
         setPatients(data.patients);
-        flashStatus('⬆ Imported successfully', '#2e7d32');
+        callbacksRef.current.flashStatus('⬆ Imported successfully', '#2e7d32');
       } catch (err: unknown) {
         alert('Could not import file: ' + (err instanceof Error ? err.message : String(err)));
       }

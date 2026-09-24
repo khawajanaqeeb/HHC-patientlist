@@ -2,12 +2,13 @@
 
 import React from 'react';
 import TitleBar from '@/components/TitleBar';
-import ControlBar from '@/components/ControlBar';
+import Sidebar from '@/components/Sidebar';
 import { VisitTable } from '@/components/VisitTable';
 import { PackageModal } from '@/components/PackageModal';
 import { AddPatientModal } from '@/components/AddPatientModal';
 import { AddMonthModal } from '@/components/AddMonthModal';
 import { EnterVisitModal } from '@/components/EnterVisitModal';
+import { Search } from 'lucide-react';
 
 import { useStatus } from '@/hooks/useStatus';
 import { useTableState } from '@/hooks/useTableState';
@@ -27,6 +28,8 @@ export default function PatientVisitSheetPage() {
     openAddPatient, closeAddPatient,
   } = useModals();
 
+  const clearSearch = React.useCallback(() => setSearchQuery(''), [setSearchQuery]);
+
   const {
     currentMonth, availableMonths, packages, patients,
     currency, setCurrency, usdToPkrRate, loading,
@@ -35,7 +38,7 @@ export default function PatientVisitSheetPage() {
     handleSavePatient, handleDeletePatient,
     handleSavePackages, handleReset,
     handleExport, handleImport,
-  } = useAppData({ flashStatus, clearSearch: () => setSearchQuery(''), resetTable });
+  } = useAppData({ flashStatus, clearSearch, resetTable });
 
   const onSavePatient = async (name: string, subscriber: string, packageId: number | null, patientId?: number) => {
     await handleSavePatient(name, subscriber, packageId, patientId);
@@ -57,50 +60,68 @@ export default function PatientVisitSheetPage() {
         onOpenAddMonth={() => setIsAddMonthModalOpen(true)}
       />
 
-      <ControlBar
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-        onOpenAddPatient={openAddPatient}
-        onOpenEnterVisit={() => setIsEnterVisitModalOpen(true)}
-        onPrint={() => window.print()}
-        onOpenPackages={() => setIsPackageModalOpen(true)}
-        onExport={handleExport}
-        onImport={handleImport}
-        onReset={handleReset}
-        saveStatus={saveStatus}
-        saveStatusColor={saveStatusColor}
-      />
-
-      {loading ? (
-        <div
-          style={{
-            padding: '40px',
-            textAlign: 'center',
-            background: '#fff',
-            border: '1px solid var(--teal-lt)',
-            borderTop: 'none',
-            fontSize: '0.85rem',
-            color: 'var(--teal)',
-            fontWeight: 700,
-          }}
-        >
-          Loading Patient Visit Sheet...
-        </div>
-      ) : (
-        <VisitTable
-          currentMonth={currentMonth}
-          packages={packages}
-          patients={patients}
-          currency={currency}
-          usdToPkrRate={usdToPkrRate}
-          searchQuery={searchQuery}
-          sortColumn={sortColumn}
-          sortDirection={sortDirection}
-          onSort={handleSort}
-          onCurrencyChange={setCurrency}
+      {/* ── Body: sidebar + content ── */}
+      <div className="app-body">
+        {/* Sidebar */}
+        <Sidebar
+          onOpenAddPatient={openAddPatient}
+          onOpenEnterVisit={() => setIsEnterVisitModalOpen(true)}
+          onPrint={() => window.print()}
+          onOpenPackages={() => setIsPackageModalOpen(true)}
+          onExport={handleExport}
+          onImport={handleImport}
+          onReset={handleReset}
         />
-      )}
 
+        {/* Main content */}
+        <div className="app-content">
+          {/* Search + status strip */}
+          <div className="content-topbar">
+            <div className="search-box">
+              <Search size={13} />
+              <input
+                type="text"
+                placeholder="Search patient…"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+            {saveStatus && (
+              <span className="save-status" style={{ color: saveStatusColor }}>
+                {saveStatus}
+              </span>
+            )}
+            {/* Legend */}
+            <div className="legend">
+              <span className="leg"><span className="leg-sq" style={{ background: '#c8e6c9' }} />Doctor</span>
+              <span className="leg"><span className="leg-sq" style={{ background: '#bbdefb' }} />Nurse+Physio</span>
+              <span className="leg"><span className="leg-sq" style={{ background: '#e1bee7' }} />Psychiatrist</span>
+              <span className="leg"><span className="leg-sq" style={{ background: '#ffcdd2' }} />Cancelled</span>
+            </div>
+          </div>
+
+          {loading ? (
+            <div className="loading-state">
+              Loading Patient Visit Sheet…
+            </div>
+          ) : (
+            <VisitTable
+              currentMonth={currentMonth}
+              packages={packages}
+              patients={patients}
+              currency={currency}
+              usdToPkrRate={usdToPkrRate}
+              searchQuery={searchQuery}
+              sortColumn={sortColumn}
+              sortDirection={sortDirection}
+              onSort={handleSort}
+              onCurrencyChange={setCurrency}
+            />
+          )}
+        </div>
+      </div>
+
+      {/* ── Modals ── */}
       <PackageModal
         isOpen={isPackageModalOpen}
         packages={packages}
