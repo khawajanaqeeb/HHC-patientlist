@@ -8,7 +8,6 @@ import { VisitTable } from '@/components/VisitTable';
 import { PackageModal } from '@/components/PackageModal';
 import { AddPatientModal } from '@/components/AddPatientModal';
 import { AddMonthModal } from '@/components/AddMonthModal';
-import { PatientSearchModal } from '@/components/PatientSearchModal';
 import { EnterVisitModal } from '@/components/EnterVisitModal';
 
 const DEFAULT_USD_TO_PKR_RATE = 280;
@@ -37,8 +36,8 @@ export default function PatientVisitSheetPage() {
 
   const [isPackageModalOpen, setIsPackageModalOpen] = useState<boolean>(false);
   const [isAddPatientModalOpen, setIsAddPatientModalOpen] = useState<boolean>(false);
+  const [patientWindowMode, setPatientWindowMode] = useState<'search' | 'add'>('add');
   const [isAddMonthModalOpen, setIsAddMonthModalOpen] = useState<boolean>(false);
-  const [isPatientSearchOpen, setIsPatientSearchOpen] = useState<boolean>(false);
   const [isEnterVisitModalOpen, setIsEnterVisitModalOpen] = useState<boolean>(false);
   const [editingPatient, setEditingPatient] = useState<PatientMonthData | null>(null);
 
@@ -279,8 +278,16 @@ export default function PatientVisitSheetPage() {
       <ControlBar
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
-        onOpenAddPatient={() => setIsAddPatientModalOpen(true)}
-        onOpenPatientSearch={() => setIsPatientSearchOpen(true)}
+        onOpenAddPatient={() => {
+          setPatientWindowMode('add');
+          setEditingPatient(null);
+          setIsAddPatientModalOpen(true);
+        }}
+        onOpenPatientSearch={() => {
+          setPatientWindowMode('search');
+          setEditingPatient(null);
+          setIsAddPatientModalOpen(true);
+        }}
         onOpenEnterVisit={() => setIsEnterVisitModalOpen(true)}
         onPrint={() => window.print()}
         onOpenPackages={() => setIsPackageModalOpen(true)}
@@ -333,6 +340,8 @@ export default function PatientVisitSheetPage() {
       {/* Add Patient Modal */}
       <AddPatientModal
         isOpen={isAddPatientModalOpen}
+        initialMode={editingPatient ? 'edit' : patientWindowMode}
+        currentMonth={currentMonth}
         packages={packages}
         patients={patients}
         patient={editingPatient}
@@ -351,16 +360,6 @@ export default function PatientVisitSheetPage() {
         availableMonths={availableMonths}
         onClose={() => setIsAddMonthModalOpen(false)}
         onCreateMonth={handleCreateMonth}
-      />
-
-      <PatientSearchModal
-        isOpen={isPatientSearchOpen}
-        currentMonth={currentMonth}
-        packages={packages}
-        patients={patients}
-        currency={currency}
-        usdToPkrRate={usdToPkrRate}
-        onClose={() => setIsPatientSearchOpen(false)}
       />
 
       {/* Enter Visit Data Modal */}
