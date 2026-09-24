@@ -279,11 +279,6 @@ export default function PatientVisitSheetPage() {
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
         onOpenAddPatient={() => {
-          setPatientWindowMode('add');
-          setEditingPatient(null);
-          setIsAddPatientModalOpen(true);
-        }}
-        onOpenPatientSearch={() => {
           setPatientWindowMode('search');
           setEditingPatient(null);
           setIsAddPatientModalOpen(true);
