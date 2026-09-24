@@ -45,8 +45,17 @@ body {
   font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, Arial, sans-serif;
   background: linear-gradient(135deg, #0d2e4d 0%, #1a5276 40%, #1a6b9a 70%, #0e3a5c 100%);
   min-height: 100vh;
-  padding: 14px;
+  padding: 0;
   color: #1a2b3c;
+}
+
+main {
+  display: flex;
+  flex-direction: column;
+  width: 100vw;
+  height: 100vh;
+  min-height: 0;
+  overflow: hidden;
 }
 
 /* ── Page wrapper ── */
@@ -355,6 +364,95 @@ body {
   border: 1.5px solid rgba(255, 255, 255, 0.4);
   border-top: none;
   box-shadow: 0 8px 40px rgba(0, 0, 0, 0.25);
+}
+
+/* Fullscreen application shell and navbar-style header */
+main > .title-bar {
+  flex: 0 0 auto;
+  border-radius: 0;
+  padding: 8px 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  text-align: left;
+}
+
+main > .title-bar h1 {
+  justify-content: flex-start;
+  min-width: max-content;
+  font-size: 1rem;
+}
+
+main > .title-bar .app-logo {
+  height: 42px;
+  margin-right: 2px;
+}
+
+main > .title-bar p {
+  margin: 0 auto 0 0;
+  font-size: 0.68rem;
+  white-space: nowrap;
+}
+
+main > .title-bar .month-nav-container {
+  margin: 0;
+  justify-content: flex-end;
+}
+
+main > .ctrl {
+  flex: 0 0 auto;
+  min-height: 54px;
+  padding: 8px 20px;
+  border: 0;
+  border-top: 1px solid rgba(255,255,255,0.15);
+  border-bottom: 1px solid rgba(255,255,255,0.18);
+  border-radius: 0;
+  background: rgba(8, 43, 70, 0.82);
+  box-shadow: 0 4px 18px rgba(0,0,0,0.18);
+}
+
+main > .ctrl .btn-primary,
+main > .ctrl .btn-enter-visit {
+  min-height: 34px;
+  border-radius: 6px;
+  padding: 7px 12px;
+}
+
+main > .ctrl .search-box {
+  min-height: 34px;
+  border-radius: 6px;
+}
+
+main > .ctrl .legend {
+  margin-left: auto;
+}
+
+main > .wrap {
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: none;
+  border-radius: 0;
+  border: 0;
+  box-shadow: none;
+}
+
+main > .wrap + * { flex: 0 0 auto; }
+
+@media (max-width: 900px) {
+  main > .title-bar { flex-wrap: wrap; gap: 6px 12px; }
+  main > .title-bar p { order: 3; flex: 1 1 100%; margin-left: 58px; }
+  main > .ctrl { padding: 8px 12px; }
+  main > .ctrl .legend { display: none; }
+}
+
+@media (max-width: 600px) {
+  main > .title-bar { padding: 8px 12px; }
+  main > .title-bar h1 { font-size: 0.84rem; }
+  main > .title-bar .app-logo { height: 34px; }
+  main > .title-bar p { margin-left: 46px; }
+  main > .ctrl { gap: 6px; overflow-x: auto; flex-wrap: nowrap; }
+  main > .ctrl .search-box { flex: 0 0 150px; }
+  main > .ctrl .btn { flex: 0 0 auto; }
 }
 
 .wrap::-webkit-scrollbar {
