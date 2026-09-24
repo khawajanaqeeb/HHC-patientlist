@@ -2420,3 +2420,264 @@ td.vc.vx { background: var(--can-bg) !important; }
   color: #888;
   line-height: 1.5;
 }
+
+
+/* ═══════════════════════════════════════════════════════════
+   RESPONSIVE / MOBILE-FIRST
+   Breakpoints:  480px · 640px · 768px · 1024px
+═══════════════════════════════════════════════════════════ */
+
+/* ── iOS safe-area support ── */
+body {
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+main {
+  /* Use dvh (dynamic viewport height) when supported — fixes iOS address-bar */
+  height: 100dvh;
+}
+
+/* ── Touch scroll for table ── */
+.wrap {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ── Content topbar: search always expands full width on small screens ── */
+.content-topbar .search-box {
+  flex: 1 1 140px;
+  min-width: 0;
+}
+
+.content-topbar .search-box input {
+  width: 100%;
+  min-width: 0;
+}
+
+/* ─────────────────────────────────────────────
+   ≤ 1024px  (tablets landscape)
+───────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  /* Sidebar: stay collapsed by default — already the default state */
+  .sidebar.sidebar-expanded {
+    width: 176px;
+  }
+
+  /* TitleBar: reduce logo + font */
+  main > .title-bar .app-logo { height: 36px; }
+  main > .title-bar h1 { font-size: 0.95rem; }
+}
+
+/* ─────────────────────────────────────────────
+   ≤ 768px  (tablets portrait)
+───────────────────────────────────────────── */
+@media (max-width: 768px) {
+  /* --- Sidebar becomes a slide-over overlay --- */
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100%;
+    z-index: 500;
+    box-shadow: 8px 0 32px rgba(0,0,0,0.35);
+  }
+
+  /* Collapsed: hide off-screen completely */
+  .sidebar.sidebar-collapsed {
+    width: 52px;
+  }
+
+  /* Expanded: overlay full-height panel */
+  .sidebar.sidebar-expanded {
+    width: 210px;
+  }
+
+  /* Content area: always full width (sidebar overlays on top) */
+  .app-content {
+    width: 100%;
+  }
+
+  /* --- Title bar: stack to two rows --- */
+  main > .title-bar {
+    flex-wrap: wrap;
+    gap: 4px 10px;
+    padding: 7px 10px;
+  }
+
+  main > .title-bar h1 {
+    font-size: 0.88rem;
+    min-width: unset;
+  }
+
+  main > .title-bar .app-logo { height: 32px; }
+
+  main > .title-bar p {
+    font-size: 0.64rem;
+    white-space: normal;
+    margin-left: 0;
+  }
+
+  main > .title-bar .month-nav-container {
+    margin-left: auto;
+  }
+
+  /* --- Content topbar: hide legend on small tablets --- */
+  .content-topbar .legend { display: none; }
+
+  /* --- Modals: full-screen on tablets --- */
+  .modal {
+    width: 100vw;
+    max-height: 100dvh;
+    border-radius: 0;
+    padding: 18px;
+  }
+
+  /* EnterVisit modal type-buttons: 2 columns */
+  .ev-type-btns {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  /* Patient manager modal: stack sidebar on top */
+  .patient-manager-modal {
+    flex-direction: column;
+    overflow-y: auto;
+  }
+
+  .patient-manager-sidebar {
+    width: 100%;
+    flex: 0 0 auto;
+    padding: 16px;
+  }
+
+  .patient-manager-nav {
+    display: flex;
+    flex-direction: row;
+    overflow-x: auto;
+    gap: 6px;
+  }
+
+  .patient-manager-nav button {
+    min-width: max-content;
+    flex-shrink: 0;
+  }
+
+  .patient-manager-help { display: none; }
+
+  .patient-manager-content {
+    padding: 18px 14px;
+    overflow: visible;
+  }
+
+  .patient-manager-search-row,
+  .patient-manager-form-grid {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .patient-manager-search-row label,
+  .patient-manager-search-input {
+    flex: 1 1 auto !important;
+  }
+
+  .patient-manager-result-count { margin-left: 0; padding-bottom: 0; }
+
+  /* Patient detail: 2-col grid */
+  .patient-detail-grid { grid-template-columns: repeat(2, 1fr); }
+  .patient-visit-summary { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* ─────────────────────────────────────────────
+   ≤ 640px  (large phones landscape / small tablets)
+───────────────────────────────────────────── */
+@media (max-width: 640px) {
+  /* Sidebar: icon-only always (never auto-expand on small phones) */
+  .sidebar.sidebar-expanded {
+    width: 188px;
+  }
+
+  /* Title bar: tighter */
+  main > .title-bar { padding: 6px 8px; gap: 4px 8px; }
+  main > .title-bar h1 { font-size: 0.82rem; }
+  main > .title-bar .app-logo { height: 28px; }
+
+  /* Content topbar: very compact */
+  .content-topbar { padding: 5px 8px; gap: 6px; }
+  .content-topbar .save-status { display: none; }
+
+  /* Table: reduce min font slightly */
+  table { font-size: 0.63rem; }
+
+  /* Modals: no padding, full height */
+  .modal { padding: 14px; }
+
+  .patient-manager-content { padding: 14px 10px; }
+
+  .patient-manager-sidebar { padding: 12px 10px; }
+
+  /* Add month modal */
+  .add-month-modal-content { padding: 16px; }
+
+  /* Package modal rows: stack inputs */
+  .ptbl td input { width: 52px; }
+}
+
+/* ─────────────────────────────────────────────
+   ≤ 480px  (phones portrait — primary mobile)
+───────────────────────────────────────────── */
+@media (max-width: 480px) {
+  /* Title: single compact row */
+  main > .title-bar h1 {
+    font-size: 0.76rem;
+    gap: 5px;
+  }
+
+  main > .title-bar .app-logo { height: 26px; margin-right: 2px; }
+
+  /* Hide subtitle on very small screens */
+  main > .title-bar p { display: none; }
+
+  /* Content topbar: only search visible */
+  .content-topbar { padding: 4px 6px; }
+  .content-topbar .legend { display: none; }
+  .content-topbar .save-status { display: none; }
+
+  /* Btn: tighter padding */
+  .btn { padding: 5px 9px; font-size: 0.7rem; }
+
+  /* Modal footer buttons: stack vertically */
+  .mfoot {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .mfoot .btn { justify-content: center; }
+
+  /* Patient manager: 1-col detail grid */
+  .patient-detail-grid { grid-template-columns: 1fr 1fr; }
+  .patient-visit-summary { grid-template-columns: 1fr 1fr; }
+
+  /* EnterVisit modal: single column type buttons */
+  .ev-type-btns {
+    grid-template-columns: 1fr 1fr !important;
+  }
+
+  .ev-patient-list { max-height: 30vh; }
+
+  /* Reset confirm box fits narrow screens */
+  .reset-confirm-box { margin: 3px 0; }
+}
+
+/* ─────────────────────────────────────────────
+   Print — hide sidebar, topbar chrome
+───────────────────────────────────────────── */
+@media print {
+  .sidebar,
+  .content-topbar,
+  .mbg { display: none !important; }
+
+  .app-body { display: block; }
+  .app-content { width: 100%; overflow: visible; }
+  .wrap { max-height: none; overflow: visible; }
+  main { height: auto; overflow: visible; }
+}
