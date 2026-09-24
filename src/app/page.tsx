@@ -1,7 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
-import { Package, PatientMonthData, MonthInfo } from '@/lib/types';
+import React from 'react';
 import TitleBar from '@/components/TitleBar';
 import ControlBar from '@/components/ControlBar';
 import { VisitTable } from '@/components/VisitTable';
@@ -10,259 +9,42 @@ import { AddPatientModal } from '@/components/AddPatientModal';
 import { AddMonthModal } from '@/components/AddMonthModal';
 import { EnterVisitModal } from '@/components/EnterVisitModal';
 
-const DEFAULT_USD_TO_PKR_RATE = 280;
+import { useStatus } from '@/hooks/useStatus';
+import { useTableState } from '@/hooks/useTableState';
+import { useModals } from '@/hooks/useModals';
+import { useAppData } from '@/hooks/useAppData';
 
 export default function PatientVisitSheetPage() {
-  const [currentMonth, setCurrentMonth] = useState<MonthInfo>({
-    id: '2026-09',
-    year: 2026,
-    month: 9,
-    label: 'September 2026',
-    daysInMonth: 30,
-  });
-  const [availableMonths, setAvailableMonths] = useState<MonthInfo[]>([]);
-  const [packages, setPackages] = useState<Package[]>([]);
-  const [patients, setPatients] = useState<PatientMonthData[]>([]);
-  const [currency, setCurrency] = useState<'PKR' | 'USD'>('PKR');
-  const [usdToPkrRate, setUsdToPkrRate] = useState(DEFAULT_USD_TO_PKR_RATE);
-  const [loading, setLoading] = useState<boolean>(true);
+  const { saveStatus, saveStatusColor, flashStatus } = useStatus();
+  const { searchQuery, setSearchQuery, sortColumn, sortDirection, handleSort, resetTable } = useTableState();
+  const {
+    isPackageModalOpen, setIsPackageModalOpen,
+    isAddPatientModalOpen,
+    patientWindowMode,
+    isAddMonthModalOpen, setIsAddMonthModalOpen,
+    isEnterVisitModalOpen, setIsEnterVisitModalOpen,
+    editingPatient, setEditingPatient,
+    openAddPatient, closeAddPatient,
+  } = useModals();
 
-  const [searchQuery, setSearchQuery] = useState<string>('');
-  const [sortColumn, setSortColumn] = useState<'sno' | 'name' | 'subscriber' | 'pkg' | null>(null);
-  const [sortDirection, setSortDirection] = useState<1 | -1>(1);
+  const {
+    currentMonth, availableMonths, packages, patients,
+    currency, setCurrency, usdToPkrRate, loading,
+    loadData,
+    handleSelectMonth, handleCreateMonth,
+    handleSavePatient, handleDeletePatient,
+    handleSavePackages, handleReset,
+    handleExport, handleImport,
+  } = useAppData({ flashStatus, clearSearch: () => setSearchQuery(''), resetTable });
 
-  const [saveStatus, setSaveStatus] = useState<string>('');
-  const [saveStatusColor, setSaveStatusColor] = useState<string>('#ffffff');
-
-  const [isPackageModalOpen, setIsPackageModalOpen] = useState<boolean>(false);
-  const [isAddPatientModalOpen, setIsAddPatientModalOpen] = useState<boolean>(false);
-  const [patientWindowMode, setPatientWindowMode] = useState<'search' | 'add'>('add');
-  const [isAddMonthModalOpen, setIsAddMonthModalOpen] = useState<boolean>(false);
-  const [isEnterVisitModalOpen, setIsEnterVisitModalOpen] = useState<boolean>(false);
-  const [editingPatient, setEditingPatient] = useState<PatientMonthData | null>(null);
-
-  const flashStatus = (msg: string, color: string = '#ffffff') => {
-    setSaveStatus(msg);
-    setSaveStatusColor(color);
+  const onSavePatient = async (name: string, subscriber: string, packageId: number | null, patientId?: number) => {
+    await handleSavePatient(name, subscriber, packageId, patientId);
+    if (patientId) setEditingPatient(null);
   };
 
-  const loadData = useCallback(async (monthId?: string) => {
-    try {
-      setLoading(true);
-      const url = monthId ? `/api/data?monthId=${monthId}` : '/api/data';
-      let res = await fetch(url);
-      if (!res.ok) {
-        await new Promise((resolve) => setTimeout(resolve, 500));
-        res = await fetch(url);
-      }
-      if (!res.ok) {
-        const errorData = await res.json().catch(() => null) as { error?: string } | null;
-        throw new Error(errorData?.error || `Failed to load data (${res.status})`);
-      }
-      const data = await res.json();
-
-      setCurrentMonth(data.currentMonth);
-      setAvailableMonths(data.availableMonths || []);
-      setPackages(data.packages || []);
-      setPatients(data.patients || []);
-      flashStatus(`✔ Synced to Supabase (${new Date().toLocaleTimeString()})`, '#ffffff');
-    } catch (err: any) {
-      console.error(err);
-      flashStatus('⚠ Error loading data', '#b71c1c');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    loadData();
-  }, [loadData]);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    fetch('/api/exchange-rate')
-      .then((res) => (res.ok ? res.json() : Promise.reject(new Error('Rate unavailable'))))
-      .then((data: { usdToPkr: number }) => {
-        if (!cancelled && Number.isFinite(data.usdToPkr) && data.usdToPkr > 0) {
-          setUsdToPkrRate(data.usdToPkr);
-        }
-      })
-      .catch(() => {});
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  const handleSelectMonth = (monthId: string) => {
-    loadData(monthId);
-  };
-
-  const handleCreateMonth = async (year: number, month: number, carryOverFrom?: string) => {
-    try {
-      const res = await fetch('/api/months', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ year, month, carryOverFrom }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed to create month');
-
-      setAvailableMonths(data.months);
-      await loadData(data.month.id);
-      flashStatus(`✔ Created ${data.month.label}`, '#2e7d32');
-    } catch (err: any) {
-      alert(err.message || 'Could not create month');
-    }
-  };
-
-  const handleSort = (col: 'sno' | 'name' | 'subscriber' | 'pkg') => {
-    if (sortColumn === col) {
-      setSortDirection((prev) => (prev === 1 ? -1 : 1));
-    } else {
-      setSortColumn(col);
-      setSortDirection(1);
-    }
-  };
-
-  const handleSavePatient = async (name: string, subscriber: string, packageId: number | null, patientId?: number) => {
-    try {
-      if (patientId) {
-        const res = await fetch(`/api/patients/${patientId}`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ monthId: currentMonth.id, name, subscriber, packageId }),
-        });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || 'Failed to update patient');
-
-        setPatients((prev) => prev.map((patient) => patient.id === patientId ? { ...patient, name, subscriber, packageId } : patient));
-        setEditingPatient(null);
-        flashStatus('✔ Patient updated', '#2e7d32');
-        return;
-      }
-
-      const res = await fetch('/api/patients', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ monthId: currentMonth.id, name, subscriber, packageId }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed to add patient');
-
-      setPatients((prev) => [...prev, data.patient]);
-      setSearchQuery('');
-      flashStatus('✔ Patient added', '#2e7d32');
-    } catch (err: any) {
-      alert(err.message || 'Could not save patient');
-    }
-  };
-
-  const handleDeletePatient = async (patientId: number) => {
-    try {
-      const res = await fetch(`/api/patients/${patientId}?monthId=${currentMonth.id}`, { method: 'DELETE' });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed to delete patient');
-
-      setPatients((prev) => prev.filter((patient) => patient.id !== patientId));
-      setIsAddPatientModalOpen(false);
-      setEditingPatient(null);
-      flashStatus('✔ Patient deleted', '#2e7d32');
-    } catch (err: any) {
-      alert(err.message || 'Could not delete patient');
-    }
-  };
-
-  const handleSavePackages = async (newPackages: Package[]) => {
-    try {
-      const res = await fetch('/api/packages', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ packages: newPackages }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed to save packages');
-
-      setPackages(data.packages);
-      flashStatus('✔ Packages updated', '#2e7d32');
-    } catch (err: any) {
-      alert(err.message || 'Could not save packages');
-    }
-  };
-
-  const handleReset = async () => {
-    if (!window.confirm(`Reset all visit data and package selections for ${currentMonth.label}?`)) {
-      return;
-    }
-
-    try {
-      const res = await fetch('/api/reset', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ monthId: currentMonth.id }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed to reset');
-
-      setPatients(data.patients);
-      setSearchQuery('');
-      setSortColumn(null);
-      setSortDirection(1);
-      flashStatus('✔ Reset completed', '#2e7d32');
-    } catch (err: any) {
-      alert(err.message || 'Could not reset');
-    }
-  };
-
-  const handleExport = async () => {
-    try {
-      const res = await fetch(`/api/export?monthId=${currentMonth.id}`);
-      if (!res.ok) throw new Error('Failed to export data');
-      const data = await res.json();
-
-      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `patient-visit-data-${currentMonth.id}-${new Date().toISOString().slice(0, 10)}.json`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      flashStatus('⬇ Exported', '#1A5276');
-    } catch (err: any) {
-      alert(err.message || 'Could not export');
-    }
-  };
-
-  const handleImport = async (file: File) => {
-    try {
-      const reader = new FileReader();
-      reader.onload = async (e) => {
-        try {
-          const raw = e.target?.result as string;
-          const parsed = JSON.parse(raw);
-
-          const res = await fetch('/api/import', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ monthId: currentMonth.id, data: parsed }),
-          });
-          const data = await res.json();
-          if (!res.ok) throw new Error(data.error || 'Failed to import');
-
-          setPackages(data.packages);
-          setPatients(data.patients);
-          flashStatus('⬆ Imported successfully', '#2e7d32');
-        } catch (err: any) {
-          alert('Could not import file: ' + err.message);
-        }
-      };
-      reader.readAsText(file);
-    } catch (err: any) {
-      alert('Could not read file: ' + err.message);
-    }
+  const onDeletePatient = async (patientId: number) => {
+    await handleDeletePatient(patientId);
+    closeAddPatient();
   };
 
   return (
@@ -278,14 +60,13 @@ export default function PatientVisitSheetPage() {
       <ControlBar
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
-        onOpenAddPatient={() => {
-          setPatientWindowMode('search');
-          setEditingPatient(null);
-          setIsAddPatientModalOpen(true);
-        }}
+        onOpenAddPatient={openAddPatient}
         onOpenEnterVisit={() => setIsEnterVisitModalOpen(true)}
         onPrint={() => window.print()}
         onOpenPackages={() => setIsPackageModalOpen(true)}
+        onExport={handleExport}
+        onImport={handleImport}
+        onReset={handleReset}
         saveStatus={saveStatus}
         saveStatusColor={saveStatusColor}
       />
@@ -320,7 +101,6 @@ export default function PatientVisitSheetPage() {
         />
       )}
 
-      {/* Packages Modal */}
       <PackageModal
         isOpen={isPackageModalOpen}
         packages={packages}
@@ -332,7 +112,6 @@ export default function PatientVisitSheetPage() {
         onSave={handleSavePackages}
       />
 
-      {/* Add Patient Modal */}
       <AddPatientModal
         isOpen={isAddPatientModalOpen}
         initialMode={editingPatient ? 'edit' : patientWindowMode}
@@ -340,15 +119,11 @@ export default function PatientVisitSheetPage() {
         packages={packages}
         patients={patients}
         patient={editingPatient}
-        onClose={() => {
-          setIsAddPatientModalOpen(false);
-          setEditingPatient(null);
-        }}
-        onAdd={handleSavePatient}
-        onDelete={handleDeletePatient}
+        onClose={closeAddPatient}
+        onAdd={onSavePatient}
+        onDelete={onDeletePatient}
       />
 
-      {/* Add Upcoming Month Modal */}
       <AddMonthModal
         isOpen={isAddMonthModalOpen}
         currentMonth={currentMonth}
@@ -357,7 +132,6 @@ export default function PatientVisitSheetPage() {
         onCreateMonth={handleCreateMonth}
       />
 
-      {/* Enter Visit Data Modal */}
       <EnterVisitModal
         isOpen={isEnterVisitModalOpen}
         patients={patients}
