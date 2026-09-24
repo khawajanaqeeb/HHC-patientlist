@@ -12,6 +12,9 @@ import {
   Download,
   Upload,
   RotateCcw,
+  ShieldAlert,
+  X,
+  AlertTriangle,
 } from 'lucide-react';
 
 interface Props {
@@ -34,6 +37,8 @@ export default function Sidebar({
   onReset,
 }: Props) {
   const [expanded, setExpanded] = useState(true);
+  const [dataOpsOpen, setDataOpsOpen] = useState(false);
+  const [resetConfirm, setResetConfirm] = useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const handleImportClick = () => fileInputRef.current?.click();
@@ -45,7 +50,21 @@ export default function Sidebar({
     }
   };
 
-  const actions = [
+  const handleResetClick = () => {
+    if (resetConfirm) {
+      setResetConfirm(false);
+      onReset();
+    } else {
+      setResetConfirm(true);
+    }
+  };
+
+  const cancelReset = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setResetConfirm(false);
+  };
+
+  const primaryActions = [
     {
       label: 'Enter Visit Data',
       icon: <ClipboardEdit size={15} />,
@@ -67,27 +86,11 @@ export default function Sidebar({
       icon: <Printer size={15} />,
       onClick: onPrint,
     },
-    {
-      label: 'Export Data',
-      icon: <Download size={15} />,
-      onClick: onExport,
-    },
-    {
-      label: 'Import Data',
-      icon: <Upload size={15} />,
-      onClick: handleImportClick,
-    },
-    {
-      label: 'Reset Month',
-      icon: <RotateCcw size={15} />,
-      onClick: onReset,
-      danger: true,
-    },
   ];
 
   return (
     <aside className="sidebar">
-      {/* ── Main Tab ── */}
+      {/* ── Patient Management Tab ── */}
       <button
         className={`sidebar-tab ${expanded ? 'active' : ''}`}
         onClick={() => setExpanded((v) => !v)}
@@ -100,12 +103,12 @@ export default function Sidebar({
         </span>
       </button>
 
-      {/* ── Sub-actions ── */}
+      {/* ── Primary sub-actions ── */}
       <div className={`sidebar-sub ${expanded ? 'open' : ''}`}>
-        {actions.map((a) => (
+        {primaryActions.map((a) => (
           <button
             key={a.label}
-            className={`sidebar-action${a.highlight ? ' highlight' : ''}${a.danger ? ' danger' : ''}`}
+            className={`sidebar-action${a.highlight ? ' highlight' : ''}`}
             onClick={a.onClick}
             title={a.label}
           >
@@ -113,6 +116,74 @@ export default function Sidebar({
             <span className="sidebar-action-label">{a.label}</span>
           </button>
         ))}
+      </div>
+
+      {/* ── Divider ── */}
+      <div className="sidebar-divider" />
+
+      {/* ── Data Operations Tab ── */}
+      <button
+        className={`sidebar-tab data-ops-tab ${dataOpsOpen ? 'active' : ''}`}
+        onClick={() => { setDataOpsOpen((v) => !v); setResetConfirm(false); }}
+        aria-expanded={dataOpsOpen}
+        title="Critical data operations — use with care"
+      >
+        <span className="sidebar-tab-icon ops-icon"><ShieldAlert size={15} /></span>
+        <span className="sidebar-tab-label">Data Operations</span>
+        <span className="sidebar-tab-chevron">
+          {dataOpsOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+        </span>
+      </button>
+
+      {/* ── Data ops sub-panel ── */}
+      <div className={`sidebar-sub ${dataOpsOpen ? 'open' : ''}`}>
+
+        {/* Export */}
+        <button
+          className="sidebar-action ops-export"
+          onClick={onExport}
+          title="Export month data as JSON backup"
+        >
+          <span className="sidebar-action-icon"><Download size={15} /></span>
+          <span className="sidebar-action-label">Export Data</span>
+        </button>
+
+        {/* Import */}
+        <button
+          className="sidebar-action ops-import"
+          onClick={handleImportClick}
+          title="Import data from JSON — will overwrite current data"
+        >
+          <span className="sidebar-action-icon"><Upload size={15} /></span>
+          <span className="sidebar-action-label">Import Data</span>
+        </button>
+
+        {/* Reset — two-step confirm */}
+        {!resetConfirm ? (
+          <button
+            className="sidebar-action ops-reset"
+            onClick={handleResetClick}
+            title="Reset all visits for this month"
+          >
+            <span className="sidebar-action-icon"><RotateCcw size={15} /></span>
+            <span className="sidebar-action-label">Reset Month</span>
+          </button>
+        ) : (
+          <div className="reset-confirm-box">
+            <div className="reset-confirm-header">
+              <AlertTriangle size={12} />
+              <span>This cannot be undone!</span>
+            </div>
+            <div className="reset-confirm-btns">
+              <button className="reset-btn-confirm" onClick={handleResetClick}>
+                Yes, Reset
+              </button>
+              <button className="reset-btn-cancel" onClick={cancelReset}>
+                <X size={11} /> Cancel
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Hidden file input */}
