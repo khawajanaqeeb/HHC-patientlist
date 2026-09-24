@@ -153,6 +153,46 @@ No local database files exist; all data lives in the cloud. Use the in-app **Exp
 
 ---
 
+## 🔒 Data Management Operations: Export, Import & Reset
+
+The system includes three secure utility tools in the left Sidebar / Action Drawer:
+
+### 📤 1. Export Data (`Export` Button)
+- **Purpose**: Creates an immediate `.json` backup of all packages, patient information, medicine expenses, and daily visit entries for the active month.
+- **When to Use**:
+  - At the end of each month before opening a new month.
+  - Before making major batch updates or package modifications.
+  - For archiving and offline compliance records.
+- **How to Perform**:
+  1. Open the **Sidebar Drawer** on the main dashboard.
+  2. Click the **Export** button in the utility section.
+  3. Save the downloaded file (`hhc-patient-list-[month].json`) to a secure location (e.g., Google Drive or an external backup drive).
+
+### 📥 2. Import Data (`Import` Button)
+- **Purpose**: Restores a month's patients, packages, and visit history from a `.json` backup file into Supabase.
+- **When to Use**:
+  - Restoring data after an accidental modification.
+  - Moving patient lists and package configurations to a new database or local instance.
+- **How to Perform**:
+  1. Select the desired target month in the top navigation bar.
+  2. Open the **Sidebar Drawer** and click **Import**.
+  3. Select your `.json` backup file in the file picker.
+  4. The system validates the file structure, updates Supabase, and reloads the active patient visit grid.
+
+### 🔄 3. Reset Month (`Reset` Button)
+- **Purpose**: Clears all visit checkmarks, resets medicine expenses to Rs. 0, and unassigns package selections for the active month.
+- **Safety Guarantee**: **Patient Names and Subscriber IDs are preserved**. This action only clears monthly activity data, not the patient list.
+- **When to Use**:
+  - Re-starting a month's recording from scratch.
+  - Clearing sample or test data.
+- **How to Perform**:
+  1. Ensure the correct month is selected in the top bar.
+  2. Open the **Sidebar Drawer** and scroll to the secure red/danger **Reset Month** button.
+  3. Click **Reset Month** and confirm the browser security prompt.
+  4. The table will update to present a clean, unassigned visit grid for that month.
+
+---
+
 ## Troubleshooting
 
 ### ❓ PowerShell Execution Policy Warning

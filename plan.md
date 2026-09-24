@@ -168,12 +168,13 @@ Replace direct local database access with a server-side Supabase data layer.
 
 Update existing API routes carefully:
 
-- `/api/data`
-- `/api/patients`
-- `/api/packages`
-- `/api/months`
-- `/api/export`
-- `/api/import`
+- `/api/data`: Returns full month data (month info, package list, patients array with visit matrix).
+- `/api/patients`: Create, update, and delete patient records.
+- `/api/packages`: Get and save package allocations and pricing.
+- `/api/months`: List and create tracking months.
+- `/api/export`: GET endpoint exporting complete month JSON backups (packages, patients, visit matrices, metadata).
+- `/api/import`: POST endpoint validating and restoring JSON data payloads into Supabase.
+- `/api/reset`: POST endpoint clearing visit entries, medicine expenses, and package links for a month while preserving patient names.
 
 Add separate finance routes:
 
