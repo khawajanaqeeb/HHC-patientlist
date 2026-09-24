@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Package, PatientMonthData } from '@/lib/types';
-import { UserPlus, X, Check } from 'lucide-react';
+import { UserPlus, X, Check, Trash2 } from 'lucide-react';
 
 interface AddPatientModalProps {
   isOpen: boolean;
@@ -11,6 +11,7 @@ interface AddPatientModalProps {
   patient?: { id: number; name: string; subscriber: string; packageId: number | null } | null;
   onClose: () => void;
   onAdd: (name: string, subscriber: string, packageId: number | null, patientId?: number) => void;
+  onDelete?: (patientId: number) => void;
 }
 
 export const AddPatientModal: React.FC<AddPatientModalProps> = ({
@@ -20,6 +21,7 @@ export const AddPatientModal: React.FC<AddPatientModalProps> = ({
   patient = null,
   onClose,
   onAdd,
+  onDelete,
 }) => {
   const [name, setName] = useState('');
   const [subscriber, setSubscriber] = useState('');
@@ -58,6 +60,12 @@ export const AddPatientModal: React.FC<AddPatientModalProps> = ({
     onClose();
   };
 
+  const handleDelete = () => {
+    const patientId = selectedPatientId ?? patient?.id;
+    if (!patientId || !window.confirm(`Delete ${name || 'this patient'} from this month? This cannot be undone.`)) return;
+    onDelete?.(patientId);
+  };
+
   const handleSelectExistingPatient = (value: string) => {
     const patientId = value ? Number(value) : null;
     if (!patientId) {
@@ -76,7 +84,7 @@ export const AddPatientModal: React.FC<AddPatientModalProps> = ({
 
   return (
     <div className="mbg" onClick={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="modal" style={{ width: 'min(380px, 94vw)' }}>
+      <div className="modal patient-editor-modal">
         <h2>{isEditing ? '✏️ Edit Patient' : '➕ Add New Patient'}</h2>
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           {patients.length > 0 && (
@@ -223,6 +231,11 @@ export const AddPatientModal: React.FC<AddPatientModalProps> = ({
             <button type="button" className="btn sec" onClick={onClose}>
               <X size={13} /> Cancel
             </button>
+            {isEditing && onDelete && (
+              <button type="button" className="btn btn-danger" onClick={handleDelete}>
+                <Trash2 size={13} /> Delete Patient
+              </button>
+            )}
             <button type="submit" className="btn">
               <Check size={13} /> {isEditing ? 'Save Changes' : 'Add Patient'}
             </button>

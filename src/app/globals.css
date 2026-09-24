@@ -835,6 +835,46 @@ td.vc.vx { background: var(--can-bg) !important; }
   animation: slideUp 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
+.patient-editor-modal {
+  width: 100vw;
+  height: 100vh;
+  max-height: 100vh;
+  border-radius: 0;
+  padding: clamp(24px, 5vw, 64px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.patient-editor-modal form {
+  width: min(760px, 100%);
+  margin: 0 auto;
+}
+
+.patient-editor-modal form > div:not(.mfoot) {
+  margin-bottom: 8px;
+}
+
+.patient-editor-modal input,
+.patient-editor-modal select {
+  min-height: 42px;
+  font-size: 0.88rem !important;
+}
+
+.patient-editor-modal .mfoot {
+  gap: 10px;
+  padding-top: 8px;
+}
+
+.patient-editor-modal .mfoot .btn {
+  min-height: 40px;
+  padding: 9px 16px;
+}
+
+.patient-editor-modal .mfoot .btn-danger {
+  margin-right: auto;
+}
+
 @keyframes slideUp {
   from { opacity: 0; transform: translateY(24px) scale(0.96); }
   to   { opacity: 1; transform: translateY(0) scale(1); }

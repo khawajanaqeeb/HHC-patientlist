@@ -160,6 +160,21 @@ export default function PatientVisitSheetPage() {
     }
   };
 
+  const handleDeletePatient = async (patientId: number) => {
+    try {
+      const res = await fetch(`/api/patients/${patientId}?monthId=${currentMonth.id}`, { method: 'DELETE' });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to delete patient');
+
+      setPatients((prev) => prev.filter((patient) => patient.id !== patientId));
+      setIsAddPatientModalOpen(false);
+      setEditingPatient(null);
+      flashStatus('✔ Patient deleted', '#2e7d32');
+    } catch (err: any) {
+      alert(err.message || 'Could not delete patient');
+    }
+  };
+
   const handleSavePackages = async (newPackages: Package[]) => {
     try {
       const res = await fetch('/api/packages', {
@@ -326,6 +341,7 @@ export default function PatientVisitSheetPage() {
           setEditingPatient(null);
         }}
         onAdd={handleSavePatient}
+        onDelete={handleDeletePatient}
       />
 
       {/* Add Upcoming Month Modal */}
