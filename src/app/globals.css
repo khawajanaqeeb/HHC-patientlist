@@ -940,6 +940,46 @@ td.vc.vx { background: var(--can-bg) !important; }
 .patient-visit-summary span { min-height: 28px; color: #6c8490; font-size: 0.68rem; font-weight: 700; }
 .patient-visit-summary strong { font-size: 0.85rem; }
 
+.package-manager-modal {
+  width: 100vw;
+  height: 100vh;
+  max-height: 100vh;
+  border-radius: 0;
+  padding: 28px clamp(18px, 4vw, 56px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.package-manager-modal > table.ptbl {
+  display: block;
+  width: 100%;
+  overflow: auto;
+  flex: 1;
+  min-height: 180px;
+  margin-top: 6px;
+}
+
+.package-manager-modal > table.ptbl thead,
+.package-manager-modal > table.ptbl tbody {
+  width: 100%;
+}
+
+.package-manager-modal > table.ptbl th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.package-manager-modal > .mfoot {
+  flex: 0 0 auto;
+}
+
+@media (max-width: 760px) {
+  .package-manager-modal { padding: 20px 12px; overflow-y: auto; }
+  .package-manager-modal > table.ptbl { flex: 0 0 auto; max-height: 60vh; }
+}
+
 @media (max-width: 700px) {
   .patient-manager-modal { display: block; overflow-y: auto; }
   .patient-manager-sidebar { width: 100%; padding: 18px; }

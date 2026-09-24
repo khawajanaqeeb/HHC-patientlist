@@ -86,7 +86,7 @@ export const PackageModal: React.FC<PackageModalProps> = ({
 
   return (
     <div className="mbg" onClick={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="modal" style={{ width: 'min(860px, 98vw)' }}>
+      <div className="modal package-manager-modal">
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
           <h2 style={{ margin: 0 }}>⚙ Package Definitions</h2>
           <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.75rem', fontWeight: 600, color: 'var(--teal)', cursor: 'pointer' }}>
