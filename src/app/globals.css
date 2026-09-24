@@ -78,7 +78,6 @@ main {
    SIDEBAR
 ───────────────────────────────────────────── */
 .sidebar {
-  width: 192px;
   flex-shrink: 0;
   background: rgba(10, 35, 60, 0.72);
   backdrop-filter: blur(24px) saturate(160%);
@@ -87,14 +86,100 @@ main {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  padding: 10px 8px;
+  padding: 8px 6px;
   overflow-y: auto;
+  overflow-x: hidden;
   box-shadow: 4px 0 24px rgba(0,0,0,0.18);
+  transition: width 0.25s cubic-bezier(0.4,0,0.2,1);
+}
+
+/* Collapsed (icon-only) — default on landing */
+.sidebar.sidebar-collapsed {
+  width: 52px;
+}
+
+/* Expanded (full labels + sub-menus) */
+.sidebar.sidebar-expanded {
+  width: 196px;
 }
 
 /* Scrollbar */
 .sidebar::-webkit-scrollbar { width: 3px; }
 .sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 2px; }
+
+/* ── Sidebar toggle button ── */
+.sidebar-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 32px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 8px;
+  color: rgba(255,255,255,0.7);
+  cursor: pointer;
+  transition: all 0.16s;
+  margin-bottom: 6px;
+  flex-shrink: 0;
+  align-self: flex-start;
+}
+
+.sidebar-toggle:hover {
+  background: rgba(255,255,255,0.15);
+  border-color: rgba(255,255,255,0.25);
+  color: #fff;
+}
+
+/* ── Icon-only quick buttons (collapsed mode) ── */
+.icon-only-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  align-items: center;
+}
+
+.icon-only-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 34px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: rgba(255,255,255,0.65);
+  cursor: pointer;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+
+.icon-only-btn:hover {
+  background: rgba(255,255,255,0.11);
+  border-color: rgba(255,255,255,0.16);
+  color: #fff;
+}
+
+.icon-only-btn.highlight {
+  color: #6ee7b7;
+  background: rgba(39,174,96,0.12);
+  border-color: rgba(46,204,113,0.2);
+}
+
+.icon-only-btn.highlight:hover {
+  background: rgba(39,174,96,0.22);
+  border-color: rgba(46,204,113,0.38);
+  color: #a7f3d0;
+}
+
+.icon-only-btn.ops-export-icon { color: #fcd34d; }
+.icon-only-btn.ops-export-icon:hover { background: rgba(180,120,20,0.18); border-color: rgba(251,191,36,0.3); color: #fde68a; }
+
+.icon-only-btn.ops-import-icon { color: #fdba74; }
+.icon-only-btn.ops-import-icon:hover { background: rgba(180,80,10,0.18); border-color: rgba(251,146,60,0.3); color: #fed7aa; }
+
+.icon-only-btn.ops-reset-icon { color: rgba(252,165,165,0.8); }
+.icon-only-btn.ops-reset-icon:hover { background: rgba(153,27,27,0.2); border-color: rgba(239,68,68,0.3); color: #fca5a5; }
 
 /* ── Main tab button ── */
 .sidebar-tab {
@@ -102,7 +187,7 @@ main {
   align-items: center;
   gap: 8px;
   width: 100%;
-  padding: 9px 10px;
+  padding: 8px 8px;
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 10px;
@@ -114,6 +199,8 @@ main {
   text-align: left;
   letter-spacing: 0.2px;
   transition: all 0.18s;
+  white-space: nowrap;
+  overflow: hidden;
 }
 
 .sidebar-tab:hover {
