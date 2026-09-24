@@ -281,8 +281,10 @@ export const EnterVisitModal: React.FC<EnterVisitModalProps> = ({
           </button>
         </div>
 
-        {/* Patient selector */}
-        <div className="ev-section">
+        <div className="ev-layout">
+          <aside className="ev-sidebar">
+            {/* Patient selector and search */}
+            <div className="ev-section">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
             <label className="ev-label" htmlFor="ev-patient" style={{ margin: 0 }}>Select Patient</label>
             {patientIndex >= 0 && (
@@ -354,7 +356,11 @@ export const EnterVisitModal: React.FC<EnterVisitModalProps> = ({
               );
             })}
           </select>
-        </div>
+            </div>
+            <div className="ev-sidebar-note"><Search size={15} /><span>Search by name, date, subscriber, or package to load a patient.</span></div>
+          </aside>
+
+          <section className="ev-workspace">
 
         {/* Patient Details: Subscriber, Package, Medicine */}
         <div className="ev-section ev-details-grid">
@@ -544,6 +550,9 @@ export const EnterVisitModal: React.FC<EnterVisitModalProps> = ({
             })}
           </div>
           <p className="ev-hint">Click a type to cycle: <strong>Not set → Visited ✔ → Cancelled ✖ → No Visit — → Not set</strong></p>
+        </div>
+
+          </section>
         </div>
 
         {/* Footer */}

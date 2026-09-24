@@ -1394,9 +1394,37 @@ td.vc.vx { background: var(--can-bg) !important; }
    ENTER VISIT MODAL  (ev-*)
 ───────────────────────────────────────────── */
 .ev-modal {
-  width: min(600px, 95vw);
-  max-height: 90vh;
-  overflow-y: auto;
+  width: 100vw;
+  height: 100vh;
+  max-height: 100vh;
+  border-radius: 0;
+  padding: 28px clamp(18px, 4vw, 56px);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.ev-modal > .patient-search-heading { flex: 0 0 auto; width: min(1180px, 100%); margin: 0 auto 18px; }
+.ev-layout { display: flex; min-height: 0; flex: 1; width: min(1180px, 100%); margin: 0 auto; gap: 18px; }
+.ev-sidebar { width: 300px; flex: 0 0 300px; overflow-y: auto; border-radius: 12px; background: linear-gradient(165deg, #0d3c5e, #176c86 62%, #1b8490); box-shadow: 0 8px 24px rgba(22, 79, 102, 0.16); }
+.ev-sidebar .ev-section { border-bottom: 0; padding: 18px; }
+.ev-sidebar .ev-label { color: #fff; }
+.ev-sidebar .ev-meta-pill { background: #f5d98b !important; color: #0d3c5e !important; }
+.ev-sidebar .ev-select { background: rgba(255,255,255,0.96); }
+.ev-sidebar .ev-search-panel { background: rgba(255,255,255,0.94); border: 0; }
+.ev-sidebar-note { display: flex; gap: 8px; margin: 4px 18px 18px; padding: 12px 10px; border-top: 1px solid rgba(255,255,255,0.2); color: #c5e5e9; font-size: 0.68rem; line-height: 1.5; }
+.ev-workspace { min-width: 0; flex: 1; overflow-y: auto; border: 1px solid #d3e5eb; border-radius: 12px; background: #f7fbfc; }
+.ev-workspace .ev-section { padding: 18px 22px; }
+.ev-modal > .mfoot { flex: 0 0 auto; width: min(1180px, 100%); margin: 16px auto 0; }
+
+@media (max-width: 760px) {
+  .ev-modal { padding: 18px 12px; overflow-y: auto; }
+  .ev-layout { display: block; overflow: visible; }
+  .ev-sidebar { width: 100%; max-height: none; margin-bottom: 14px; }
+  .ev-sidebar .ev-section { padding: 14px; }
+  .ev-workspace { overflow: visible; }
+  .ev-modal > .mfoot { flex-wrap: wrap; margin-top: 12px; }
+  .ev-modal > .mfoot .ev-save-msg { flex: 1 1 100%; }
 }
 
 .ev-section {
