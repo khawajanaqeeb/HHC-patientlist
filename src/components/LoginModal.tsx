@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Lock, User, KeyRound, LogIn, AlertCircle, ShieldCheck } from 'lucide-react';
+import { User, KeyRound, LogIn, AlertCircle, ShieldCheck } from 'lucide-react';
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -9,8 +9,8 @@ interface LoginModalProps {
 }
 
 export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onLoginSuccess }) => {
-  const [username, setUsername] = useState('admin-hhc');
-  const [password, setPassword] = useState('humanhcc123');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -35,7 +35,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onLoginSuccess }
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.error || 'Invalid credentials');
+        throw new Error(data.error || 'Invalid username or password');
       }
 
       onLoginSuccess();
@@ -75,7 +75,8 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onLoginSuccess }
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                placeholder="Username (admin-hhc)"
+                placeholder="Enter username"
+                autoComplete="off"
                 required
                 autoFocus
               />
@@ -92,7 +93,8 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onLoginSuccess }
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Password"
+                placeholder="Enter password"
+                autoComplete="current-password"
                 required
               />
             </div>
