@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   Users,
   ChevronDown,
@@ -12,7 +12,7 @@ import {
   Download,
   Upload,
   RotateCcw,
-  ShieldAlert,
+  MoreVertical,
   X,
   AlertTriangle,
   PanelLeftOpen,
@@ -38,12 +38,11 @@ export default function Sidebar({
   onImport,
   onReset,
 }: Props) {
-  // Sidebar rail: collapsed (icon-only) by default on landing
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [dataOpsOpen, setDataOpsOpen] = useState(false);
   const [resetConfirm, setResetConfirm] = useState(false);
-  const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleImportClick = () => fileInputRef.current?.click();
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -66,11 +65,6 @@ export default function Sidebar({
   const cancelReset = (e: React.MouseEvent) => {
     e.stopPropagation();
     setResetConfirm(false);
-  };
-
-  // When sidebar is icon-only, clicking an icon directly fires the action
-  const iconAction = (fn: () => void) => {
-    if (!sidebarOpen) fn();
   };
 
   const primaryActions = [
@@ -103,9 +97,18 @@ export default function Sidebar({
 
   const isOpen = sidebarOpen;
 
+  const handleThreeDotsClick = () => {
+    if (!isOpen) {
+      setSidebarOpen(true);
+      setDataOpsOpen(true);
+    } else {
+      setDataOpsOpen((v) => !v);
+      setResetConfirm(false);
+    }
+  };
+
   return (
     <aside className={`sidebar${isOpen ? ' sidebar-expanded' : ' sidebar-collapsed'}`}>
-
       {/* ── Toggle button ── */}
       <button
         className="sidebar-toggle"
@@ -165,7 +168,7 @@ export default function Sidebar({
             <button
               key={a.label}
               className={`icon-only-btn${a.highlight ? ' highlight' : ''}`}
-              onClick={() => iconAction(a.onClick)}
+              onClick={a.onClick}
               title={a.title}
             >
               {a.icon}
@@ -177,25 +180,17 @@ export default function Sidebar({
       {/* ── Divider ── */}
       <div className="sidebar-divider" />
 
-      {/* ── Data Operations Tab ── */}
+      {/* ── More Actions / Data Operations (Three Dots Menu) ── */}
       <button
         className={`sidebar-tab data-ops-tab${dataOpsOpen && isOpen ? ' active' : ''}`}
-        onClick={() => {
-          if (!isOpen) {
-            setSidebarOpen(true);
-            setDataOpsOpen(true);
-          } else {
-            setDataOpsOpen((v) => !v);
-            setResetConfirm(false);
-          }
-        }}
-        title="Data Operations"
+        onClick={handleThreeDotsClick}
+        title="More Actions (Export, Import, Reset)"
         aria-expanded={isOpen ? dataOpsOpen : undefined}
       >
-        <span className="sidebar-tab-icon ops-icon"><ShieldAlert size={15} /></span>
+        <span className="sidebar-tab-icon ops-icon"><MoreVertical size={16} /></span>
         {isOpen && (
           <>
-            <span className="sidebar-tab-label">Data Operations</span>
+            <span className="sidebar-tab-label">More Actions</span>
             <span className="sidebar-tab-chevron">
               {dataOpsOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
             </span>
@@ -203,7 +198,7 @@ export default function Sidebar({
         )}
       </button>
 
-      {/* Data ops sub-panel (expanded sidebar only) */}
+      {/* Data ops sub-panel under three dots (expanded sidebar) */}
       {isOpen && (
         <div className={`sidebar-sub ${dataOpsOpen ? 'open' : ''}`}>
           <button className="sidebar-action ops-export" onClick={onExport} title="Export month data as JSON backup">
@@ -238,17 +233,15 @@ export default function Sidebar({
         </div>
       )}
 
-      {/* Icon-only data ops when collapsed */}
+      {/* Icon-only Three Dots button when collapsed */}
       {!isOpen && (
         <div className="icon-only-actions">
-          <button className="icon-only-btn ops-export-icon" onClick={() => iconAction(onExport)} title="Export Data">
-            <Download size={15} />
-          </button>
-          <button className="icon-only-btn ops-import-icon" onClick={() => iconAction(handleImportClick)} title="Import Data">
-            <Upload size={15} />
-          </button>
-          <button className="icon-only-btn ops-reset-icon" onClick={() => iconAction(onReset)} title="Reset Month">
-            <RotateCcw size={15} />
+          <button
+            className="icon-only-btn ops-icon-btn"
+            onClick={handleThreeDotsClick}
+            title="More Actions (Export, Import, Reset)"
+          >
+            <MoreVertical size={16} />
           </button>
         </div>
       )}
