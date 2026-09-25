@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getPackages, getMonthPatients, getMonth } from '@/lib/db';
 import { isMonthId } from '@/lib/validation';
+import { getDefaultMonthId } from '@/lib/calendar';
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const monthId = searchParams.get('monthId') || '2026-09';
+    const monthId = searchParams.get('monthId') || getDefaultMonthId();
     if (!isMonthId(monthId)) return NextResponse.json({ error: 'Valid month ID is required' }, { status: 400 });
     const month = await getMonth(monthId);
 

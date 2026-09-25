@@ -7,6 +7,13 @@ export const MONTH_NAMES = [
   'July', 'August', 'September', 'October', 'November', 'December'
 ];
 
+export function getDefaultMonthId(): string {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth() + 1;
+  return `${year}-${String(month).padStart(2, '0')}`;
+}
+
 /**
  * Returns 0 for Monday, 1 for Tuesday, ..., 5 for Saturday, 6 for Sunday
  */

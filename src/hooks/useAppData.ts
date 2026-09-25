@@ -27,6 +27,10 @@ export function useAppData({ flashStatus, clearSearch, resetTable }: AppDataCall
   const [currency, setCurrency] = useState<'PKR' | 'USD'>('PKR');
   const [usdToPkrRate, setUsdToPkrRate] = useState(DEFAULT_USD_TO_PKR_RATE);
   const [loading, setLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(true);
+
+  // Active abort controller for loadData requests to prevent race conditions
+  const activeAbortControllerRef = useRef<AbortController | null>(null);
 
   // Keep callback references stable to prevent re-fetch loops
   const callbacksRef = useRef({ flashStatus, clearSearch, resetTable });
@@ -34,37 +38,76 @@ export function useAppData({ flashStatus, clearSearch, resetTable }: AppDataCall
     callbacksRef.current = { flashStatus, clearSearch, resetTable };
   });
 
+  const checkAuth = useCallback(async () => {
+    try {
+      const res = await fetch('/api/auth/check');
+      if (res.ok) {
+        setIsAuthenticated(true);
+        return true;
+      } else {
+        setIsAuthenticated(false);
+        setLoading(false);
+        return false;
+      }
+    } catch {
+      setIsAuthenticated(false);
+      setLoading(false);
+      return false;
+    }
+  }, []);
+
   const loadData = useCallback(async (monthId?: string) => {
+    // Abort previous pending fetch request if any
+    if (activeAbortControllerRef.current) {
+      activeAbortControllerRef.current.abort();
+    }
+    const controller = new AbortController();
+    activeAbortControllerRef.current = controller;
+
     try {
       setLoading(true);
       const url = monthId ? `/api/data?monthId=${monthId}` : '/api/data';
-      let res = await fetch(url);
-      if (!res.ok) {
-        await new Promise((resolve) => setTimeout(resolve, 500));
-        res = await fetch(url);
+      const res = await fetch(url, { signal: controller.signal });
+      
+      if (res.status === 401) {
+        setIsAuthenticated(false);
+        setLoading(false);
+        return;
       }
+
       if (!res.ok) {
         const errorData = await res.json().catch(() => null) as { error?: string } | null;
         throw new Error(errorData?.error || `Failed to load data (${res.status})`);
       }
+
       const data = await res.json();
       setCurrentMonth(data.currentMonth);
       setAvailableMonths(data.availableMonths || []);
       setPackages(data.packages || []);
       setPatients(data.patients || []);
+      setIsAuthenticated(true);
       callbacksRef.current.flashStatus(`✔ Synced to Supabase (${new Date().toLocaleTimeString()})`, '#ffffff');
     } catch (err: unknown) {
+      if (err instanceof Error && err.name === 'AbortError') {
+        return; // Ignore aborted requests
+      }
       console.error(err);
       callbacksRef.current.flashStatus('⚠ Error loading data', '#b71c1c');
     } finally {
-      setLoading(false);
+      if (activeAbortControllerRef.current === controller) {
+        setLoading(false);
+      }
     }
   }, []);
 
-  // Initial data load
+  // Initial authentication check & data load
   useEffect(() => {
-    loadData();
-  }, [loadData]);
+    checkAuth().then((authed) => {
+      if (authed) {
+        loadData();
+      }
+    });
+  }, [checkAuth, loadData]);
 
   // Fetch live exchange rate
   useEffect(() => {
@@ -80,6 +123,21 @@ export function useAppData({ flashStatus, clearSearch, resetTable }: AppDataCall
     return () => { cancelled = true; };
   }, []);
 
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/logout', { method: 'POST' });
+    } catch {
+      // ignore
+    } finally {
+      setIsAuthenticated(false);
+    }
+  };
+
+  const handleLoginSuccess = () => {
+    setIsAuthenticated(true);
+    loadData();
+  };
+
   // ── Month handlers ──────────────────────────────────────────────────────────
 
   const handleSelectMonth = (monthId: string) => loadData(monthId);
@@ -91,6 +149,10 @@ export function useAppData({ flashStatus, clearSearch, resetTable }: AppDataCall
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ year, month, carryOverFrom }),
       });
+      if (res.status === 401) {
+        setIsAuthenticated(false);
+        return;
+      }
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to create month');
       setAvailableMonths(data.months);
@@ -116,6 +178,10 @@ export function useAppData({ flashStatus, clearSearch, resetTable }: AppDataCall
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ monthId: currentMonth.id, name, subscriber, packageId }),
         });
+        if (res.status === 401) {
+          setIsAuthenticated(false);
+          return;
+        }
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || 'Failed to update patient');
         setPatients((prev) =>
@@ -130,6 +196,10 @@ export function useAppData({ flashStatus, clearSearch, resetTable }: AppDataCall
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ monthId: currentMonth.id, name, subscriber, packageId }),
       });
+      if (res.status === 401) {
+        setIsAuthenticated(false);
+        return;
+      }
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to add patient');
       setPatients((prev) => [...prev, data.patient]);
@@ -145,6 +215,10 @@ export function useAppData({ flashStatus, clearSearch, resetTable }: AppDataCall
       const res = await fetch(`/api/patients/${patientId}?monthId=${currentMonth.id}`, {
         method: 'DELETE',
       });
+      if (res.status === 401) {
+        setIsAuthenticated(false);
+        return;
+      }
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to delete patient');
       setPatients((prev) => prev.filter((p) => p.id !== patientId));
@@ -163,6 +237,10 @@ export function useAppData({ flashStatus, clearSearch, resetTable }: AppDataCall
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ packages: newPackages }),
       });
+      if (res.status === 401) {
+        setIsAuthenticated(false);
+        return;
+      }
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to save packages');
       setPackages(data.packages);
@@ -182,6 +260,10 @@ export function useAppData({ flashStatus, clearSearch, resetTable }: AppDataCall
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ monthId: currentMonth.id }),
       });
+      if (res.status === 401) {
+        setIsAuthenticated(false);
+        return;
+      }
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to reset');
       setPatients(data.patients);
@@ -195,6 +277,10 @@ export function useAppData({ flashStatus, clearSearch, resetTable }: AppDataCall
   const handleExport = async () => {
     try {
       const res = await fetch(`/api/export?monthId=${currentMonth.id}`);
+      if (res.status === 401) {
+        setIsAuthenticated(false);
+        return;
+      }
       if (!res.ok) throw new Error('Failed to export data');
       const data = await res.json();
       const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -223,6 +309,10 @@ export function useAppData({ flashStatus, clearSearch, resetTable }: AppDataCall
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ monthId: currentMonth.id, data: parsed }),
         });
+        if (res.status === 401) {
+          setIsAuthenticated(false);
+          return;
+        }
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || 'Failed to import');
         setPackages(data.packages);
@@ -245,6 +335,9 @@ export function useAppData({ flashStatus, clearSearch, resetTable }: AppDataCall
     setCurrency,
     usdToPkrRate,
     loading,
+    isAuthenticated,
+    handleLoginSuccess,
+    handleLogout,
     loadData,
     handleSelectMonth,
     handleCreateMonth,

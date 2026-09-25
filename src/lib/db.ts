@@ -1,6 +1,6 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { Package, PatientMonthData, MonthInfo, DayVisits } from './types';
-import { getDaysInMonth, getMonthLabel } from './calendar';
+import { getDaysInMonth, getMonthLabel, getDefaultMonthId } from './calendar';
 
 function normalizeDayVisits(raw: unknown): DayVisits {
   const values = Array.isArray(raw) ? raw.map((value) => typeof value === 'string' ? value : '') : [];
@@ -105,11 +105,26 @@ export async function updatePatient(monthId: string, patientId: number, data: Pa
 }
 
 export async function addPatient(monthId: string, name: string, subscriber: string, packageId: number | null): Promise<PatientMonthData> {
+  const db = getSupabase();
   const month = await getMonth(monthId);
-  const patients = await getMonthPatients(monthId);
-  const id = patients.reduce((max, patient) => Math.max(max, patient.id), 0) + 1;
+  const { data: maxData } = await db.from('month_patients')
+    .select('patient_id')
+    .eq('month_id', monthId)
+    .order('patient_id', { ascending: false })
+    .limit(1);
+
+  const id = maxData && maxData.length > 0 ? Number(maxData[0].patient_id) + 1 : 1;
   const visits = Array.from({ length: month?.daysInMonth || 30 }, () => ['', '', '', '', '']);
-  const { error } = await getSupabase().from('month_patients').insert({ month_id: monthId, patient_id: id, name, subscriber, package_id: packageId, med_given: 0, visits_json: visits, sort_order: patients.length });
+  const { error } = await db.from('month_patients').insert({
+    month_id: monthId,
+    patient_id: id,
+    name,
+    subscriber,
+    package_id: packageId,
+    med_given: 0,
+    visits_json: visits,
+    sort_order: id - 1,
+  });
   throwIfError(error);
   return { id, name, subscriber, packageId, medGiven: 0, v: visits as DayVisits[] };
 }
@@ -145,9 +160,10 @@ export async function createMonth(year: number, month: number, carryOverPatients
   return { id: monthId, year, month, label, daysInMonth };
 }
 
-export async function importFullJson(data: any, targetMonthId = '2026-09') {
+export async function importFullJson(data: any, targetMonthId?: string) {
+  const monthId = targetMonthId || getDefaultMonthId();
   const db = getSupabase();
-  const month = await getMonth(targetMonthId);
+  const month = await getMonth(monthId);
   const daysInMonth = month?.daysInMonth || 30;
   if (Array.isArray(data.PKGS)) {
     const { error } = await db.from('packages').delete().gte('id', 0);
@@ -156,11 +172,11 @@ export async function importFullJson(data: any, targetMonthId = '2026-09') {
     throwIfError(insertError);
   }
   if (Array.isArray(data.patients)) {
-    const { error } = await db.from('month_patients').delete().eq('month_id', targetMonthId);
+    const { error } = await db.from('month_patients').delete().eq('month_id', monthId);
     throwIfError(error);
     const importedPackages = await getPackages();
     const { error: insertError } = await db.from('month_patients').insert(data.patients.map((patient: any, index: number) => ({
-      month_id: targetMonthId,
+      month_id: monthId,
       patient_id: patient.id || index + 1,
       name: String(patient.name || '').trim(),
       subscriber: patient.subscriber || '',

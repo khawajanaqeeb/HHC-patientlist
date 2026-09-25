@@ -8,6 +8,7 @@ import { PackageModal } from '@/components/PackageModal';
 import { AddPatientModal } from '@/components/AddPatientModal';
 import { AddMonthModal } from '@/components/AddMonthModal';
 import { EnterVisitModal } from '@/components/EnterVisitModal';
+import { LoginModal } from '@/components/LoginModal';
 import { Search } from 'lucide-react';
 
 import { useStatus } from '@/hooks/useStatus';
@@ -33,6 +34,7 @@ export default function PatientVisitSheetPage() {
   const {
     currentMonth, availableMonths, packages, patients,
     currency, setCurrency, usdToPkrRate, loading,
+    isAuthenticated, handleLoginSuccess, handleLogout,
     loadData,
     handleSelectMonth, handleCreateMonth,
     handleSavePatient, handleDeletePatient,
@@ -58,6 +60,7 @@ export default function PatientVisitSheetPage() {
         patientCount={patients.length}
         onSelectMonth={handleSelectMonth}
         onOpenAddMonth={() => setIsAddMonthModalOpen(true)}
+        onLogout={handleLogout}
       />
 
       {/* ── Body: sidebar + content ── */}
@@ -120,6 +123,12 @@ export default function PatientVisitSheetPage() {
           )}
         </div>
       </div>
+
+      {/* ── Auth Modal ── */}
+      <LoginModal
+        isOpen={!isAuthenticated}
+        onLoginSuccess={handleLoginSuccess}
+      />
 
       {/* ── Modals ── */}
       <PackageModal
