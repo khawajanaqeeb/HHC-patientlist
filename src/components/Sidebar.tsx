@@ -20,6 +20,8 @@ import {
 } from 'lucide-react';
 
 interface Props {
+  isOpen?: boolean;
+  onToggle?: () => void;
   onOpenAddPatient: () => void;
   onOpenEnterVisit: () => void;
   onPrint: () => void;
@@ -30,6 +32,8 @@ interface Props {
 }
 
 export default function Sidebar({
+  isOpen: externalIsOpen,
+  onToggle: externalOnToggle,
   onOpenAddPatient,
   onOpenEnterVisit,
   onPrint,
@@ -38,11 +42,22 @@ export default function Sidebar({
   onImport,
   onReset,
 }: Props) {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [dataOpsOpen, setDataOpsOpen] = useState(false);
   const [resetConfirm, setResetConfirm] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const isOpen = externalIsOpen !== undefined ? externalIsOpen : internalOpen;
+
+  const toggleSidebar = () => {
+    setResetConfirm(false);
+    if (externalOnToggle) {
+      externalOnToggle();
+    } else {
+      setInternalOpen((v) => !v);
+    }
+  };
 
   const handleImportClick = () => fileInputRef.current?.click();
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -95,11 +110,9 @@ export default function Sidebar({
     },
   ];
 
-  const isOpen = sidebarOpen;
-
   const handleThreeDotsClick = () => {
     if (!isOpen) {
-      setSidebarOpen(true);
+      toggleSidebar();
       setDataOpsOpen(true);
     } else {
       setDataOpsOpen((v) => !v);
@@ -112,7 +125,7 @@ export default function Sidebar({
       {/* ── Toggle button ── */}
       <button
         className="sidebar-toggle"
-        onClick={() => { setSidebarOpen((v) => !v); setResetConfirm(false); }}
+        onClick={toggleSidebar}
         title={isOpen ? 'Collapse sidebar' : 'Expand sidebar'}
         aria-label={isOpen ? 'Collapse sidebar' : 'Expand sidebar'}
       >
@@ -124,7 +137,7 @@ export default function Sidebar({
         className={`sidebar-tab${expanded && isOpen ? ' active' : ''}`}
         onClick={() => {
           if (!isOpen) {
-            setSidebarOpen(true);
+            toggleSidebar();
             setExpanded(true);
           } else {
             setExpanded((v) => !v);

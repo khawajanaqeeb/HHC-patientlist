@@ -42,6 +42,8 @@ export default function PatientVisitSheetPage() {
     handleExport, handleImport,
   } = useAppData({ flashStatus, clearSearch, resetTable });
 
+  const [sidebarOpen, setSidebarOpen] = React.useState(false);
+
   const onSavePatient = async (name: string, subscriber: string, packageId: number | null, patientId?: number) => {
     await handleSavePatient(name, subscriber, packageId, patientId);
     if (patientId) setEditingPatient(null);
@@ -61,12 +63,15 @@ export default function PatientVisitSheetPage() {
         onSelectMonth={handleSelectMonth}
         onOpenAddMonth={() => setIsAddMonthModalOpen(true)}
         onLogout={handleLogout}
+        onToggleSidebar={() => setSidebarOpen((v) => !v)}
       />
 
       {/* ── Body: sidebar + content ── */}
       <div className="app-body">
         {/* Sidebar */}
         <Sidebar
+          isOpen={sidebarOpen}
+          onToggle={() => setSidebarOpen((v) => !v)}
           onOpenAddPatient={openAddPatient}
           onOpenEnterVisit={() => setIsEnterVisitModalOpen(true)}
           onPrint={() => window.print()}
