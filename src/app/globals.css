@@ -2512,30 +2512,61 @@ main {
 }
 
 /* ─────────────────────────────────────────────
-   ≤ 768px  (tablets portrait)
+   ≤ 768px  (tablets portrait & mobile drawer)
 ───────────────────────────────────────────── */
 @media (max-width: 768px) {
-  /* --- Sidebar becomes a slide-over overlay --- */
+  /* --- Sidebar becomes a complete sliding drawer overlay --- */
   .sidebar {
     position: fixed;
     top: 0;
     left: 0;
-    height: 100%;
-    z-index: 500;
-    box-shadow: 8px 0 32px rgba(0,0,0,0.35);
+    bottom: 0;
+    height: 100vh;
+    height: 100dvh;
+    width: 230px !important;
+    max-width: 82vw;
+    z-index: 9999;
+    background: rgba(10, 30, 52, 0.96);
+    backdrop-filter: blur(28px) saturate(180%);
+    -webkit-backdrop-filter: blur(28px) saturate(180%);
+    box-shadow: 8px 0 36px rgba(0, 0, 0, 0.45);
+    transform: translateX(-100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
-  /* Collapsed: hide off-screen completely */
+  /* Closed/collapsed state: completely hidden off-screen */
   .sidebar.sidebar-collapsed {
-    width: 52px;
+    transform: translateX(-100%);
   }
 
-  /* Expanded: overlay full-height panel */
+  /* Opened/expanded state: slides in smoothly */
   .sidebar.sidebar-expanded {
-    width: 210px;
+    transform: translateX(0);
   }
 
-  /* Content area: always full width (sidebar overlays on top) */
+  /* Mobile backdrop blur overlay */
+  .sidebar-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    background: rgba(15, 23, 42, 0.65);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    z-index: 9998;
+    animation: sidebarFadeIn 0.2s ease forwards;
+  }
+
+  @keyframes sidebarFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  /* Content area: full width when sidebar is overlay drawer */
   .app-content {
     width: 100%;
   }
@@ -2634,11 +2665,6 @@ main {
    ≤ 640px  (large phones landscape / small tablets)
 ───────────────────────────────────────────── */
 @media (max-width: 640px) {
-  /* Sidebar: icon-only always (never auto-expand on small phones) */
-  .sidebar.sidebar-expanded {
-    width: 188px;
-  }
-
   /* Title bar: tighter */
   main > .title-bar { padding: 6px 8px; gap: 4px 8px; }
   main > .title-bar h1 { font-size: 0.82rem; }

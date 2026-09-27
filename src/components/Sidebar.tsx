@@ -82,30 +82,39 @@ export default function Sidebar({
     setResetConfirm(false);
   };
 
+  const handleAction = (actionFn: () => void) => {
+    actionFn();
+    if (typeof window !== 'undefined' && window.innerWidth <= 768) {
+      if (isOpen) {
+        toggleSidebar();
+      }
+    }
+  };
+
   const primaryActions = [
     {
       label: 'Enter Visit Data',
       icon: <ClipboardEdit size={16} />,
-      onClick: onOpenEnterVisit,
+      onClick: () => handleAction(onOpenEnterVisit),
       highlight: true,
       title: 'Enter Visit Data',
     },
     {
       label: 'Register Patient',
       icon: <UserPlus size={16} />,
-      onClick: onOpenAddPatient,
+      onClick: () => handleAction(onOpenAddPatient),
       title: 'Register Patient',
     },
     {
       label: 'Packages',
       icon: <Package2 size={16} />,
-      onClick: onOpenPackages,
+      onClick: () => handleAction(onOpenPackages),
       title: 'Packages',
     },
     {
       label: 'Print Sheet',
       icon: <Printer size={16} />,
-      onClick: onPrint,
+      onClick: () => handleAction(onPrint),
       title: 'Print Sheet',
     },
   ];
@@ -121,7 +130,15 @@ export default function Sidebar({
   };
 
   return (
-    <aside className={`sidebar${isOpen ? ' sidebar-expanded' : ' sidebar-collapsed'}`}>
+    <>
+      {isOpen && (
+        <div
+          className="sidebar-backdrop"
+          onClick={toggleSidebar}
+          aria-hidden="true"
+        />
+      )}
+      <aside className={`sidebar${isOpen ? ' sidebar-expanded' : ' sidebar-collapsed'}`}>
       {/* ── Toggle button ── */}
       <button
         className="sidebar-toggle"
@@ -268,5 +285,6 @@ export default function Sidebar({
         onChange={handleFileChange}
       />
     </aside>
+  </>
   );
 }
