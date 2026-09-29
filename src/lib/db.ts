@@ -4,8 +4,16 @@ import { getDaysInMonth, getMonthLabel, getDefaultMonthId } from './calendar';
 
 function normalizeDayVisits(raw: unknown): DayVisits {
   const values = Array.isArray(raw) ? raw.map((value) => typeof value === 'string' ? value : '') : [];
-  if (values.length >= 5) return [values[0], values[1], values[2], values[3], values[4]] as DayVisits;
-  return [values[0] || '', values[1] || '', '', values[2] || '', values[3] || ''] as DayVisits;
+  return [
+    values[0] || '',
+    values[1] || '',
+    values[2] || '',
+    values[3] || '',
+    values[4] || '',
+    values[5] || '',
+    values[6] || '',
+    values[7] || '',
+  ] as DayVisits;
 }
 
 function normalizeVisits(raw: unknown, daysInMonth: number): DayVisits[] {
@@ -157,7 +165,7 @@ export async function addPatient(monthId: string, name: string, subscriber: stri
     .limit(1);
 
   const id = maxData && maxData.length > 0 ? Number(maxData[0].patient_id) + 1 : 1;
-  const visits = Array.from({ length: month?.daysInMonth || 30 }, () => ['', '', '', '', '']);
+  const visits = Array.from({ length: month?.daysInMonth || 30 }, () => ['', '', '', '', '', '', '', '']);
   const { error } = await db.from('month_patients').insert({
     month_id: monthId,
     patient_id: id,
@@ -179,7 +187,7 @@ export async function deletePatient(monthId: string, patientId: number) {
 
 export async function resetMonth(monthId: string) {
   const month = await getMonth(monthId);
-  const visits = Array.from({ length: month?.daysInMonth || 30 }, () => ['', '', '', '', '']);
+  const visits = Array.from({ length: month?.daysInMonth || 30 }, () => ['', '', '', '', '', '', '', '']);
   const { error } = await getSupabase().from('month_patients').update({ package_id: null, med_given: 0, visits_json: visits }).eq('month_id', monthId);
   throwIfError(error);
 }
@@ -194,7 +202,7 @@ export async function createMonth(year: number, month: number, carryOverPatients
   throwIfError(error);
   if (carryOverPatientsFromMonthId) {
     const previous = await getMonthPatients(carryOverPatientsFromMonthId);
-    const visits = Array.from({ length: daysInMonth }, () => ['', '', '', '', '']);
+    const visits = Array.from({ length: daysInMonth }, () => ['', '', '', '', '', '', '', '']);
     if (previous.length) {
       const { error: patientError } = await getSupabase().from('month_patients').insert(previous.map((patient, index) => ({ month_id: monthId, patient_id: patient.id, name: patient.name, subscriber: patient.subscriber, package_id: patient.packageId, med_given: 0, visits_json: visits, sort_order: index })));
       throwIfError(patientError);

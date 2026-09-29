@@ -8,7 +8,7 @@ export function isMonthId(value: unknown): value is string {
 
 export function isValidVisitMatrix(value: unknown): value is DayVisits[] {
   return Array.isArray(value) && value.every((day) => (
-    Array.isArray(day) && day.length === 5 && day.every((visit) => VISIT_VALUES.has(visit as VisitValue))
+    Array.isArray(day) && (day.length === 5 || day.length === 8) && day.every((visit) => VISIT_VALUES.has(visit as VisitValue))
   ));
 }
 

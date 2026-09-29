@@ -1,5 +1,14 @@
 export type VisitValue = '' | '✔' | '✖' | '—';
-export type DayVisits = [VisitValue, VisitValue, VisitValue, VisitValue, VisitValue]; // [Doctor, Nurse+Physio, Nurse, Physio, Psychiatrist]
+export type DayVisits = [
+  VisitValue, // 0: Doctor
+  VisitValue, // 1: Nurse+Physio
+  VisitValue, // 2: Nurse
+  VisitValue, // 3: Physio
+  VisitValue, // 4: Psychiatrist
+  VisitValue, // 5: SV (Symptom Visit)
+  VisitValue, // 6: Annual Flu Vaccine (FV)
+  VisitValue  // 7: OPD
+];
 
 export interface Package {
   id: number;
@@ -58,5 +67,8 @@ export interface PatientVisitSearchResult {
     nurse: number | null;
     physio: number | null;
     psycho: number | null;
+    sv: number | null;
+    fv: number | null;
+    opd: number | null;
   };
 }

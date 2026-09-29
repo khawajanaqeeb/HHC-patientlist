@@ -29,6 +29,9 @@ const VISIT_TYPES: { label: string; short: string; colorClass: string }[] = [
   { label: 'Nurse',        short: 'Nurse',   colorClass: 'ev-nurse' },
   { label: 'Physio',       short: 'Physio',  colorClass: 'ev-phy' },
   { label: 'Psychiatrist', short: 'Psych',   colorClass: 'ev-psy' },
+  { label: 'SV (Symptom Visit)', short: 'SV', colorClass: 'ev-sv' },
+  { label: 'Annual Flu Vaccine', short: 'FV', colorClass: 'ev-fv' },
+  { label: 'OPD', short: 'OPD', colorClass: 'ev-opd' },
 ];
 
 const VISIT_CYCLE: VisitValue[] = ['✔', '✖', '—', ''];
@@ -64,7 +67,7 @@ export const EnterVisitModal: React.FC<EnterVisitModalProps> = ({
   const [subscriber, setSubscriber] = useState<string>('');
   const [packageId, setPackageId] = useState<number | null>(null);
   const [medGiven, setMedGiven] = useState<number>(0);
-  const [visitValues, setVisitValues] = useState<DayVisits>(['', '', '', '', '']);
+  const [visitValues, setVisitValues] = useState<DayVisits>(['', '', '', '', '', '', '', '']);
   const [saving, setSaving] = useState(false);
   const [saveMsg, setSaveMsg] = useState('');
   const [saveMsgColor, setSaveMsgColor] = useState('#2e7d32');
@@ -198,6 +201,9 @@ export const EnterVisitModal: React.FC<EnterVisitModalProps> = ({
   let nDone = 0;
   let phyDone = 0;
   let psyDone = 0;
+  let svDone = 0;
+  let fvDone = 0;
+  let opdDone = 0;
 
   if (selectedPatient) {
     selectedPatient.v.forEach((dayV, idx) => {
@@ -208,11 +214,17 @@ export const EnterVisitModal: React.FC<EnterVisitModalProps> = ({
       if (row && row[2] === '✔') nDone++;
       if (row && row[3] === '✔') phyDone++;
       if (row && row[4] === '✔') psyDone++;
+      if (row && row[5] === '✔') svDone++;
+      if (row && row[6] === '✔') fvDone++;
+      if (row && row[7] === '✔') opdDone++;
     });
   }
 
   const dAlloc = currentPkg ? Number(currentPkg.doc ?? 0) : null;
   const pAlloc = currentPkg ? Number(currentPkg.psy ?? 0) : null;
+  const svAlloc = currentPkg ? Number(currentPkg.sv ?? 0) : null;
+  const fvAlloc = currentPkg ? Number(currentPkg.flu ?? 0) : null;
+  const opdAlloc = currentPkg ? Number(currentPkg.opd ?? 0) : null;
   const medAlloc = currentPkg ? Number(currentPkg.med ?? 0) : null;
   const medDiff = medAlloc !== null ? medAlloc - (medGiven || 0) : null;
 
@@ -236,7 +248,7 @@ export const EnterVisitModal: React.FC<EnterVisitModalProps> = ({
         return row;
       });
       while (newV.length < currentMonth.daysInMonth) {
-        newV.push(['', '', '', '', '']);
+        newV.push(['', '', '', '', '', '', '', '']);
       }
 
       const res = await fetch(`/api/patients/${selectedPatient.id}`, {
@@ -480,6 +492,36 @@ export const EnterVisitModal: React.FC<EnterVisitModalProps> = ({
               </span>
               <span className={`ev-stat-rem ${pAlloc !== null && (pAlloc - psyDone) <= 0 ? 'ev-rem-zero' : ''}`}>
                 {pAlloc !== null ? `${pAlloc - psyDone} rem` : '—'}
+              </span>
+            </div>
+
+            <div className="ev-stat-box" style={{ background: '#f3e5f5' }}>
+              <span className="ev-stat-lbl">SV</span>
+              <span className="ev-stat-val">
+                {svDone} / {svAlloc ?? '—'}
+              </span>
+              <span className={`ev-stat-rem ${svAlloc !== null && (svAlloc - svDone) <= 0 ? 'ev-rem-zero' : ''}`}>
+                {svAlloc !== null ? `${svAlloc - svDone} rem` : '—'}
+              </span>
+            </div>
+
+            <div className="ev-stat-box" style={{ background: '#fce4ec' }}>
+              <span className="ev-stat-lbl">FV</span>
+              <span className="ev-stat-val">
+                {fvDone} / {fvAlloc ?? '—'}
+              </span>
+              <span className={`ev-stat-rem ${fvAlloc !== null && (fvAlloc - fvDone) <= 0 ? 'ev-rem-zero' : ''}`}>
+                {fvAlloc !== null ? `${fvAlloc - fvDone} rem` : '—'}
+              </span>
+            </div>
+
+            <div className="ev-stat-box" style={{ background: '#e8eaf6' }}>
+              <span className="ev-stat-lbl">OPD</span>
+              <span className="ev-stat-val">
+                {opdDone} / {opdAlloc ?? '—'}
+              </span>
+              <span className={`ev-stat-rem ${opdAlloc !== null && (opdAlloc - opdDone) <= 0 ? 'ev-rem-zero' : ''}`}>
+                {opdAlloc !== null ? `${opdAlloc - opdDone} rem` : '—'}
               </span>
             </div>
           </div>
