@@ -26,6 +26,7 @@ export const PackageModal: React.FC<PackageModalProps> = ({
   onSave,
 }) => {
   const [pkgList, setPkgList] = useState<Package[]>([]);
+  const [savedMsg, setSavedMsg] = useState('');
 
   useEffect(() => {
     if (isOpen) {
@@ -84,11 +85,12 @@ export const PackageModal: React.FC<PackageModalProps> = ({
 
   const handleSave = () => {
     onSave(pkgList);
-    onClose();
+    setSavedMsg('✓ Packages saved successfully!');
+    setTimeout(() => setSavedMsg(''), 3000);
   };
 
   return (
-    <div className="mbg" onClick={(e) => e.target === e.currentTarget && onClose()}>
+    <div className="mbg">
       <div className="modal package-manager-modal">
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
           <h2 style={{ margin: 0 }}>⚙ Package Definitions</h2>
@@ -107,6 +109,20 @@ export const PackageModal: React.FC<PackageModalProps> = ({
             <button className="icon-btn" onClick={onClose} aria-label="Close package manager"><X size={19} /></button>
           </div>
         </div>
+        {savedMsg && (
+          <div style={{
+            padding: '8px 14px',
+            marginBottom: '8px',
+            background: '#e8f5e9',
+            border: '1px solid #a5d6a7',
+            borderRadius: '7px',
+            color: '#1b5e20',
+            fontWeight: 700,
+            fontSize: '0.8rem',
+          }}>
+            {savedMsg}
+          </div>
+        )}
         <p style={{ fontSize: '0.71rem', color: '#666', marginBottom: '10px' }}>
           Set monthly visit allocations per package. These auto-populate the Total columns when a package is selected for a patient.
         </p>
@@ -124,7 +140,7 @@ export const PackageModal: React.FC<PackageModalProps> = ({
               <th style={{ background: '#00897B' }}>🏋 Physio</th>
               <th style={{ background: 'var(--psy-fg)' }}>🧠 Psychiatrist</th>
               <th style={{ background: '#7B1FA2' }}>🏥 SV (Symptom Visit)</th>
-              <th style={{ background: '#C2185B' }}>💉 Annual Flu Vaccine</th>
+              <th style={{ background: '#C2185B' }}>💉 AFV (Annual Flu Vaccine)</th>
               <th style={{ background: '#1565C0' }}>🩺 OPD</th>
               <th style={{ background: '#E65100' }}>💊 Medicine (Rs.)</th>
               <th>Total</th>
@@ -296,7 +312,7 @@ export const PackageModal: React.FC<PackageModalProps> = ({
 
         <div className="mfoot">
           <button className="btn sec" onClick={onClose}>
-            <X size={13} /> Cancel
+            <X size={13} /> Close
           </button>
           <button className="btn" onClick={handleSave}>
             <Check size={13} /> Save &amp; Apply

@@ -228,7 +228,7 @@ export const VisitTable: React.FC<VisitTableProps> = ({
               SV
             </th>
             <th className="psy" rowSpan={3} style={{ fontSize: '0.62rem', minWidth: '38px', background: '#fce4ec' }}>
-              FV
+              AFV
             </th>
             <th className="psy" rowSpan={3} style={{ fontSize: '0.62rem', minWidth: '38px', background: '#e8eaf6' }}>
               OPD
@@ -254,7 +254,7 @@ export const VisitTable: React.FC<VisitTableProps> = ({
               SV
             </th>
             <th className="psy" rowSpan={3} style={{ fontSize: '0.62rem', minWidth: '38px', background: '#fce4ec' }}>
-              FV
+              AFV
             </th>
             <th className="psy" rowSpan={3} style={{ fontSize: '0.62rem', minWidth: '38px', background: '#e8eaf6' }}>
               OPD
@@ -324,7 +324,7 @@ export const VisitTable: React.FC<VisitTableProps> = ({
                     <th className={`tn ${s ? s : ''}`}>Phy</th>
                     <th className={`tp ${s ? s : ''}`}>Ps</th>
                     <th className={`tsv ${s ? s : ''}`}>SV</th>
-                    <th className={`tfv ${s ? s : ''}`}>FV</th>
+                    <th className={`tfv ${s ? s : ''}`}>AFV</th>
                     <th className={`topd ${s ? s : ''}`}>OPD</th>
                   </React.Fragment>
                 );
