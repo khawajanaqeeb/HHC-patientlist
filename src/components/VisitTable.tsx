@@ -373,9 +373,9 @@ export const VisitTable: React.FC<VisitTableProps> = ({
                 <td className="tot-nur" style={{ background: '#e1f5fe' }}>{s.nAlloc === null ? '—' : s.nAlloc}</td>
                 <td className="tot-nur" style={{ background: '#e0f2f1' }}>{s.phyAlloc === null ? '—' : s.phyAlloc}</td>
                 <td className="tot-psy">{s.pAlloc === null ? '—' : s.pAlloc}</td>
-                <td className="tot-psy" style={{ background: '#f3e5f5' }}>{s.svAlloc === null ? '—' : s.svAlloc}</td>
-                <td className="tot-psy" style={{ background: '#fce4ec' }}>{s.fvAlloc === null ? '—' : s.fvAlloc}</td>
-                <td className="tot-psy" style={{ background: '#e8eaf6' }}>{s.opdAlloc === null ? '—' : s.opdAlloc}</td>
+                <td className="tot-sv">{s.svAlloc === null ? '—' : s.svAlloc}</td>
+                <td className="tot-fv">{s.fvAlloc === null ? '—' : s.fvAlloc}</td>
+                <td className="tot-opd">{s.opdAlloc === null ? '—' : s.opdAlloc}</td>
 
                 {/* Remaining columns */}
                 <td
@@ -454,7 +454,7 @@ export const VisitTable: React.FC<VisitTableProps> = ({
                   {s.pRem === null ? '—' : s.pRem}
                 </td>
                 <td
-                  className="rem-psy"
+                  className="rem-sv"
                   style={{
                     background:
                       s.svRem !== null
@@ -462,14 +462,14 @@ export const VisitTable: React.FC<VisitTableProps> = ({
                           ? '#f5cba7'
                           : s.svRem <= 2
                           ? '#fff9c4'
-                          : 'var(--rem-ok)'
+                          : undefined
                         : undefined,
                   }}
                 >
                   {s.svRem === null ? '—' : s.svRem}
                 </td>
                 <td
-                  className="rem-psy"
+                  className="rem-fv"
                   style={{
                     background:
                       s.fvRem !== null
@@ -477,14 +477,14 @@ export const VisitTable: React.FC<VisitTableProps> = ({
                           ? '#f5cba7'
                           : s.fvRem <= 2
                           ? '#fff9c4'
-                          : 'var(--rem-ok)'
+                          : undefined
                         : undefined,
                   }}
                 >
                   {s.fvRem === null ? '—' : s.fvRem}
                 </td>
                 <td
-                  className="rem-psy"
+                  className="rem-opd"
                   style={{
                     background:
                       s.opdRem !== null
@@ -492,7 +492,7 @@ export const VisitTable: React.FC<VisitTableProps> = ({
                           ? '#f5cba7'
                           : s.opdRem <= 2
                           ? '#fff9c4'
-                          : 'var(--rem-ok)'
+                          : undefined
                         : undefined,
                   }}
                 >

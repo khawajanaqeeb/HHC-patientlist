@@ -494,23 +494,23 @@ main {
   background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 50%, #7dd3fc 100%);
   border: 1px solid rgba(255, 255, 255, 0.5);
   color: #0c4a6e;
-  text-align: center;
-  padding: 10px 24px 8px;
+  text-align: left;
+  padding: 6px 20px;
   border-radius: var(--radius-lg) var(--radius-lg) 0 0;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
   position: relative;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
+  gap: 12px;
 }
 
 .title-left {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 10px;
-  width: 100%;
-  position: relative;
+  justify-content: flex-start;
+  gap: 8px;
+  flex-shrink: 0;
 }
 
 .burger-menu-btn {
@@ -546,34 +546,39 @@ main {
 }
 
 .title-bar h1 {
-  font-size: 1.18rem;
+  font-size: 0.95rem;
   font-weight: 800;
   letter-spacing: -0.3px;
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 7px;
+  justify-content: flex-start;
+  gap: 6px;
   color: #0f172a;
   background: none;
   -webkit-text-fill-color: initial;
+  white-space: nowrap;
 }
 
 .app-logo {
-  height: 58px;
-  max-height: 80px;
+  height: 36px;
+  max-height: 48px;
   width: auto;
   object-fit: contain;
-  filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.25));
-  margin-right: 8px;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.2));
+  margin-right: 4px;
 }
 
 .title-bar p,
 .title-sub {
-  font-size: 0.72rem;
+  font-size: 0.68rem;
   color: #0369a1;
-  margin-top: 2px;
+  margin: 0;
   font-weight: 600;
   letter-spacing: 0.2px;
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* Month navigator in title bar */
@@ -841,33 +846,38 @@ main {
 main > .title-bar {
   flex: 0 0 auto;
   border-radius: 0;
-  padding: 8px 20px;
+  padding: 5px 16px;
   display: flex;
+  flex-direction: row;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
   text-align: left;
 }
 
 main > .title-bar h1 {
   justify-content: flex-start;
-  min-width: max-content;
-  font-size: 1rem;
+  font-size: 0.88rem;
+  white-space: nowrap;
 }
 
 main > .title-bar .app-logo {
-  height: 42px;
+  height: 30px;
   margin-right: 2px;
 }
 
 main > .title-bar p {
-  margin: 0 auto 0 0;
-  font-size: 0.68rem;
+  margin: 0;
+  font-size: 0.65rem;
   white-space: nowrap;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 main > .title-bar .month-nav-container {
   margin: 0;
   justify-content: flex-end;
+  flex-shrink: 0;
 }
 
 main > .ctrl {
@@ -1101,6 +1111,11 @@ tbody tr:hover td.sticky-name {
 .rType th.tp { background: var(--psy-bg); color: var(--psy-fg); }
 .rType th.sat.td, .rType th.sat.tn, .rType th.sat.tp { filter: brightness(0.97); }
 .rType th.sun.td, .rType th.sun.tn, .rType th.sun.tp { filter: brightness(0.95); }
+.rType th.tsv { background: #f3e5f5; color: #7B1FA2; }
+.rType th.tfv { background: #fce4ec; color: #C2185B; }
+.rType th.topd { background: #e8eaf6; color: #1565C0; }
+.rType th.sat.tsv, .rType th.sat.tfv, .rType th.sat.topd { filter: brightness(0.97); }
+.rType th.sun.tsv, .rType th.sun.tfv, .rType th.sun.topd { filter: brightness(0.95); }
 .rType th.blank { background: var(--gold-lt); }
 
 /* Week divider */
@@ -1262,6 +1277,12 @@ td.tot-psy { background: var(--psy-bg) !important; color: var(--psy-fg); font-we
 td.rem-doc { background: var(--rem-ok) !important; color: var(--doc-fg); font-weight: 700; font-size: 0.7rem; min-width: 38px; }
 td.rem-nur { background: var(--rem-ok) !important; color: var(--nur-fg); font-weight: 700; font-size: 0.7rem; min-width: 38px; }
 td.rem-psy { background: var(--rem-ok) !important; color: var(--psy-fg); font-weight: 700; font-size: 0.7rem; min-width: 38px; }
+td.tot-sv  { background: #f3e5f5 !important; color: #7B1FA2; font-weight: 700; font-size: 0.7rem; min-width: 38px; }
+td.tot-fv  { background: #fce4ec !important; color: #C2185B; font-weight: 700; font-size: 0.7rem; min-width: 38px; }
+td.tot-opd { background: #e8eaf6 !important; color: #1565C0; font-weight: 700; font-size: 0.7rem; min-width: 38px; }
+td.rem-sv  { background: var(--rem-ok) !important; color: #7B1FA2; font-weight: 700; font-size: 0.7rem; min-width: 38px; }
+td.rem-fv  { background: var(--rem-ok) !important; color: #C2185B; font-weight: 700; font-size: 0.7rem; min-width: 38px; }
+td.rem-opd { background: var(--rem-ok) !important; color: #1565C0; font-weight: 700; font-size: 0.7rem; min-width: 38px; }
 
 /* Medicine cells */
 td.med-total { background: #fff3e0 !important; color: #e65100; font-weight: 700; font-size: 0.66rem; width: 34px; min-width: 34px; max-width: 34px; padding: 2px 1px; }
@@ -1300,6 +1321,9 @@ td.vc.sun { background: var(--sun-bg) !important; }
 td.vc.vd { background: var(--doc-bg) !important; }
 td.vc.vn { background: var(--nur-bg) !important; }
 td.vc.vp { background: var(--psy-bg) !important; }
+td.vc.vsv  { background: #f3e5f5 !important; }
+td.vc.vfv  { background: #fce4ec !important; }
+td.vc.vopd { background: #e8eaf6 !important; }
 td.vc.vx { background: var(--can-bg) !important; }
 
 /* ─────────────────────────────────────────────
