@@ -60,6 +60,9 @@ export const PackageModal: React.FC<PackageModalProps> = ({
         phy: 0,
         psy: 0,
         med: 0,
+        sv: 0,
+        flu: 0,
+        opd: 0,
       },
     ]);
   };
@@ -87,19 +90,22 @@ export const PackageModal: React.FC<PackageModalProps> = ({
   return (
     <div className="mbg" onClick={(e) => e.target === e.currentTarget && onClose()}>
       <div className="modal package-manager-modal">
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
           <h2 style={{ margin: 0 }}>⚙ Package Definitions</h2>
-          <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.75rem', fontWeight: 600, color: 'var(--teal)', cursor: 'pointer' }}>
-            💱 Price in:
-            <select
-              value={currency}
-              onChange={(e) => onCurrencyChange(e.target.value as 'PKR' | 'USD')}
-              style={{ fontSize: '0.74rem', padding: '2px 6px', borderRadius: '5px', border: '1.5px solid var(--teal-lt)', color: 'var(--teal)', fontWeight: 700, cursor: 'pointer' }}
-            >
-              <option value="PKR">PKR (₨)</option>
-              <option value="USD">Dollar ($)</option>
-            </select>
-          </label>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.75rem', fontWeight: 600, color: 'var(--teal)', cursor: 'pointer' }}>
+              💱 Price in:
+              <select
+                value={currency}
+                onChange={(e) => onCurrencyChange(e.target.value as 'PKR' | 'USD')}
+                style={{ fontSize: '0.74rem', padding: '2px 6px', borderRadius: '5px', border: '1.5px solid var(--teal-lt)', color: 'var(--teal)', fontWeight: 700, cursor: 'pointer' }}
+              >
+                <option value="PKR">PKR (₨)</option>
+                <option value="USD">Dollar ($)</option>
+              </select>
+            </label>
+            <button className="icon-btn" onClick={onClose} aria-label="Close package manager"><X size={19} /></button>
+          </div>
         </div>
         <p style={{ fontSize: '0.71rem', color: '#666', marginBottom: '10px' }}>
           Set monthly visit allocations per package. These auto-populate the Total columns when a package is selected for a patient.
@@ -117,6 +123,9 @@ export const PackageModal: React.FC<PackageModalProps> = ({
               <th style={{ background: '#0288D1' }}>💉 Nurse</th>
               <th style={{ background: '#00897B' }}>🏋 Physio</th>
               <th style={{ background: 'var(--psy-fg)' }}>🧠 Psychiatrist</th>
+              <th style={{ background: '#7B1FA2' }}>🏥 SV (Symptom Visit)</th>
+              <th style={{ background: '#C2185B' }}>💉 Annual Flu Vaccine</th>
+              <th style={{ background: '#1565C0' }}>🩺 OPD</th>
               <th style={{ background: '#E65100' }}>💊 Medicine (Rs.)</th>
               <th>Total</th>
               <th></th>
@@ -131,7 +140,7 @@ export const PackageModal: React.FC<PackageModalProps> = ({
                     value={pkg.name}
                     onChange={(e) => handleChange(i, 'name', e.target.value)}
                     style={{
-                      width: '130px',
+                      width: '140px',
                       textAlign: 'left',
                       fontWeight: 700,
                       color: 'var(--teal)',
@@ -219,6 +228,33 @@ export const PackageModal: React.FC<PackageModalProps> = ({
                   <input
                     type="number"
                     min="0"
+                    max="99"
+                    value={pkg.sv || 0}
+                    onChange={(e) => handleChange(i, 'sv', e.target.value)}
+                  />
+                </td>
+                <td>
+                  <input
+                    type="number"
+                    min="0"
+                    max="99"
+                    value={pkg.flu || 0}
+                    onChange={(e) => handleChange(i, 'flu', e.target.value)}
+                  />
+                </td>
+                <td>
+                  <input
+                    type="number"
+                    min="0"
+                    max="99"
+                    value={pkg.opd || 0}
+                    onChange={(e) => handleChange(i, 'opd', e.target.value)}
+                  />
+                </td>
+                <td>
+                  <input
+                    type="number"
+                    min="0"
                     step="1"
                     value={pkg.med || 0}
                     onChange={(e) => handleChange(i, 'med', e.target.value)}
@@ -226,7 +262,7 @@ export const PackageModal: React.FC<PackageModalProps> = ({
                   />
                 </td>
                 <td style={{ fontWeight: 700 }}>
-                  {(pkg.doc || 0) + (pkg.nurPhy || 0) + (pkg.nur || 0) + (pkg.phy || 0) + (pkg.psy || 0)}
+                  {(pkg.doc || 0) + (pkg.nurPhy || 0) + (pkg.nur || 0) + (pkg.phy || 0) + (pkg.psy || 0) + (pkg.sv || 0) + (pkg.flu || 0) + (pkg.opd || 0)}
                 </td>
                 <td>
                   <button

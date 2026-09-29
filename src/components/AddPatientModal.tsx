@@ -48,6 +48,7 @@ export const AddPatientModal: React.FC<AddPatientModalProps> = ({
   const [searchField, setSearchField] = useState<SearchField>('name');
   const [searchValue, setSearchValue] = useState('');
   const [error, setError] = useState('');
+  const [successMsg, setSuccessMsg] = useState('');
   const nameInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -56,6 +57,7 @@ export const AddPatientModal: React.FC<AddPatientModalProps> = ({
     setSelectedPatient(patient);
     setSearchValue('');
     setError('');
+    setSuccessMsg('');
   }, [isOpen, initialMode, patient]);
 
   useEffect(() => {
@@ -88,23 +90,43 @@ export const AddPatientModal: React.FC<AddPatientModalProps> = ({
   const selectPatient = (nextPatient: PatientMonthData) => {
     setSelectedPatient(nextPatient);
     setError('');
+    setSuccessMsg('');
   };
 
-  const handleSubmit = (event: React.FormEvent) => {
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     if (!name.trim()) {
       setError('Please enter a patient name.');
       nameInputRef.current?.focus();
       return;
     }
-    onAdd(name.trim(), subscriber.trim(), packageId, mode === 'edit' ? selectedPatient?.id : undefined);
-    onClose();
+    const savedName = name.trim();
+    const targetPatientId = mode === 'edit' ? selectedPatient?.id : undefined;
+    
+    await onAdd(savedName, subscriber.trim(), packageId, targetPatientId);
+
+    setError('');
+    if (mode === 'add') {
+      setName('');
+      setSubscriber('');
+      setPackageId(null);
+      setSuccessMsg(`✓ Patient "${savedName}" added successfully.`);
+      nameInputRef.current?.focus();
+    } else {
+      setSuccessMsg(`✓ Patient "${savedName}" updated successfully.`);
+    }
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (!selectedPatient || !onDelete) return;
     const confirmed = window.confirm(`Warning: delete ${selectedPatient.name} from ${currentMonth.label}? All visits for this month will be removed. This cannot be undone.`);
-    if (confirmed) onDelete(selectedPatient.id);
+    if (confirmed) {
+      const deletedName = selectedPatient.name;
+      await onDelete(selectedPatient.id);
+      setSelectedPatient(null);
+      setError('');
+      setSuccessMsg(`✓ Patient "${deletedName}" deleted successfully.`);
+    }
   };
 
   return (
@@ -114,10 +136,10 @@ export const AddPatientModal: React.FC<AddPatientModalProps> = ({
           <div className="patient-manager-brand"><UserRound size={21} /><span>Patient Manager</span></div>
           <p className="patient-manager-month">{currentMonth.label}</p>
           <nav className="patient-manager-nav" aria-label="Patient actions">
-            <button className={mode === 'search' ? 'active' : ''} onClick={() => setMode('search')}><Search size={16} /> Search patient</button>
-            <button className={mode === 'add' ? 'active' : ''} onClick={() => { setMode('add'); setSelectedPatient(null); }}><Plus size={16} /> Add patient</button>
-            <button className={mode === 'edit' ? 'active' : ''} onClick={() => setMode('edit')}><Edit3 size={16} /> Edit patient</button>
-            <button className={`${mode === 'delete' ? 'active ' : ''}danger-link`} onClick={() => setMode('delete')}><Trash2 size={16} /> Delete patient</button>
+            <button className={mode === 'search' ? 'active' : ''} onClick={() => { setMode('search'); setSuccessMsg(''); }}><Search size={16} /> Search patient</button>
+            <button className={mode === 'add' ? 'active' : ''} onClick={() => { setMode('add'); setSelectedPatient(null); setSuccessMsg(''); }}><Plus size={16} /> Add patient</button>
+            <button className={mode === 'edit' ? 'active' : ''} onClick={() => { setMode('edit'); setSuccessMsg(''); }}><Edit3 size={16} /> Edit patient</button>
+            <button className={`${mode === 'delete' ? 'active ' : ''}danger-link`} onClick={() => { setMode('delete'); setSuccessMsg(''); }}><Trash2 size={16} /> Delete patient</button>
           </nav>
           <div className="patient-manager-help"><ClipboardList size={15} /> Search a patient to view all details, then choose edit or delete.</div>
         </aside>
@@ -127,6 +149,26 @@ export const AddPatientModal: React.FC<AddPatientModalProps> = ({
             <div><span className="patient-manager-eyebrow">{currentMonth.label}</span><h2>{title}</h2></div>
             <button className="icon-btn" onClick={onClose} aria-label="Close patient manager"><X size={19} /></button>
           </header>
+
+          {successMsg && (
+            <div style={{
+              maxWidth: '920px',
+              margin: '0 auto 16px',
+              padding: '10px 14px',
+              background: '#e8f5e9',
+              border: '1px solid #a5d6a7',
+              borderRadius: '8px',
+              color: '#1b5e20',
+              fontWeight: 700,
+              fontSize: '0.8rem',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between'
+            }}>
+              <span>{successMsg}</span>
+              <button style={{ background: 'none', border: 'none', color: '#1b5e20', cursor: 'pointer', padding: '2px' }} onClick={() => setSuccessMsg('')}><X size={14} /></button>
+            </div>
+          )}
 
           {(mode === 'search' || mode === 'edit' || mode === 'delete') && (
             <section className="patient-manager-search-panel">

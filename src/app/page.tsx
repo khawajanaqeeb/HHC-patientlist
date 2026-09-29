@@ -51,7 +51,6 @@ export default function PatientVisitSheetPage() {
 
   const onDeletePatient = async (patientId: number) => {
     await handleDeletePatient(patientId);
-    closeAddPatient();
   };
 
   return (

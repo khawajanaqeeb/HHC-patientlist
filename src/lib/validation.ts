@@ -41,6 +41,11 @@ export function validatePackageList(value: unknown): string | null {
     for (const field of ['price', 'doc', 'nurPhy', 'nur', 'phy', 'psy', 'med']) {
       if (!Number.isInteger(item[field]) || Number(item[field]) < 0) return `Package ${field} must be a non-negative integer.`;
     }
+    for (const field of ['sv', 'flu', 'opd']) {
+      if (item[field] !== undefined && (!Number.isInteger(item[field]) || Number(item[field]) < 0)) {
+        return `Package ${field} must be a non-negative integer.`;
+      }
+    }
   }
   return null;
 }

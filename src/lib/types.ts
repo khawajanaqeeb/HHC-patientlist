@@ -11,6 +11,9 @@ export interface Package {
   phy: number;    // Physio
   psy: number;
   med: number;
+  sv?: number;   // SV (Symptom Visit)
+  flu?: number;  // Annual Flu Vaccination
+  opd?: number;  // OPD
 }
 
 export interface PatientMonthData {

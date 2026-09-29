@@ -46,9 +46,31 @@ export async function getMonth(monthId: string): Promise<MonthInfo | null> {
 }
 
 export async function getPackages(): Promise<Package[]> {
-  const { data, error } = await getSupabase().from('packages').select('id, name, price, doc, nur_phy, nur, phy, psy, med').order('sort_order').order('id');
-  throwIfError(error);
-  return (data || []).map((row) => ({ id: Number(row.id), name: String(row.name), price: Number(row.price || 0), doc: Number(row.doc || 0), nurPhy: Number(row.nur_phy || 0), nur: Number(row.nur || 0), phy: Number(row.phy || 0), psy: Number(row.psy || 0), med: Number(row.med || 0) }));
+  const db = getSupabase();
+  let rows: any[] | null = null;
+  const query = await db.from('packages').select('id, name, price, doc, nur_phy, nur, phy, psy, med, sv, flu, opd').order('sort_order').order('id');
+  if (query.error) {
+    // Fallback if sv, flu, opd columns do not exist on database yet
+    const fallback = await db.from('packages').select('id, name, price, doc, nur_phy, nur, phy, psy, med').order('sort_order').order('id');
+    throwIfError(fallback.error);
+    rows = fallback.data;
+  } else {
+    rows = query.data;
+  }
+  return (rows || []).map((row: any) => ({
+    id: Number(row.id),
+    name: String(row.name),
+    price: Number(row.price || 0),
+    doc: Number(row.doc || 0),
+    nurPhy: Number(row.nur_phy || 0),
+    nur: Number(row.nur || 0),
+    phy: Number(row.phy || 0),
+    psy: Number(row.psy || 0),
+    med: Number(row.med || 0),
+    sv: Number(row.sv || 0),
+    flu: Number(row.flu || 0),
+    opd: Number(row.opd || 0),
+  }));
 }
 
 export async function savePackages(packages: Package[]) {
@@ -66,6 +88,8 @@ export async function savePackages(packages: Package[]) {
   }
 
   if (!packages.length) return;
+  
+  // Try upserting with sv, flu, opd first
   const { error } = await db.from('packages').upsert(packages.map((pkg, index) => ({
     id: pkg.id,
     name: pkg.name.trim(),
@@ -76,9 +100,28 @@ export async function savePackages(packages: Package[]) {
     phy: pkg.phy || 0,
     psy: pkg.psy || 0,
     med: pkg.med || 0,
+    sv: pkg.sv || 0,
+    flu: pkg.flu || 0,
+    opd: pkg.opd || 0,
     sort_order: index,
   })), { onConflict: 'id' });
-  throwIfError(error);
+
+  if (error) {
+    // If sv, flu, opd columns don't exist yet on DB, fallback without them
+    const fallback = await db.from('packages').upsert(packages.map((pkg, index) => ({
+      id: pkg.id,
+      name: pkg.name.trim(),
+      price: pkg.price || 0,
+      doc: pkg.doc || 0,
+      nur_phy: pkg.nurPhy || 0,
+      nur: pkg.nur || 0,
+      phy: pkg.phy || 0,
+      psy: pkg.psy || 0,
+      med: pkg.med || 0,
+      sort_order: index,
+    })), { onConflict: 'id' });
+    throwIfError(fallback.error);
+  }
 }
 
 export async function getMonthPatients(monthId: string): Promise<PatientMonthData[]> {
