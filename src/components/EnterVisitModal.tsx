@@ -101,12 +101,12 @@ export const EnterVisitModal: React.FC<EnterVisitModalProps> = ({
       setSubscriber('');
       setPackageId(null);
       setMedGiven(0);
-      setVisitValues(['', '', '', '', '']);
+      setVisitValues(['', '', '', '', '', '', '', '']);
       return;
     }
     const patient = patients.find((p) => p.id === selectedPatientId);
     if (!patient) {
-      setVisitValues(['', '', '', '', '']);
+      setVisitValues(['', '', '', '', '', '', '', '']);
       return;
     }
     setSubscriber(patient.subscriber || '');
@@ -115,13 +115,13 @@ export const EnterVisitModal: React.FC<EnterVisitModalProps> = ({
 
     const dayIdx = selectedDay - 1;
     const existing = patient.v[dayIdx];
-    setVisitValues(existing ? [...existing] as DayVisits : ['', '', '', '', '']);
+    setVisitValues(existing ? [...existing] as DayVisits : ['', '', '', '', '', '', '', '']);
   }, [selectedPatientId, patients]);
 
   // Sync visit values when day changes for the current patient
   useEffect(() => {
     if (selectedPatientId === null) {
-      setVisitValues(['', '', '', '', '']);
+      setVisitValues(['', '', '', '', '', '', '', '']);
       return;
     }
     const patient = patients.find((p) => p.id === selectedPatientId);
@@ -129,7 +129,7 @@ export const EnterVisitModal: React.FC<EnterVisitModalProps> = ({
 
     const dayIdx = selectedDay - 1;
     const existing = patient.v[dayIdx];
-    setVisitValues(existing ? [...existing] as DayVisits : ['', '', '', '', '']);
+    setVisitValues(existing ? [...existing] as DayVisits : ['', '', '', '', '', '', '', '']);
   }, [selectedDay]);
 
   if (!isOpen) return null;
