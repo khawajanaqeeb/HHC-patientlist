@@ -1,6 +1,6 @@
 'use client';
 
-import { PlusCircle, LogOut, Menu } from 'lucide-react';
+import { PlusCircle, LogOut, Menu, Calendar, ExternalLink, ChevronDown } from 'lucide-react';
 import { MonthInfo } from '@/lib/types';
 
 interface Props {
@@ -9,14 +9,18 @@ interface Props {
   patientCount: number;
   onSelectMonth: (id: string) => void;
   onOpenAddMonth: () => void;
+  onOpenInNewWindow?: (id: string) => void;
   onLogout?: () => void;
   onToggleSidebar?: () => void;
 }
 
 export default function TitleBar({
   currentMonth,
+  availableMonths,
   patientCount,
+  onSelectMonth,
   onOpenAddMonth,
+  onOpenInNewWindow,
   onLogout,
   onToggleSidebar,
 }: Props) {
@@ -44,13 +48,44 @@ export default function TitleBar({
       </p>
 
       <div className="month-nav-container">
-        <button className="btn-add-month" onClick={onOpenAddMonth}>
+        {availableMonths.length > 0 && (
+          <div className="month-select-wrapper" title="Select active month">
+            <Calendar size={13} className="month-select-icon" />
+            <select
+              className="month-select"
+              value={currentMonth.id}
+              onChange={(e) => onSelectMonth(e.target.value)}
+              aria-label="Select month"
+            >
+              {availableMonths.map((m) => (
+                <option key={m.id} value={m.id}>
+                  {m.label}
+                </option>
+              ))}
+            </select>
+            <ChevronDown size={13} className="month-select-arrow" />
+          </div>
+        )}
+
+        {onOpenInNewWindow && (
+          <button
+            className="btn-open-window"
+            onClick={() => onOpenInNewWindow(currentMonth.id)}
+            title={`Open ${currentMonth.label} in a separate window`}
+          >
+            <ExternalLink size={13} />
+            <span>New Window</span>
+          </button>
+        )}
+
+        <button className="btn-add-month" onClick={onOpenAddMonth} title="Add upcoming month">
           <PlusCircle size={13} />
-          Add Month
+          <span>Add Month</span>
         </button>
+
         {onLogout && (
           <button className="btn-logout" onClick={onLogout} title="Log out of admin session">
-            <LogOut size={13} /> Log Out
+            <LogOut size={13} /> <span>Log Out</span>
           </button>
         )}
       </div>

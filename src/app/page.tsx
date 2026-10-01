@@ -3,6 +3,7 @@
 import React from 'react';
 import TitleBar from '@/components/TitleBar';
 import Sidebar from '@/components/Sidebar';
+import { MonthTabs } from '@/components/MonthTabs';
 import { VisitTable } from '@/components/VisitTable';
 import { PackageModal } from '@/components/PackageModal';
 import { AddPatientModal } from '@/components/AddPatientModal';
@@ -36,7 +37,7 @@ export default function PatientVisitSheetPage() {
     currency, setCurrency, usdToPkrRate, loading,
     isAuthenticated, handleLoginSuccess, handleLogout,
     loadData,
-    handleSelectMonth, handleCreateMonth,
+    handleSelectMonth, handleCreateMonth, handleOpenInNewWindow,
     handleSavePatient, handleDeletePatient,
     handleSavePackages, handleReset,
     handleExport, handleImport,
@@ -61,6 +62,7 @@ export default function PatientVisitSheetPage() {
         patientCount={patients.length}
         onSelectMonth={handleSelectMonth}
         onOpenAddMonth={() => setIsAddMonthModalOpen(true)}
+        onOpenInNewWindow={handleOpenInNewWindow}
         onLogout={handleLogout}
         onToggleSidebar={() => setSidebarOpen((v) => !v)}
       />
@@ -82,6 +84,16 @@ export default function PatientVisitSheetPage() {
 
         {/* Main content */}
         <div className="app-content">
+          {/* Month sheet navigation tabs */}
+          <MonthTabs
+            currentMonth={currentMonth}
+            availableMonths={availableMonths}
+            patientCount={patients.length}
+            onSelectMonth={handleSelectMonth}
+            onOpenAddMonth={() => setIsAddMonthModalOpen(true)}
+            onOpenInNewWindow={handleOpenInNewWindow}
+          />
+
           {/* Search + status strip */}
           <div className="content-topbar">
             <div className="search-box">
@@ -164,6 +176,8 @@ export default function PatientVisitSheetPage() {
         availableMonths={availableMonths}
         onClose={() => setIsAddMonthModalOpen(false)}
         onCreateMonth={handleCreateMonth}
+        onSelectMonth={handleSelectMonth}
+        onOpenInNewWindow={handleOpenInNewWindow}
       />
 
       <EnterVisitModal

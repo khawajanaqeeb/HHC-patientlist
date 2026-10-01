@@ -86,6 +86,20 @@ export function useAppData({ flashStatus, clearSearch, resetTable }: AppDataCall
       setPackages(data.packages || []);
       setPatients(data.patients || []);
       setIsAuthenticated(true);
+
+      if (typeof window !== 'undefined' && data.currentMonth?.id) {
+        try {
+          localStorage.setItem('hhc_selected_month', data.currentMonth.id);
+          const url = new URL(window.location.href);
+          if (url.searchParams.get('month') !== data.currentMonth.id) {
+            url.searchParams.set('month', data.currentMonth.id);
+            window.history.replaceState(null, '', url.toString());
+          }
+        } catch {
+          // ignore storage or history errors
+        }
+      }
+
       callbacksRef.current.flashStatus(`✔ Synced to Supabase (${new Date().toLocaleTimeString()})`, '#ffffff');
     } catch (err: unknown) {
       if (err instanceof Error && err.name === 'AbortError') {
@@ -100,14 +114,44 @@ export function useAppData({ flashStatus, clearSearch, resetTable }: AppDataCall
     }
   }, []);
 
-  // Initial authentication check & data load
+  // Initial authentication check & data load (with URL / localStorage preference)
   useEffect(() => {
     checkAuth().then((authed) => {
       if (authed) {
-        loadData();
+        let initialMonthId: string | undefined;
+        if (typeof window !== 'undefined') {
+          try {
+            const params = new URLSearchParams(window.location.search);
+            const urlMonth = params.get('month') || params.get('monthId');
+            if (urlMonth) {
+              initialMonthId = urlMonth;
+            } else {
+              const saved = localStorage.getItem('hhc_selected_month');
+              if (saved) initialMonthId = saved;
+            }
+          } catch {
+            // fallback
+          }
+        }
+        loadData(initialMonthId);
       }
     });
   }, [checkAuth, loadData]);
+
+  // Support browser forward/back buttons
+  useEffect(() => {
+    const handlePopState = () => {
+      if (typeof window !== 'undefined') {
+        const params = new URLSearchParams(window.location.search);
+        const m = params.get('month') || params.get('monthId');
+        if (m && m !== currentMonth.id) {
+          loadData(m);
+        }
+      }
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [currentMonth.id, loadData]);
 
   // Fetch live exchange rate
   useEffect(() => {
@@ -135,12 +179,36 @@ export function useAppData({ flashStatus, clearSearch, resetTable }: AppDataCall
 
   const handleLoginSuccess = () => {
     setIsAuthenticated(true);
-    loadData();
+    let initialMonthId: string | undefined;
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      initialMonthId = params.get('month') || params.get('monthId') || localStorage.getItem('hhc_selected_month') || undefined;
+    }
+    loadData(initialMonthId);
   };
 
   // ── Month handlers ──────────────────────────────────────────────────────────
 
-  const handleSelectMonth = (monthId: string) => loadData(monthId);
+  const handleSelectMonth = useCallback((monthId: string) => {
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('hhc_selected_month', monthId);
+        const url = new URL(window.location.href);
+        url.searchParams.set('month', monthId);
+        window.history.pushState(null, '', url.toString());
+      } catch {
+        // ignore
+      }
+    }
+    loadData(monthId);
+  }, [loadData]);
+
+  const handleOpenInNewWindow = useCallback((monthId: string) => {
+    if (typeof window !== 'undefined') {
+      const url = `/?month=${encodeURIComponent(monthId)}`;
+      window.open(url, `_blank_hhc_${monthId}`, 'width=1450,height=950,menubar=no,toolbar=no');
+    }
+  }, []);
 
   const handleCreateMonth = async (year: number, month: number, carryOverFrom?: string) => {
     try {
@@ -156,7 +224,7 @@ export function useAppData({ flashStatus, clearSearch, resetTable }: AppDataCall
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to create month');
       setAvailableMonths(data.months);
-      await loadData(data.month.id);
+      handleSelectMonth(data.month.id);
       callbacksRef.current.flashStatus(`✔ Created ${data.month.label}`, '#2e7d32');
     } catch (err: unknown) {
       alert(err instanceof Error ? err.message : 'Could not create month');
@@ -341,6 +409,7 @@ export function useAppData({ flashStatus, clearSearch, resetTable }: AppDataCall
     loadData,
     handleSelectMonth,
     handleCreateMonth,
+    handleOpenInNewWindow,
     handleSavePatient,
     handleDeletePatient,
     handleSavePackages,

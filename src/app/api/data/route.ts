@@ -6,11 +6,18 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const months = await getAllMonths();
-    let monthId = searchParams.get('monthId');
+    let monthId = searchParams.get('monthId') || searchParams.get('month');
     const defaultId = getDefaultMonthId();
 
-    if (!monthId || !months.some(m => m.id === monthId)) {
-      monthId = months.length > 0 ? months[0].id : defaultId;
+    if (!monthId || !months.some((m) => m.id === monthId)) {
+      if (months.some((m) => m.id === defaultId)) {
+        monthId = defaultId;
+      } else if (months.length > 0) {
+        const sorted = [...months].sort((a, b) => b.id.localeCompare(a.id));
+        monthId = sorted[0].id;
+      } else {
+        monthId = defaultId;
+      }
     }
 
     const [defaultYear, defaultMonthNum] = defaultId.split('-').map(Number);

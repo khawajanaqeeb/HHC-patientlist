@@ -192,20 +192,64 @@ export async function resetMonth(monthId: string) {
   throwIfError(error);
 }
 
+export async function copyPatientsToMonth(fromMonthId: string, toMonthId: string): Promise<number> {
+  const toMonth = await getMonth(toMonthId);
+  if (!toMonth) throw new Error(`Target month ${toMonthId} not found`);
+  const previous = await getMonthPatients(fromMonthId);
+  if (!previous.length) return 0;
+
+  const db = getSupabase();
+  const { error: deleteError } = await db.from('month_patients').delete().eq('month_id', toMonthId);
+  throwIfError(deleteError);
+
+  const visits = Array.from({ length: toMonth.daysInMonth }, () => ['', '', '', '', '', '', '', '']);
+  const { error: insertError } = await db.from('month_patients').insert(
+    previous.map((patient, index) => ({
+      month_id: toMonthId,
+      patient_id: patient.id,
+      name: patient.name,
+      subscriber: patient.subscriber,
+      package_id: patient.packageId,
+      med_given: 0,
+      visits_json: visits,
+      sort_order: index,
+    }))
+  );
+  throwIfError(insertError);
+  return previous.length;
+}
+
 export async function createMonth(year: number, month: number, carryOverPatientsFromMonthId?: string): Promise<MonthInfo> {
   const monthId = `${year}-${month.toString().padStart(2, '0')}`;
   const existing = await getMonth(monthId);
-  if (existing) return existing;
   const daysInMonth = getDaysInMonth(year, month);
   const label = getMonthLabel(year, month);
-  const { error } = await getSupabase().from('months').insert({ id: monthId, year, month, label, days_in_month: daysInMonth });
-  throwIfError(error);
+
+  if (!existing) {
+    const { error } = await getSupabase().from('months').insert({ id: monthId, year, month, label, days_in_month: daysInMonth });
+    throwIfError(error);
+  }
+
   if (carryOverPatientsFromMonthId) {
-    const previous = await getMonthPatients(carryOverPatientsFromMonthId);
-    const visits = Array.from({ length: daysInMonth }, () => ['', '', '', '', '', '', '', '']);
-    if (previous.length) {
-      const { error: patientError } = await getSupabase().from('month_patients').insert(previous.map((patient, index) => ({ month_id: monthId, patient_id: patient.id, name: patient.name, subscriber: patient.subscriber, package_id: patient.packageId, med_given: 0, visits_json: visits, sort_order: index })));
-      throwIfError(patientError);
+    const currentPatients = await getMonthPatients(monthId);
+    if (currentPatients.length === 0) {
+      const previous = await getMonthPatients(carryOverPatientsFromMonthId);
+      const visits = Array.from({ length: daysInMonth }, () => ['', '', '', '', '', '', '', '']);
+      if (previous.length) {
+        const { error: patientError } = await getSupabase().from('month_patients').insert(
+          previous.map((patient, index) => ({
+            month_id: monthId,
+            patient_id: patient.id,
+            name: patient.name,
+            subscriber: patient.subscriber,
+            package_id: patient.packageId,
+            med_given: 0,
+            visits_json: visits,
+            sort_order: index,
+          }))
+        );
+        throwIfError(patientError);
+      }
     }
   }
   return { id: monthId, year, month, label, daysInMonth };
