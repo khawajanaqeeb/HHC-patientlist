@@ -1704,8 +1704,8 @@ td.vc.vx { background: var(--can-bg) !important; }
 
 .patient-manager-brand { display: flex; align-items: center; gap: 9px; font-size: 1rem; font-weight: 800; }
 .patient-manager-month { margin: 8px 0 28px 30px; color: #bfe8ef; font-size: 0.7rem; font-weight: 600; }
-.patient-manager-nav { display: flex; flex-direction: column; gap: 4px; }
-.patient-manager-nav button { display: flex; align-items: center; gap: 9px; width: 100%; height: 38px; padding: 0 12px; border: 1px solid transparent; border-radius: 7px; color: #d8f2f4; background: transparent; font: inherit; font-size: 0.76rem; font-weight: 700; text-align: left; cursor: pointer; transition: all 0.15s ease; }
+.patient-manager-nav { display: flex; flex-direction: column; gap: 5px; align-items: flex-start; }
+.patient-manager-nav button { display: inline-flex; align-items: center; gap: 8px; width: max-content; max-width: 100%; height: 35px; padding: 0 12px; border: 1px solid transparent; border-radius: 7px; color: #d8f2f4; background: transparent; font: inherit; font-size: 0.76rem; font-weight: 700; text-align: left; cursor: pointer; transition: all 0.15s ease; white-space: nowrap; }
 .patient-manager-nav button:hover, .patient-manager-nav button.active { color: #0d3c5e; background: #f5d98b; box-shadow: 0 3px 10px rgba(0,0,0,0.12); }
 .patient-manager-nav button:disabled { opacity: 0.4; cursor: not-allowed; }
 .patient-manager-nav button.danger-link:hover, .patient-manager-nav button.danger-link.active { color: #fff; background: #c94c4c; }
@@ -2119,6 +2119,23 @@ td.vc.vx { background: var(--can-bg) !important; }
   align-items: center;
   gap: 5px;
   justify-content: flex-end;
+}
+
+.mfoot .btn {
+  width: auto !important;
+  max-width: max-content !important;
+  flex: 0 0 auto !important;
+  height: 35px;
+  padding: 0 12px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  border-radius: 7px;
+  box-sizing: border-box;
+  white-space: nowrap;
 }
 
 .patient-search-modal {
