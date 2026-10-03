@@ -349,7 +349,7 @@ export const AddPatientModal: React.FC<AddPatientModalProps> = ({
                 </div>
                 <div className="patient-manager-form-grid">
                   <label>
-                    Patient Name <span className="req">*</span>
+                    <span className="label-text-wrap">Patient Name <span className="req">*</span></span>
                     <input
                       ref={nameInputRef}
                       value={name}
@@ -359,7 +359,7 @@ export const AddPatientModal: React.FC<AddPatientModalProps> = ({
                     />
                   </label>
                   <label>
-                    Father / Husband Name
+                    <span className="label-text-wrap">Father / Husband Name</span>
                     <input
                       value={fatherHusbandName}
                       onChange={(event) => setFatherHusbandName(event.target.value)}
@@ -367,7 +367,7 @@ export const AddPatientModal: React.FC<AddPatientModalProps> = ({
                     />
                   </label>
                   <label>
-                    Date of Birth
+                    <span className="label-text-wrap">Date of Birth</span>
                     <input
                       type="date"
                       value={dob}
@@ -375,7 +375,7 @@ export const AddPatientModal: React.FC<AddPatientModalProps> = ({
                     />
                   </label>
                   <label>
-                    Gender
+                    <span className="label-text-wrap">Gender</span>
                     <select value={gender} onChange={(event) => setGender(event.target.value)}>
                       <option value="">Select gender</option>
                       <option value="Male">Male</option>
@@ -393,47 +393,43 @@ export const AddPatientModal: React.FC<AddPatientModalProps> = ({
                   <span>Subscriber &amp; Care Details</span>
                 </div>
                 <div className="patient-manager-form-grid">
-                  <div className="subscriber-stacked-group">
-                    <label>
-                      Subscriber Name
-                      <input
-                        value={subscriber}
-                        onChange={(event) => setSubscriber(event.target.value)}
-                        placeholder="Family member or sponsor name"
-                      />
-                    </label>
-                    <label className="sub-email-label">
-                      <Mail size={13} /> Subscriber Email
-                      <input
-                        type="email"
-                        value={subscriberEmail}
-                        onChange={(event) => setSubscriberEmail(event.target.value)}
-                        placeholder="subscriber@example.com"
-                      />
-                    </label>
-                  </div>
-                  <div className="care-stacked-group">
-                    <label>
-                      <Stethoscope size={13} /> Assigned Doctor
-                      <input
-                        value={assignedDoctor}
-                        onChange={(event) => setAssignedDoctor(event.target.value)}
-                        placeholder="e.g. Dr. Sarah Ahmed"
-                      />
-                    </label>
-                    <label>
-                      Assigned Package
-                      <select
-                        value={packageId ?? ''}
-                        onChange={(event) => setPackageId(event.target.value ? Number(event.target.value) : null)}
-                      >
-                        <option value="">No package</option>
-                        {packages.map((item) => (
-                          <option key={item.id} value={item.id}>{item.name}</option>
-                        ))}
-                      </select>
-                    </label>
-                  </div>
+                  <label>
+                    <span className="label-text-wrap">Subscriber Name</span>
+                    <input
+                      value={subscriber}
+                      onChange={(event) => setSubscriber(event.target.value)}
+                      placeholder="Family member or sponsor name"
+                    />
+                  </label>
+                  <label className="sub-email-label">
+                    <span className="label-text-wrap"><Mail size={13} /> Subscriber Email</span>
+                    <input
+                      type="email"
+                      value={subscriberEmail}
+                      onChange={(event) => setSubscriberEmail(event.target.value)}
+                      placeholder="subscriber@example.com"
+                    />
+                  </label>
+                  <label>
+                    <span className="label-text-wrap"><Stethoscope size={13} /> Assigned Doctor</span>
+                    <input
+                      value={assignedDoctor}
+                      onChange={(event) => setAssignedDoctor(event.target.value)}
+                      placeholder="e.g. Dr. Sarah Ahmed"
+                    />
+                  </label>
+                  <label>
+                    <span className="label-text-wrap">Assigned Package</span>
+                    <select
+                      value={packageId ?? ''}
+                      onChange={(event) => setPackageId(event.target.value ? Number(event.target.value) : null)}
+                    >
+                      <option value="">No package</option>
+                      {packages.map((item) => (
+                        <option key={item.id} value={item.id}>{item.name}</option>
+                      ))}
+                    </select>
+                  </label>
                 </div>
               </div>
 
@@ -445,7 +441,7 @@ export const AddPatientModal: React.FC<AddPatientModalProps> = ({
                 </div>
                 <div className="patient-manager-form-grid full-width-grid">
                   <label className="full-col">
-                    Patient Address
+                    <span className="label-text-wrap">Patient Address</span>
                     <textarea
                       rows={2}
                       value={address}
@@ -454,7 +450,7 @@ export const AddPatientModal: React.FC<AddPatientModalProps> = ({
                     />
                   </label>
                   <label className="full-col">
-                    Patient Google Address Location / Maps Link
+                    <span className="label-text-wrap">Patient Google Address Location / Maps Link</span>
                     <div className="input-with-action">
                       <input
                         type="text"
