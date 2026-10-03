@@ -586,7 +586,7 @@ main {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 8px;
+  gap: 5px;
   margin: 0;
   flex-wrap: wrap;
 }
@@ -594,11 +594,12 @@ main {
 .month-select-wrapper {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
+  height: 32px;
   background: rgba(255, 255, 255, 0.7);
   border: 1.5px solid rgba(12, 74, 110, 0.25);
-  border-radius: 8px;
-  padding: 4px 9px;
+  border-radius: 7px;
+  padding: 0 9px;
   backdrop-filter: blur(10px);
   color: #0c4a6e;
   font-weight: 700;
@@ -626,7 +627,7 @@ main {
   background: transparent;
   border: none;
   color: #0c4a6e;
-  font-size: 0.78rem;
+  font-size: 0.74rem;
   font-weight: 700;
   outline: none;
   cursor: pointer;
@@ -646,13 +647,15 @@ main {
   background: rgba(255, 255, 255, 0.65);
   color: #0c4a6e;
   border: 1.5px solid rgba(12, 74, 110, 0.22);
-  border-radius: 8px;
-  padding: 6px 11px;
+  border-radius: 7px;
+  height: 32px;
+  padding: 0 10px;
   font-size: 0.74rem;
   font-weight: 700;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 5px;
   transition: all 0.2s ease;
   font-family: inherit;
@@ -670,22 +673,24 @@ main {
   background: linear-gradient(135deg, #27ae60, #2ecc71);
   color: #fff;
   border: none;
-  border-radius: 8px;
-  padding: 6px 13px;
+  border-radius: 7px;
+  height: 32px;
+  padding: 0 12px;
   font-size: 0.74rem;
   font-weight: 700;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 5px;
   transition: all 0.2s;
-  box-shadow: 0 2px 10px rgba(39, 174, 96, 0.4);
+  box-shadow: 0 2px 8px rgba(39, 174, 96, 0.35);
   font-family: inherit;
 }
 
 .btn-add-month:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 18px rgba(39, 174, 96, 0.55);
+  box-shadow: 0 4px 14px rgba(39, 174, 96, 0.5);
   background: linear-gradient(135deg, #2ecc71, #27ae60);
 }
 
@@ -1683,9 +1688,9 @@ td.vc.vx { background: var(--can-bg) !important; }
 
 .patient-manager-brand { display: flex; align-items: center; gap: 9px; font-size: 1rem; font-weight: 800; }
 .patient-manager-month { margin: 8px 0 28px 30px; color: #bfe8ef; font-size: 0.7rem; font-weight: 600; }
-.patient-manager-nav { display: grid; gap: 7px; }
-.patient-manager-nav button { display: flex; align-items: center; gap: 10px; width: 100%; padding: 11px 12px; border: 1px solid transparent; border-radius: 8px; color: #d8f2f4; background: transparent; font: inherit; font-size: 0.76rem; font-weight: 700; text-align: left; cursor: pointer; }
-.patient-manager-nav button:hover, .patient-manager-nav button.active { color: #0d3c5e; background: #f5d98b; box-shadow: 0 4px 12px rgba(0,0,0,0.12); }
+.patient-manager-nav { display: flex; flex-direction: column; gap: 4px; }
+.patient-manager-nav button { display: flex; align-items: center; gap: 9px; width: 100%; height: 38px; padding: 0 12px; border: 1px solid transparent; border-radius: 7px; color: #d8f2f4; background: transparent; font: inherit; font-size: 0.76rem; font-weight: 700; text-align: left; cursor: pointer; transition: all 0.15s ease; }
+.patient-manager-nav button:hover, .patient-manager-nav button.active { color: #0d3c5e; background: #f5d98b; box-shadow: 0 3px 10px rgba(0,0,0,0.12); }
 .patient-manager-nav button:disabled { opacity: 0.4; cursor: not-allowed; }
 .patient-manager-nav button.danger-link:hover, .patient-manager-nav button.danger-link.active { color: #fff; background: #c94c4c; }
 .patient-manager-help { display: flex; gap: 8px; margin-top: 32px; padding: 12px 10px; border-top: 1px solid rgba(255,255,255,0.2); color: #c5e5e9; font-size: 0.68rem; line-height: 1.5; }
@@ -1696,7 +1701,7 @@ td.vc.vx { background: var(--can-bg) !important; }
 .patient-manager-eyebrow { color: #6d8795; font-size: 0.68rem; font-weight: 800; letter-spacing: 0.8px; text-transform: uppercase; }
 .patient-manager-search-panel, .patient-detail-panel, .patient-manager-form { width: min(920px, 100%); margin: 0 auto; }
 .patient-manager-search-panel { padding: 16px; border: 1px solid #d3e5eb; border-radius: 12px; background: #fff; box-shadow: 0 8px 24px rgba(22, 79, 102, 0.08); }
-.patient-manager-search-row { display: flex; align-items: end; gap: 12px; }
+.patient-manager-search-row { display: flex; align-items: flex-end; gap: 12px; }
 .patient-manager-search-row label, .patient-manager-form-grid label { display: flex; flex: 0 1 220px; flex-direction: column; gap: 6px; color: var(--teal); font-size: 0.72rem; font-weight: 800; }
 .patient-manager-search-row select, .patient-manager-search-row input, .patient-manager-form-grid input, .patient-manager-form-grid select { min-height: 42px; padding: 9px 11px; border: 1.5px solid #b9d8e3; border-radius: 7px; outline: 0; background: #fbfeff; color: #1b3a4d; font: inherit; font-size: 0.8rem; }
 .patient-manager-search-row input:focus, .patient-manager-search-row select:focus, .patient-manager-form-grid input:focus, .patient-manager-form-grid select:focus { border-color: var(--teal3); box-shadow: 0 0 0 3px rgba(41,128,185,0.12); }
@@ -1713,7 +1718,7 @@ td.vc.vx { background: var(--can-bg) !important; }
 .patient-manager-form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
 .patient-manager-form-grid label:last-child { grid-column: 1 / -1; }
 .patient-manager-error { margin-top: 14px; color: var(--can-fg); font-size: 0.75rem; font-weight: 700; }
-.patient-manager-form .mfoot, .patient-detail-panel .mfoot { margin-top: 26px; }
+.patient-manager-form .mfoot, .patient-detail-panel .mfoot { margin-top: 18px; display: flex; align-items: center; justify-content: flex-end; gap: 5px; }
 .patient-detail-panel { padding: 28px; border: 1px solid #d3e5eb; border-radius: 12px; background: #fff; box-shadow: 0 8px 24px rgba(22, 79, 102, 0.08); }
 .patient-detail-header { display: flex; align-items: flex-start; justify-content: space-between; border-bottom: 1px solid #e0edf1; padding-bottom: 16px; }
 .patient-detail-header h3 { margin-top: 4px; color: var(--teal); font-size: 1.25rem; }
@@ -1832,7 +1837,7 @@ td.vc.vx { background: var(--can-bg) !important; }
 .input-with-action {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 5px;
   width: 100%;
 }
 .input-with-action input {
@@ -1841,8 +1846,10 @@ td.vc.vx { background: var(--can-bg) !important; }
 .btn-map-preview {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 5px;
-  padding: 9px 13px;
+  padding: 0 12px;
+  height: 42px;
   min-height: 42px;
   border-radius: 7px;
   background: #e8f0fe;
@@ -2090,7 +2097,8 @@ td.vc.vx { background: var(--can-bg) !important; }
 .mfoot {
   margin-top: 16px;
   display: flex;
-  gap: 8px;
+  align-items: center;
+  gap: 5px;
   justify-content: flex-end;
 }
 
@@ -2105,7 +2113,7 @@ td.vc.vx { background: var(--can-bg) !important; }
 .patient-search-heading h2 { display: flex; align-items: center; gap: 6px; margin-bottom: 3px; }
 .patient-search-heading p { color: #63788a; font-size: 0.7rem; }
 .icon-btn { border: 0; background: transparent; color: var(--teal); cursor: pointer; padding: 3px; }
-.patient-search-form { display: flex; align-items: end; gap: 8px; margin: 14px 0 8px; }
+.patient-search-form { display: flex; align-items: flex-end; gap: 8px; margin: 14px 0 8px; }
 .patient-search-form label { color: var(--teal); font-size: 0.72rem; font-weight: 700; display: flex; flex-direction: column; gap: 4px; }
 .patient-search-form input { border: 1.5px solid var(--teal-lt); border-radius: 6px; padding: 6px 8px; font: inherit; font-size: 0.75rem; color: var(--teal); }
 .patient-search-form button:disabled { opacity: 0.65; cursor: wait; }
