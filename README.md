@@ -27,15 +27,23 @@ A full-stack **Next.js 15** web application for managing monthly patient visit t
 
 ## ✨ Features & Capabilities
 
-- **Multi-month support** — Create tracking sheets for any month. Patients and package definitions carry over automatically; daily visit matrices reset to blank.
+- **Extended Patient Profiles** — Track comprehensive patient profile details including:
+  - **Subscriber Email** (below Subscriber Name)
+  - **Father / Husband Name**
+  - **Date of Birth** & **Gender**
+  - **Patient Address**
+  - **Google Address Location / Maps Link** (with 1-click **Open Map** preview button)
+  - **Assigned Doctor**
+- **Modern Tabbed Patient Manager** — Unified window for searching, adding, editing, and deleting patients with a 2-column aligned grid and dynamic text-wrapping action buttons.
+- **Multi-month support** — Create tracking sheets for any month. Patient profiles and package definitions carry over automatically; daily visit matrices reset to blank.
 - **Supabase Cloud Database** — Real-time PostgreSQL backend powered by `@supabase/supabase-js` using server-only service-role credentials.
 - **5 Care-Type Visit Matrix** — Daily visit tracking across five care categories per patient: Doctor, Nurse+Physio, Nurse, Physio, Psychiatrist. Status cycles: ✔ Visited → ✖ Cancelled → — No Visit → Clear.
-- **Enter Visit Modal** — Daily visit recording with live search (by name, date, subscriber, or package), real-time quota counters, and day-by-day navigation.
+- **Enter Visit Modal** — Daily visit recording with live search (by name, date, subscriber, doctor, or package), real-time quota counters, and day-by-day navigation.
 - **Package Allocation Management** — Define monthly visit allocations per package type, including medicine budgets.
 - **Live Quota Tracking** — Displays total allocated, done, and remaining visits per care type with visual color-coded warnings when quotas are low or exhausted.
 - **Medicine Expense Tracking** — Record medicine provided (Rs.) against package limits; automatically calculates balance or overage.
 - **PKR / USD Currency Toggle** — Live exchange rate fetched on startup with automatic fallback.
-- **Search & Filter** — Filter patients by name, subscriber ID, or package; sort by S.No, Name, Subscriber, or Package.
+- **Search & Filter** — Filter patients by name, subscriber ID, doctor, or package; sort by S.No, Name, Subscriber, or Package.
 - **Responsive Mobile-First UI** — Fully responsive layout featuring a collapsible sidebar drawer, touch-optimized matrix scrolling, and dynamic modals.
 - **Print-Ready Stylesheet** — Dedicated CSS hides layout controls for clean physical printing.
 - **Desktop Shortcut** — Automated PowerShell installer (`create-shortcut.ps1`) creates a Windows desktop shortcut with a custom HHC app icon.
@@ -51,7 +59,7 @@ The application includes three secure utility operations accessible from the lef
 - **Data Included**:
   - **Month Details**: Month ID (e.g., `2026-09`), year, month index, label, and day count.
   - **Package Definitions**: All defined packages, pricing, and visit quotas (Doctor, Nurse+Physio, Nurse, Physio, Psychiatrist, Medicine budget).
-  - **Patient Records**: Full patient roster, subscriber status, assigned package links, medicine expenses (`medGiven`), and the entire 31-day visit matrix.
+  - **Patient Records**: Full patient roster including extended profile fields (`subscriberEmail`, `fatherHusbandName`, `dob`, `gender`, `address`, `googleAddressLocation`, `assignedDoctor`), package links, medicine expenses (`medGiven`), and the entire 31-day visit matrix.
   - **Metadata**: Timestamp (`exportedAt`).
 - **How to Use**:
   1. Open the Sidebar / Action Drawer on the left side of the dashboard.
@@ -60,11 +68,12 @@ The application includes three secure utility operations accessible from the lef
 - **Best Practice**: Perform an Export before major package modifications, monthly resets, or software updates.
 
 ### 📥 2. Import Data (`Import` Button)
-- **Functionality**: Restores or populates package definitions and patient visit records for the selected month from a valid JSON backup file.
+- **Functionality**: Restores or populates package definitions and patient visit records (including all extended profile fields) for the selected month from a valid JSON backup file.
 - **How It Works**:
   - Validates the uploaded JSON structure for required `patients` and `PKGS` arrays.
   - Overwrites package definitions in Supabase with the imported package list.
   - Re-maps patient package associations (`packageId` / `pkgIdx`) to preserve quota integrity.
+  - Restores all 7 extended profile fields without data loss.
   - Normalizes daily visit matrices to fit the active month length.
 - **How to Use**:
   1. Select the target month in the top navigation bar.
@@ -75,7 +84,7 @@ The application includes three secure utility operations accessible from the lef
 ### 🔄 3. Reset Month (`Reset Month` Button)
 - **Functionality**: Clears all daily visit checkmarks, resets medicine expenses to Rs. 0, and unassigns package selections for every patient in the active month.
 - **Safety Guarantee**:
-  - **Roster Preservation**: Patient records (Names and Subscriber IDs) are **NOT deleted**. Only variable monthly activity data is cleared.
+  - **Roster Preservation**: Patient records and profile details are **NOT deleted**. Only variable monthly activity data is cleared.
   - **Confirmation Security**: Requires explicit user confirmation via a browser alert before execution.
   - **Protected Styling**: Styled as a red danger action inside the secure utility section of the sidebar to prevent accidental clicks.
 - **How to Use**:
@@ -147,6 +156,7 @@ In your **Supabase Project ➔ SQL Editor**, execute the migration SQL files in 
 
 1. `20260917000000_create_patient_visit_database.sql` — Creates `months`, `packages`, and `month_patients` tables.
 2. `20260922000000_replace_package_indexes.sql` — Migrates package references to use foreign keys.
+3. `20261004000000_add_patient_extended_fields.sql` — Adds extended patient profile fields (`subscriber_email`, `father_husband_name`, `dob`, `gender`, `address`, `google_address_location`, `assigned_doctor`).
 
 *(Alternatively, use `supabase db push` via the Supabase CLI).*
 
@@ -209,7 +219,8 @@ HHC-patientlist/
 ├── supabase/
 │   └── migrations/
 │       ├── 20260917000000_create_patient_visit_database.sql   # Initial schema
-│       └── 20260922000000_replace_package_indexes.sql         # FK migration
+│       ├── 20260922000000_replace_package_indexes.sql         # FK migration
+│       └── 20261004000000_add_patient_extended_fields.sql     # Extended profile columns
 └── src/
     ├── app/
     │   ├── globals.css                # CSS variables, table grid, drawer, responsive breakpoints
@@ -253,20 +264,20 @@ HHC-patientlist/
 |---|---|---|
 | `months` | Month registry | `id` (YYYY-MM), `year`, `month`, `label`, `days_in_month` |
 | `packages` | Package quotas & rates | `id`, `name`, `price`, `doc`, `nur_phy`, `nur`, `phy`, `psy`, `med`, `sort_order` |
-| `month_patients` | Per-patient monthly record | `month_id` (FK), `patient_id`, `name`, `subscriber`, `package_id` (FK), `med_given`, `visits_json` (JSONB matrix) |
+| `month_patients` | Per-patient monthly record | `month_id` (FK), `patient_id`, `name`, `subscriber`, `subscriber_email`, `father_husband_name`, `dob`, `gender`, `address`, `google_address_location`, `assigned_doctor`, `package_id` (FK), `med_given`, `visits_json` (JSONB matrix) |
 
 ---
 
 ### API Endpoints Directory
 
 - **`GET /api/data?monthId=YYYY-MM`** — Fetch month details, packages, and patient list with visit matrices.
-- **`POST /api/patients`** — Create a new patient record for the active month.
-- **`PATCH /api/patients/[id]`** — Update patient details, package, medicine, or daily visit entries.
+- **`POST /api/patients`** — Create a new patient record with extended profile fields for the active month.
+- **`PATCH /api/patients/[id]`** — Update patient details, profile fields, package, medicine, or daily visit entries.
 - **`DELETE /api/patients/[id]`** — Delete a patient record from a month.
 - **`GET / POST /api/packages`** — List existing packages or save package allocations.
 - **`GET / POST /api/months`** — List existing months or create a new month with patient carry-over.
 - **`POST /api/reset`** — Reset visit entries, medicine expenses, and package selections for a month.
-- **`GET /api/export?monthId=YYYY-MM`** — Download a complete `.json` month backup file.
+- **`GET /api/export?monthId=YYYY-MM`** — Download a complete `.json` month backup file with extended profile data.
 - **`POST /api/import`** — Upload and restore a `.json` month backup file.
 - **`GET /api/exchange-rate`** — Fetch current USD to PKR exchange rate.
 
@@ -297,8 +308,8 @@ Make sure Microsoft Edge is installed (default on Windows 10/11). To use Google 
 ### "SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY must be configured"
 Verify that `.env.local` exists in the root directory (not `.env`) and contains both variables without quotes.
 
-### Table Does Not Exist Error
-Execute both migration SQL files in your Supabase SQL Editor in numerical order (see [Step 5](#5-apply-database-migrations)).
+### Table / Column Does Not Exist Error
+Execute all three migration SQL files in your Supabase SQL Editor in numerical order (see [Step 5](#5-apply-database-migrations)).
 
 ### Page Loads But Shows No Data
 Ensure your Supabase project status is active and that the `SUPABASE_SERVICE_ROLE_KEY` is accurately pasted in `.env.local`.
