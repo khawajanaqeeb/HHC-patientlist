@@ -238,13 +238,36 @@ export function useAppData({ flashStatus, clearSearch, resetTable }: AppDataCall
     subscriber: string,
     packageId: number | null,
     patientId?: number,
+    extra?: {
+      subscriberEmail?: string;
+      fatherHusbandName?: string;
+      dob?: string;
+      gender?: string;
+      address?: string;
+      googleAddressLocation?: string;
+      assignedDoctor?: string;
+    }
   ) => {
     try {
+      const payload = {
+        monthId: currentMonth.id,
+        name,
+        subscriber,
+        packageId,
+        subscriberEmail: extra?.subscriberEmail || '',
+        fatherHusbandName: extra?.fatherHusbandName || '',
+        dob: extra?.dob || '',
+        gender: extra?.gender || '',
+        address: extra?.address || '',
+        googleAddressLocation: extra?.googleAddressLocation || '',
+        assignedDoctor: extra?.assignedDoctor || '',
+      };
+
       if (patientId) {
         const res = await fetch(`/api/patients/${patientId}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ monthId: currentMonth.id, name, subscriber, packageId }),
+          body: JSON.stringify(payload),
         });
         if (res.status === 401) {
           setIsAuthenticated(false);
@@ -253,7 +276,23 @@ export function useAppData({ flashStatus, clearSearch, resetTable }: AppDataCall
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || 'Failed to update patient');
         setPatients((prev) =>
-          prev.map((p) => (p.id === patientId ? { ...p, name, subscriber, packageId } : p)),
+          prev.map((p) =>
+            p.id === patientId
+              ? {
+                  ...p,
+                  name,
+                  subscriber,
+                  packageId,
+                  subscriberEmail: payload.subscriberEmail,
+                  fatherHusbandName: payload.fatherHusbandName,
+                  dob: payload.dob,
+                  gender: payload.gender,
+                  address: payload.address,
+                  googleAddressLocation: payload.googleAddressLocation,
+                  assignedDoctor: payload.assignedDoctor,
+                }
+              : p
+          )
         );
         callbacksRef.current.flashStatus('✔ Patient updated', '#2e7d32');
         return;
@@ -262,7 +301,7 @@ export function useAppData({ flashStatus, clearSearch, resetTable }: AppDataCall
       const res = await fetch('/api/patients', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ monthId: currentMonth.id, name, subscriber, packageId }),
+        body: JSON.stringify(payload),
       });
       if (res.status === 401) {
         setIsAuthenticated(false);

@@ -29,6 +29,13 @@ export interface PatientMonthData {
   id: number;
   name: string;
   subscriber: string;
+  subscriberEmail?: string;
+  fatherHusbandName?: string;
+  dob?: string;
+  gender?: string;
+  address?: string;
+  googleAddressLocation?: string;
+  assignedDoctor?: string;
   packageId: number | null;
   medGiven: number;
   v: DayVisits[]; // Array of length `daysInMonth`

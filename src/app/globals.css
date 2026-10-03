@@ -1728,6 +1728,203 @@ td.vc.vx { background: var(--can-bg) !important; }
 .patient-visit-summary span { min-height: 28px; color: #6c8490; font-size: 0.68rem; font-weight: 700; }
 .patient-visit-summary strong { font-size: 0.85rem; }
 
+/* Modern Patient Manager Extended Fields & Styling */
+.patient-manager-alert {
+  max-width: 920px;
+  margin: 0 auto 16px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.patient-manager-alert.success {
+  background: #e8f5e9;
+  border: 1px solid #a5d6a7;
+  color: #1b5e20;
+}
+.patient-manager-alert button {
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+}
+
+.modern-form {
+  padding: 28px;
+  border: 1px solid #d3e5eb;
+  border-radius: 14px;
+  background: #ffffff;
+  box-shadow: 0 10px 30px rgba(13, 60, 94, 0.05);
+}
+
+.form-section {
+  margin-bottom: 22px;
+  padding-bottom: 18px;
+  border-bottom: 1px dashed #d9e8ee;
+}
+.form-section:last-of-type {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+.form-section-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+  color: var(--teal);
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+.form-section-header svg {
+  color: #1a73e8;
+}
+
+.subscriber-stacked-group,
+.care-stacked-group {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  grid-column: span 1;
+}
+
+.sub-email-label svg,
+.care-stacked-group label svg {
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 4px;
+  color: #2b7c9e;
+}
+
+.full-width-grid {
+  grid-template-columns: 1fr !important;
+}
+.full-col {
+  grid-column: 1 / -1 !important;
+}
+
+.patient-manager-form-grid textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1.5px solid #b9d8e3;
+  border-radius: 8px;
+  outline: 0;
+  background: #fbfeff;
+  color: #1b3a4d;
+  font: inherit;
+  font-size: 0.8rem;
+  resize: vertical;
+  min-height: 56px;
+}
+.patient-manager-form-grid textarea:focus {
+  border-color: var(--teal3);
+  box-shadow: 0 0 0 3px rgba(41, 128, 185, 0.12);
+}
+
+.input-with-action {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+.input-with-action input {
+  flex: 1;
+}
+.btn-map-preview {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 9px 13px;
+  min-height: 42px;
+  border-radius: 7px;
+  background: #e8f0fe;
+  color: #1a73e8;
+  font-weight: 700;
+  font-size: 0.76rem;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background 0.15s ease, transform 0.1s ease;
+}
+.btn-map-preview:hover {
+  background: #d2e3fc;
+  color: #174ea6;
+}
+
+.patient-result-doc {
+  color: #0288d1;
+  font-size: 0.65rem;
+  font-weight: 700;
+  margin-top: 2px;
+}
+
+.req {
+  color: #d32f2f;
+  font-weight: 800;
+}
+
+/* Extended Detail Panel Styles */
+.patient-subhead {
+  margin: 3px 0 0;
+  color: #5c7886;
+  font-size: 0.74rem;
+  font-weight: 600;
+}
+
+.multi-grid {
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)) !important;
+}
+
+.patient-location-card {
+  margin: 0 0 24px;
+  padding: 14px 16px;
+  border: 1px solid #d4e5ec;
+  border-radius: 10px;
+  background: #f7fcfe;
+}
+.patient-location-card .card-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+  color: var(--teal);
+  font-size: 0.76rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+.patient-address-text {
+  margin: 0 0 10px;
+  color: #264a5c;
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+.map-link-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px;
+  border-radius: 6px;
+  background: #1a73e8;
+  color: #ffffff;
+  font-size: 0.74rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: background 0.15s ease;
+}
+.map-link-btn:hover {
+  background: #1557b0;
+}
+.email-text {
+  word-break: break-all;
+}
+
 .package-manager-modal {
   width: 100vw;
   height: 100vh;

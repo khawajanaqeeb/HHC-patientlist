@@ -19,6 +19,27 @@ export function validatePatientUpdate(data: Record<string, unknown>): string | n
   if ('subscriber' in data && typeof data.subscriber !== 'string') {
     return 'Subscriber must be a string.';
   }
+  if ('subscriberEmail' in data && typeof data.subscriberEmail !== 'string') {
+    return 'Subscriber email must be a string.';
+  }
+  if ('fatherHusbandName' in data && typeof data.fatherHusbandName !== 'string') {
+    return 'Father/Husband name must be a string.';
+  }
+  if ('dob' in data && typeof data.dob !== 'string') {
+    return 'Date of birth must be a string.';
+  }
+  if ('gender' in data && typeof data.gender !== 'string') {
+    return 'Gender must be a string.';
+  }
+  if ('address' in data && typeof data.address !== 'string') {
+    return 'Address must be a string.';
+  }
+  if ('googleAddressLocation' in data && typeof data.googleAddressLocation !== 'string') {
+    return 'Google address location must be a string.';
+  }
+  if ('assignedDoctor' in data && typeof data.assignedDoctor !== 'string') {
+    return 'Assigned doctor must be a string.';
+  }
   if ('packageId' in data && data.packageId !== null && (!Number.isInteger(data.packageId) || Number(data.packageId) < 1)) {
     return 'Package ID must be a positive integer or null.';
   }
@@ -26,7 +47,7 @@ export function validatePatientUpdate(data: Record<string, unknown>): string | n
     return 'Medicine given must be a non-negative integer.';
   }
   if ('v' in data && !isValidVisitMatrix(data.v)) {
-    return 'Visits must contain five valid values per calendar day.';
+    return 'Visits must contain valid values per calendar day.';
   }
   return null;
 }

@@ -133,11 +133,44 @@ export async function savePackages(packages: Package[]) {
 }
 
 export async function getMonthPatients(monthId: string): Promise<PatientMonthData[]> {
+  const db = getSupabase();
   const month = await getMonth(monthId);
-  const { data, error } = await getSupabase().from('month_patients').select('patient_id, name, subscriber, package_id, med_given, visits_json').eq('month_id', monthId).order('sort_order').order('patient_id');
-  throwIfError(error);
   const daysInMonth = month?.daysInMonth || 30;
-  return (data || []).map((row) => ({ id: Number(row.patient_id), name: String(row.name), subscriber: String(row.subscriber || ''), packageId: row.package_id === null ? null : Number(row.package_id), medGiven: Number(row.med_given || 0), v: normalizeVisits(row.visits_json, daysInMonth) }));
+
+  let rows: any[] | null = null;
+  const extendedQuery = await db.from('month_patients')
+    .select('patient_id, name, subscriber, subscriber_email, father_husband_name, dob, gender, address, google_address_location, assigned_doctor, package_id, med_given, visits_json')
+    .eq('month_id', monthId)
+    .order('sort_order')
+    .order('patient_id');
+
+  if (extendedQuery.error) {
+    const fallbackQuery = await db.from('month_patients')
+      .select('patient_id, name, subscriber, package_id, med_given, visits_json')
+      .eq('month_id', monthId)
+      .order('sort_order')
+      .order('patient_id');
+    throwIfError(fallbackQuery.error);
+    rows = fallbackQuery.data;
+  } else {
+    rows = extendedQuery.data;
+  }
+
+  return (rows || []).map((row) => ({
+    id: Number(row.patient_id),
+    name: String(row.name || ''),
+    subscriber: String(row.subscriber || ''),
+    subscriberEmail: String(row.subscriber_email || ''),
+    fatherHusbandName: String(row.father_husband_name || ''),
+    dob: String(row.dob || ''),
+    gender: String(row.gender || ''),
+    address: String(row.address || ''),
+    googleAddressLocation: String(row.google_address_location || ''),
+    assignedDoctor: String(row.assigned_doctor || ''),
+    packageId: row.package_id === null ? null : Number(row.package_id),
+    medGiven: Number(row.med_given || 0),
+    v: normalizeVisits(row.visits_json, daysInMonth),
+  }));
 }
 
 export async function updatePatient(monthId: string, patientId: number, data: Partial<PatientMonthData>) {
@@ -145,17 +178,53 @@ export async function updatePatient(monthId: string, patientId: number, data: Pa
   const current = await db.from('month_patients').select('*').eq('month_id', monthId).eq('patient_id', patientId).maybeSingle();
   throwIfError(current.error);
   if (!current.data) return;
-  const { error } = await db.from('month_patients').update({
+
+  const payload: Record<string, any> = {
     name: data.name ?? current.data.name,
     subscriber: data.subscriber ?? current.data.subscriber,
     package_id: 'packageId' in data ? data.packageId : current.data.package_id,
     med_given: data.medGiven ?? current.data.med_given,
     visits_json: data.v ?? current.data.visits_json,
-  }).eq('month_id', monthId).eq('patient_id', patientId);
-  throwIfError(error);
+  };
+
+  if ('subscriberEmail' in data) payload.subscriber_email = data.subscriberEmail ?? '';
+  if ('fatherHusbandName' in data) payload.father_husband_name = data.fatherHusbandName ?? '';
+  if ('dob' in data) payload.dob = data.dob ?? '';
+  if ('gender' in data) payload.gender = data.gender ?? '';
+  if ('address' in data) payload.address = data.address ?? '';
+  if ('googleAddressLocation' in data) payload.google_address_location = data.googleAddressLocation ?? '';
+  if ('assignedDoctor' in data) payload.assigned_doctor = data.assignedDoctor ?? '';
+
+  const { error } = await db.from('month_patients').update(payload).eq('month_id', monthId).eq('patient_id', patientId);
+  if (error) {
+    // Fallback if extended columns do not exist yet on DB
+    delete payload.subscriber_email;
+    delete payload.father_husband_name;
+    delete payload.dob;
+    delete payload.gender;
+    delete payload.address;
+    delete payload.google_address_location;
+    delete payload.assigned_doctor;
+    const fallback = await db.from('month_patients').update(payload).eq('month_id', monthId).eq('patient_id', patientId);
+    throwIfError(fallback.error);
+  }
 }
 
-export async function addPatient(monthId: string, name: string, subscriber: string, packageId: number | null): Promise<PatientMonthData> {
+export async function addPatient(
+  monthId: string,
+  name: string,
+  subscriber: string,
+  packageId: number | null,
+  extra?: {
+    subscriberEmail?: string;
+    fatherHusbandName?: string;
+    dob?: string;
+    gender?: string;
+    address?: string;
+    googleAddressLocation?: string;
+    assignedDoctor?: string;
+  }
+): Promise<PatientMonthData> {
   const db = getSupabase();
   const month = await getMonth(monthId);
   const { data: maxData } = await db.from('month_patients')
@@ -166,7 +235,8 @@ export async function addPatient(monthId: string, name: string, subscriber: stri
 
   const id = maxData && maxData.length > 0 ? Number(maxData[0].patient_id) + 1 : 1;
   const visits = Array.from({ length: month?.daysInMonth || 30 }, () => ['', '', '', '', '', '', '', '']);
-  const { error } = await db.from('month_patients').insert({
+
+  const payload: Record<string, any> = {
     month_id: monthId,
     patient_id: id,
     name,
@@ -175,9 +245,44 @@ export async function addPatient(monthId: string, name: string, subscriber: stri
     med_given: 0,
     visits_json: visits,
     sort_order: id - 1,
-  });
-  throwIfError(error);
-  return { id, name, subscriber, packageId, medGiven: 0, v: visits as DayVisits[] };
+    subscriber_email: extra?.subscriberEmail || '',
+    father_husband_name: extra?.fatherHusbandName || '',
+    dob: extra?.dob || '',
+    gender: extra?.gender || '',
+    address: extra?.address || '',
+    google_address_location: extra?.googleAddressLocation || '',
+    assigned_doctor: extra?.assignedDoctor || '',
+  };
+
+  const { error } = await db.from('month_patients').insert(payload);
+  if (error) {
+    // Fallback without extended fields
+    delete payload.subscriber_email;
+    delete payload.father_husband_name;
+    delete payload.dob;
+    delete payload.gender;
+    delete payload.address;
+    delete payload.google_address_location;
+    delete payload.assigned_doctor;
+    const fallback = await db.from('month_patients').insert(payload);
+    throwIfError(fallback.error);
+  }
+
+  return {
+    id,
+    name,
+    subscriber,
+    subscriberEmail: extra?.subscriberEmail || '',
+    fatherHusbandName: extra?.fatherHusbandName || '',
+    dob: extra?.dob || '',
+    gender: extra?.gender || '',
+    address: extra?.address || '',
+    googleAddressLocation: extra?.googleAddressLocation || '',
+    assignedDoctor: extra?.assignedDoctor || '',
+    packageId,
+    medGiven: 0,
+    v: visits as DayVisits[],
+  };
 }
 
 export async function deletePatient(monthId: string, patientId: number) {
@@ -203,8 +308,27 @@ export async function copyPatientsToMonth(fromMonthId: string, toMonthId: string
   throwIfError(deleteError);
 
   const visits = Array.from({ length: toMonth.daysInMonth }, () => ['', '', '', '', '', '', '', '']);
-  const { error: insertError } = await db.from('month_patients').insert(
-    previous.map((patient, index) => ({
+  const insertPayload = previous.map((patient, index) => ({
+    month_id: toMonthId,
+    patient_id: patient.id,
+    name: patient.name,
+    subscriber: patient.subscriber,
+    subscriber_email: patient.subscriberEmail || '',
+    father_husband_name: patient.fatherHusbandName || '',
+    dob: patient.dob || '',
+    gender: patient.gender || '',
+    address: patient.address || '',
+    google_address_location: patient.googleAddressLocation || '',
+    assigned_doctor: patient.assignedDoctor || '',
+    package_id: patient.packageId,
+    med_given: 0,
+    visits_json: visits,
+    sort_order: index,
+  }));
+
+  const { error: insertError } = await db.from('month_patients').insert(insertPayload);
+  if (insertError) {
+    const fallbackPayload = previous.map((patient, index) => ({
       month_id: toMonthId,
       patient_id: patient.id,
       name: patient.name,
@@ -213,9 +337,10 @@ export async function copyPatientsToMonth(fromMonthId: string, toMonthId: string
       med_given: 0,
       visits_json: visits,
       sort_order: index,
-    }))
-  );
-  throwIfError(insertError);
+    }));
+    const fallback = await db.from('month_patients').insert(fallbackPayload);
+    throwIfError(fallback.error);
+  }
   return previous.length;
 }
 
@@ -233,23 +358,7 @@ export async function createMonth(year: number, month: number, carryOverPatients
   if (carryOverPatientsFromMonthId) {
     const currentPatients = await getMonthPatients(monthId);
     if (currentPatients.length === 0) {
-      const previous = await getMonthPatients(carryOverPatientsFromMonthId);
-      const visits = Array.from({ length: daysInMonth }, () => ['', '', '', '', '', '', '', '']);
-      if (previous.length) {
-        const { error: patientError } = await getSupabase().from('month_patients').insert(
-          previous.map((patient, index) => ({
-            month_id: monthId,
-            patient_id: patient.id,
-            name: patient.name,
-            subscriber: patient.subscriber,
-            package_id: patient.packageId,
-            med_given: 0,
-            visits_json: visits,
-            sort_order: index,
-          }))
-        );
-        throwIfError(patientError);
-      }
+      await copyPatientsToMonth(carryOverPatientsFromMonthId, monthId);
     }
   }
   return { id: monthId, year, month, label, daysInMonth };
@@ -270,11 +379,18 @@ export async function importFullJson(data: any, targetMonthId?: string) {
     const { error } = await db.from('month_patients').delete().eq('month_id', monthId);
     throwIfError(error);
     const importedPackages = await getPackages();
-    const { error: insertError } = await db.from('month_patients').insert(data.patients.map((patient: any, index: number) => ({
+    const insertPayload = data.patients.map((patient: any, index: number) => ({
       month_id: monthId,
       patient_id: patient.id || index + 1,
       name: String(patient.name || '').trim(),
       subscriber: patient.subscriber || '',
+      subscriber_email: patient.subscriberEmail || patient.subscriber_email || '',
+      father_husband_name: patient.fatherHusbandName || patient.father_husband_name || '',
+      dob: patient.dob || '',
+      gender: patient.gender || '',
+      address: patient.address || '',
+      google_address_location: patient.googleAddressLocation || patient.google_address_location || '',
+      assigned_doctor: patient.assignedDoctor || patient.assigned_doctor || '',
       package_id: typeof patient.packageId === 'number'
         ? patient.packageId
         : typeof patient.pkgIdx === 'number' && importedPackages[patient.pkgIdx]
@@ -283,7 +399,26 @@ export async function importFullJson(data: any, targetMonthId?: string) {
       med_given: Math.max(0, Number(patient.medGiven) || 0),
       visits_json: normalizeVisits(patient.v, daysInMonth),
       sort_order: index,
-    })));
-    throwIfError(insertError);
+    }));
+
+    const { error: insertError } = await db.from('month_patients').insert(insertPayload);
+    if (insertError) {
+      const fallbackPayload = data.patients.map((patient: any, index: number) => ({
+        month_id: monthId,
+        patient_id: patient.id || index + 1,
+        name: String(patient.name || '').trim(),
+        subscriber: patient.subscriber || '',
+        package_id: typeof patient.packageId === 'number'
+          ? patient.packageId
+          : typeof patient.pkgIdx === 'number' && importedPackages[patient.pkgIdx]
+            ? importedPackages[patient.pkgIdx].id
+            : null,
+        med_given: Math.max(0, Number(patient.medGiven) || 0),
+        visits_json: normalizeVisits(patient.v, daysInMonth),
+        sort_order: index,
+      }));
+      const fallback = await db.from('month_patients').insert(fallbackPayload);
+      throwIfError(fallback.error);
+    }
   }
 }

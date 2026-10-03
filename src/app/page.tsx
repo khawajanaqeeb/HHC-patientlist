@@ -45,8 +45,22 @@ export default function PatientVisitSheetPage() {
 
   const [sidebarOpen, setSidebarOpen] = React.useState(false);
 
-  const onSavePatient = async (name: string, subscriber: string, packageId: number | null, patientId?: number) => {
-    await handleSavePatient(name, subscriber, packageId, patientId);
+  const onSavePatient = async (
+    name: string,
+    subscriber: string,
+    packageId: number | null,
+    patientId?: number,
+    extra?: {
+      subscriberEmail?: string;
+      fatherHusbandName?: string;
+      dob?: string;
+      gender?: string;
+      address?: string;
+      googleAddressLocation?: string;
+      assignedDoctor?: string;
+    }
+  ) => {
+    await handleSavePatient(name, subscriber, packageId, patientId, extra);
     if (patientId) setEditingPatient(null);
   };
 
