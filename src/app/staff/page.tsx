@@ -233,10 +233,7 @@ export default function StaffListPage() {
                       <span className="staff-id-badge">{member.staff_id}</span>
                     </td>
                     <td>
-                      <div style={{ display: 'flex', flexDirection: 'column' }}>
-                        <strong className="staff-name-text">{member.name}</strong>
-                        <span className="staff-sub-text">S/O, W/O: {member.father_husband_name}</span>
-                      </div>
+                      <strong className="staff-name-text">{member.name}</strong>
                     </td>
                     <td>
                       <span className="staff-desig-text">
