@@ -44,6 +44,7 @@ export default function Sidebar({
 }: Props) {
   const [internalOpen, setInternalOpen] = useState(false);
   const [expanded, setExpanded] = useState(false);
+  const [staffOpen, setStaffOpen] = useState(false);
   const [dataOpsOpen, setDataOpsOpen] = useState(false);
   const [resetConfirm, setResetConfirm] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -91,7 +92,7 @@ export default function Sidebar({
     }
   };
 
-  const primaryActions = [
+  const patientActions = [
     {
       label: 'Enter Visit Data',
       icon: <ClipboardEdit size={16} />,
@@ -106,14 +107,6 @@ export default function Sidebar({
       title: 'Register Patient',
     },
     {
-      label: 'Staff Management',
-      icon: <Users size={16} />,
-      onClick: () => {
-        if (typeof window !== 'undefined') window.location.href = '/staff';
-      },
-      title: 'Staff Management',
-    },
-    {
       label: 'Packages',
       icon: <Package2 size={16} />,
       onClick: () => handleAction(onOpenPackages),
@@ -124,6 +117,25 @@ export default function Sidebar({
       icon: <Printer size={16} />,
       onClick: () => handleAction(onPrint),
       title: 'Print Sheet',
+    },
+  ];
+
+  const staffActions = [
+    {
+      label: 'View All Staff',
+      icon: <Users size={16} />,
+      onClick: () => {
+        if (typeof window !== 'undefined') window.location.href = '/staff';
+      },
+      title: 'View All Staff Members',
+    },
+    {
+      label: 'Add Staff Member',
+      icon: <UserPlus size={16} />,
+      onClick: () => {
+        if (typeof window !== 'undefined') window.location.href = '/staff/new';
+      },
+      title: 'Add New Staff Member',
     },
   ];
 
@@ -157,7 +169,7 @@ export default function Sidebar({
         {isOpen ? <PanelLeftClose size={16} /> : <PanelLeftOpen size={16} />}
       </button>
 
-      {/* ── Patient Management Tab ── */}
+      {/* ── 1. Patient Management Tab ── */}
       <button
         className={`sidebar-tab${expanded && isOpen ? ' active' : ''}`}
         onClick={() => {
@@ -182,10 +194,10 @@ export default function Sidebar({
         )}
       </button>
 
-      {/* ── Primary sub-actions (only when sidebar open) ── */}
+      {/* Patient sub-actions */}
       {isOpen && (
         <div className={`sidebar-sub ${expanded ? 'open' : ''}`}>
-          {primaryActions.map((a) => (
+          {patientActions.map((a) => (
             <button
               key={a.label}
               className={`sidebar-action${a.highlight ? ' highlight' : ''}`}
@@ -202,7 +214,7 @@ export default function Sidebar({
       {/* Icon-only quick actions when collapsed */}
       {!isOpen && (
         <div className="icon-only-actions">
-          {primaryActions.map((a) => (
+          {patientActions.map((a) => (
             <button
               key={a.label}
               className={`icon-only-btn${a.highlight ? ' highlight' : ''}`}
@@ -215,8 +227,69 @@ export default function Sidebar({
         </div>
       )}
 
+      {/* ── 2. Staff Management Tab (Top-Level) ── */}
+      <button
+        className={`sidebar-tab${staffOpen && isOpen ? ' active' : ''}`}
+        style={{ marginTop: 4 }}
+        onClick={() => {
+          if (!isOpen) {
+            toggleSidebar();
+            setStaffOpen(true);
+          } else {
+            setStaffOpen((v) => !v);
+          }
+        }}
+        title="Staff Management"
+        aria-expanded={isOpen ? staffOpen : undefined}
+      >
+        <span className="sidebar-tab-icon"><Users size={16} style={{ color: '#6ee7b7' }} /></span>
+        {isOpen && (
+          <>
+            <span className="sidebar-tab-label">Staff Management</span>
+            <span className="sidebar-tab-chevron">
+              {staffOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+            </span>
+          </>
+        )}
+      </button>
+
+      {/* Staff sub-actions */}
+      {isOpen && (
+        <div className={`sidebar-sub ${staffOpen ? 'open' : ''}`}>
+          {staffActions.map((a) => (
+            <button
+              key={a.label}
+              className="sidebar-action"
+              onClick={a.onClick}
+              title={a.title}
+            >
+              <span className="sidebar-action-icon">{a.icon}</span>
+              <span className="sidebar-action-label">{a.label}</span>
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Icon-only button when collapsed for Staff */}
+      {!isOpen && (
+        <div className="icon-only-actions" style={{ marginTop: 4 }}>
+          <button
+            className="icon-only-btn"
+            onClick={() => {
+              if (typeof window !== 'undefined') window.location.href = '/staff';
+            }}
+            title="Staff Management"
+            style={{ color: '#6ee7b7' }}
+          >
+            <Users size={16} />
+          </button>
+        </div>
+      )}
+
       {/* ── Divider ── */}
       <div className="sidebar-divider" />
+
+      {/* ── 3. More Actions / Data Operations ── */}
 
       {/* ── More Actions / Data Operations (Three Dots Menu) ── */}
       <button
