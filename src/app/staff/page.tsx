@@ -79,15 +79,15 @@ export default function StaffListPage() {
   };
 
   const genderBadgeStyle = (gender: string) => {
-    if (gender === 'male') return { background: 'rgba(59, 130, 246, 0.22)', color: '#93c5fd', border: '1px solid rgba(96, 165, 250, 0.35)' };
-    if (gender === 'female') return { background: 'rgba(236, 72, 153, 0.22)', color: '#fbcfe8', border: '1px solid rgba(244, 114, 182, 0.35)' };
-    return { background: 'rgba(156, 163, 175, 0.22)', color: '#e5e7eb', border: '1px solid rgba(209, 213, 219, 0.35)' };
+    if (gender === 'male') return { background: 'rgba(37, 99, 235, 0.12)', color: '#1d4ed8', border: '1px solid rgba(37, 99, 235, 0.3)' };
+    if (gender === 'female') return { background: 'rgba(190, 24, 93, 0.1)', color: '#9d174d', border: '1px solid rgba(190, 24, 93, 0.3)' };
+    return { background: 'rgba(71, 85, 105, 0.1)', color: '#334155', border: '1px solid rgba(71, 85, 105, 0.25)' };
   };
 
   const statusBadgeStyle = (active: boolean) =>
     active
-      ? { background: 'rgba(34, 197, 94, 0.22)', color: '#86efac', border: '1px solid rgba(74, 222, 128, 0.35)' }
-      : { background: 'rgba(156, 163, 175, 0.2)', color: '#9ca3af', border: '1px solid rgba(156, 163, 175, 0.3)' };
+      ? { background: 'rgba(21, 128, 61, 0.12)', color: '#15803d', border: '1px solid rgba(21, 128, 61, 0.3)' }
+      : { background: 'rgba(100, 116, 139, 0.12)', color: '#475569', border: '1px solid rgba(100, 116, 139, 0.25)' };
 
   const genderLabel = (g: string) =>
     g === 'male' ? 'Male' : g === 'female' ? 'Female' : 'Other';
