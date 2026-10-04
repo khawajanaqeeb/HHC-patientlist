@@ -157,7 +157,7 @@ export default function StaffProfilePage() {
             <div className="staff-detail-section-header">Personal Information</div>
             <div className="staff-detail-grid">
               <div className="staff-detail-row">
-                <span>Father / Husband Name</span>
+                <span>{member.father_husband_name_type === 'husband' ? "Husband's Name (W/O)" : "Father's Name (S/O)"}</span>
                 <strong>{member.father_husband_name}</strong>
               </div>
               <div className="staff-detail-row">

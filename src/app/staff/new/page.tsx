@@ -29,6 +29,7 @@ export default function AddStaffPage() {
   // Form fields
   const [name, setName] = useState('');
   const [fatherHusbandName, setFatherHusbandName] = useState('');
+  const [fatherHusbandNameType, setFatherHusbandNameType] = useState<'father' | 'husband'>('father');
   const [gender, setGender] = useState('');
   const [designationType, setDesignationType] = useState('');
   const [designationCustom, setDesignationCustom] = useState('');
@@ -108,6 +109,7 @@ export default function AddStaffPage() {
         body: JSON.stringify({
           name: name.trim(),
           father_husband_name: fatherHusbandName.trim(),
+          father_husband_name_type: fatherHusbandNameType,
           gender,
           designation_type: designationType,
           designation_custom: designationType === 'other' ? designationCustom.trim() : null,
@@ -187,10 +189,33 @@ export default function AddStaffPage() {
             </div>
             <div className="staff-form-field">
               <label>Father's / Husband's Name <span className="req">*</span></label>
+              {/* Relationship type selector */}
+              <div className="staff-radio-group" style={{ marginBottom: 8 }}>
+                <label className="staff-radio-label">
+                  <input
+                    type="radio"
+                    name="fatherHusbandNameType"
+                    value="father"
+                    checked={fatherHusbandNameType === 'father'}
+                    onChange={() => setFatherHusbandNameType('father')}
+                  />
+                  <span>Father (S/O)</span>
+                </label>
+                <label className="staff-radio-label">
+                  <input
+                    type="radio"
+                    name="fatherHusbandNameType"
+                    value="husband"
+                    checked={fatherHusbandNameType === 'husband'}
+                    onChange={() => setFatherHusbandNameType('husband')}
+                  />
+                  <span>Husband (W/O)</span>
+                </label>
+              </div>
               <input
                 value={fatherHusbandName}
                 onChange={(e) => setFatherHusbandName(e.target.value)}
-                placeholder="e.g. Mohammad Ahmed"
+                placeholder={fatherHusbandNameType === 'father' ? "e.g. Mohammad Ahmed" : "e.g. Ali Hassan"}
               />
               {errors.fatherHusbandName && <span className="staff-field-error">{errors.fatherHusbandName}</span>}
             </div>

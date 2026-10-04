@@ -64,6 +64,7 @@ export interface StaffMember {
   staff_id: string;
   name: string;
   father_husband_name: string;
+  father_husband_name_type: 'father' | 'husband';
   gender: 'male' | 'female' | 'other';
   designation_type: string;
   designation_custom: string | null;
