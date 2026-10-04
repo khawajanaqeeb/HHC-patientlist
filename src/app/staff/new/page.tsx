@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ChevronLeft, Save, X, MapPin } from 'lucide-react';
+import { ChevronLeft, Save, X, MapPin, ArrowLeft } from 'lucide-react';
 import { PhotoUpload } from '@/components/PhotoUpload';
 import { getInitials, getAvatarColor, DESIGNATION_OPTIONS, extractLatLng } from '@/lib/staffConstants';
 
@@ -145,6 +145,9 @@ export default function AddStaffPage() {
       <div className="staff-form-topbar">
         <Link href="/staff" className="staff-back-btn">
           <ChevronLeft size={16} /> All Staff
+        </Link>
+        <Link href="/" className="btn-staff-back-home" style={{ padding: '6px 12px', fontSize: '0.82rem' }}>
+          <ArrowLeft size={16} /> Main Sheet
         </Link>
         <h1>Add Staff Member</h1>
       </div>

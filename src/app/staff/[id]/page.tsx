@@ -3,7 +3,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams, useParams } from 'next/navigation';
-import { ChevronLeft, Edit3, UserCheck, UserX, Phone, Mail, MapPin, Calendar, Info, ExternalLink } from 'lucide-react';
+import { ChevronLeft, Edit3, UserCheck, UserX, Phone, Mail, MapPin, Calendar, Info, ExternalLink, ArrowLeft } from 'lucide-react';
 import {
   StaffMember, getDesignationLabel, getInitials, getAvatarColor, formatWhatsAppUrl,
 } from '@/lib/staffConstants';
@@ -85,9 +85,12 @@ export default function StaffProfilePage() {
         </div>
       )}
 
-      <div className="staff-profile-topbar">
+      <div className="staff-profile-topbar" style={{ gap: 10 }}>
         <Link href="/staff" className="staff-back-btn">
           <ChevronLeft size={16} /> All Staff
+        </Link>
+        <Link href="/" className="btn-staff-back-home" style={{ padding: '6px 12px', fontSize: '0.82rem' }}>
+          <ArrowLeft size={16} /> Main Sheet
         </Link>
       </div>
 

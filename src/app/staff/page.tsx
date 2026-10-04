@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
   UserPlus, Search, Filter, Phone, MessageCircle,
-  Eye, Edit3, UserX, Users, ChevronDown,
+  Eye, Edit3, UserX, Users, ChevronDown, ArrowLeft,
 } from 'lucide-react';
 import {
   StaffMember, getDesignationLabel, getInitials, getAvatarColor,
@@ -111,10 +111,16 @@ export default function StaffListPage() {
             <p>Comprehensive directory of Human Healthcare personnel &amp; specialists</p>
           </div>
         </div>
-        <Link href="/staff/new" className="btn-staff-add">
-          <UserPlus size={16} />
-          Add Staff Member
-        </Link>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <Link href="/" className="btn-staff-back-home" title="Return to main Patient Visit Sheet">
+            <ArrowLeft size={16} />
+            Patient Visit Sheet
+          </Link>
+          <Link href="/staff/new" className="btn-staff-add">
+            <UserPlus size={16} />
+            Add Staff Member
+          </Link>
+        </div>
       </div>
 
       {/* ── Summary Stat Cards ── */}
