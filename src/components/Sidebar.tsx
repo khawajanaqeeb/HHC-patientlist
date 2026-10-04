@@ -106,6 +106,14 @@ export default function Sidebar({
       title: 'Register Patient',
     },
     {
+      label: 'Staff Management',
+      icon: <Users size={16} />,
+      onClick: () => {
+        if (typeof window !== 'undefined') window.location.href = '/staff';
+      },
+      title: 'Staff Management',
+    },
+    {
       label: 'Packages',
       icon: <Package2 size={16} />,
       onClick: () => handleAction(onOpenPackages),

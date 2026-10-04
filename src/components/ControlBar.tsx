@@ -72,6 +72,11 @@ export default function ControlBar({
         Patient Management
       </button>
 
+      <a href="/staff" className="btn btn-primary" style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+        <UserPlus size={13} />
+        Staff Management
+      </a>
+
       <button className="btn btn-primary" onClick={onPrint}>
         <Printer size={13} />
         Print
