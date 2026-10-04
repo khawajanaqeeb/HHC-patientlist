@@ -79,49 +79,77 @@ export default function StaffListPage() {
   };
 
   const genderBadgeStyle = (gender: string) => {
-    if (gender === 'male') return { background: '#dbeafe', color: '#1e40af' };
-    if (gender === 'female') return { background: '#fce7f3', color: '#9d174d' };
-    return { background: '#f3f4f6', color: '#4b5563' };
+    if (gender === 'male') return { background: 'rgba(59, 130, 246, 0.22)', color: '#93c5fd', border: '1px solid rgba(96, 165, 250, 0.35)' };
+    if (gender === 'female') return { background: 'rgba(236, 72, 153, 0.22)', color: '#fbcfe8', border: '1px solid rgba(244, 114, 182, 0.35)' };
+    return { background: 'rgba(156, 163, 175, 0.22)', color: '#e5e7eb', border: '1px solid rgba(209, 213, 219, 0.35)' };
   };
 
   const statusBadgeStyle = (active: boolean) =>
     active
-      ? { background: '#dcfce7', color: '#166534' }
-      : { background: '#f3f4f6', color: '#6b7280' };
+      ? { background: 'rgba(34, 197, 94, 0.22)', color: '#86efac', border: '1px solid rgba(74, 222, 128, 0.35)' }
+      : { background: 'rgba(156, 163, 175, 0.2)', color: '#9ca3af', border: '1px solid rgba(156, 163, 175, 0.3)' };
 
   const genderLabel = (g: string) =>
     g === 'male' ? 'Male' : g === 'female' ? 'Female' : 'Other';
+
+  // Summary counts
+  const totalCount = staff.length;
+  const activeCount = useMemo(() => staff.filter((s) => s.is_active).length, [staff]);
+  const doctorCount = useMemo(() => staff.filter((s) => s.designation_type === 'doctor' && s.is_active).length, [staff]);
+  const nursePhysioCount = useMemo(() => staff.filter((s) => (s.designation_type === 'nurse' || s.designation_type === 'physio') && s.is_active).length, [staff]);
 
   return (
     <div className="staff-page">
       {/* ── Header ── */}
       <div className="staff-page-header">
         <div className="staff-page-title">
-          <Users size={22} />
+          <div className="staff-header-icon-box">
+            <Users size={24} />
+          </div>
           <div>
             <h1>Staff Management</h1>
-            <p>All Human Healthcare staff members</p>
+            <p>Comprehensive directory of Human Healthcare personnel &amp; specialists</p>
           </div>
         </div>
         <Link href="/staff/new" className="btn-staff-add">
-          <UserPlus size={15} />
+          <UserPlus size={16} />
           Add Staff Member
         </Link>
       </div>
 
-      {/* ── Filters ── */}
+      {/* ── Summary Stat Cards ── */}
+      <div className="staff-stats-grid">
+        <div className="staff-stat-card">
+          <span className="staff-stat-label">Total Personnel</span>
+          <span className="staff-stat-val" style={{ color: '#60a5fa' }}>{totalCount}</span>
+        </div>
+        <div className="staff-stat-card">
+          <span className="staff-stat-label">Active Staff</span>
+          <span className="staff-stat-val" style={{ color: '#4ade80' }}>{activeCount}</span>
+        </div>
+        <div className="staff-stat-card">
+          <span className="staff-stat-label">Active Doctors</span>
+          <span className="staff-stat-val" style={{ color: '#a78bfa' }}>{doctorCount}</span>
+        </div>
+        <div className="staff-stat-card">
+          <span className="staff-stat-label">Nurses &amp; Physios</span>
+          <span className="staff-stat-val" style={{ color: '#f472b6' }}>{nursePhysioCount}</span>
+        </div>
+      </div>
+
+      {/* ── Filters Bar ── */}
       <div className="staff-filters-bar">
         <div className="staff-search-box">
-          <Search size={14} />
+          <Search size={15} />
           <input
             type="text"
-            placeholder="Search by name, ID, contact, designation…"
+            placeholder="Search by name, ID, phone number, designation…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
         <div className="staff-filters-row">
-          <Filter size={13} style={{ color: 'rgba(255,255,255,0.5)', flexShrink: 0 }} />
+          <Filter size={14} style={{ color: '#60a5fa', flexShrink: 0 }} />
           <select value={designationFilter} onChange={(e) => setDesignationFilter(e.target.value)} className="staff-filter-select">
             <option value="">All Designations</option>
             {DESIGNATION_OPTIONS.map((o) => (
@@ -144,15 +172,15 @@ export default function StaffListPage() {
 
       {/* ── Table ── */}
       {loading ? (
-        <div className="staff-loading">Loading staff members…</div>
+        <div className="staff-loading">Loading staff directory…</div>
       ) : staff.length === 0 ? (
         <div className="staff-empty-state">
-          <Users size={42} style={{ color: 'rgba(255,255,255,0.25)', marginBottom: 12 }} />
+          <Users size={46} style={{ color: 'rgba(255,255,255,0.3)', marginBottom: 12 }} />
           <h3>No staff members found</h3>
           <p>
             {search || designationFilter || genderFilter || statusFilter
-              ? 'No records match your current filters.'
-              : 'Start by adding your first staff member.'}
+              ? 'No records match your current search and filters.'
+              : 'Start by registering your first staff member.'}
           </p>
           <Link href="/staff/new" className="btn-staff-add" style={{ marginTop: 16, display: 'inline-flex' }}>
             <UserPlus size={14} /> Add Staff Member
@@ -163,15 +191,15 @@ export default function StaffListPage() {
           <table className="staff-table">
             <thead>
               <tr>
-                <th style={{ width: 48 }}></th>
+                <th style={{ width: 54 }}>Photo</th>
                 <th>Staff ID</th>
-                <th>Name</th>
+                <th>Full Name &amp; S/O, W/O</th>
                 <th>Designation</th>
                 <th>Gender</th>
                 <th>Contact</th>
                 <th>WhatsApp</th>
                 <th>Status</th>
-                <th>Actions</th>
+                <th style={{ textAlign: 'center' }}>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -198,8 +226,17 @@ export default function StaffListPage() {
                     <td>
                       <span className="staff-id-badge">{member.staff_id}</span>
                     </td>
-                    <td><strong>{member.name}</strong></td>
-                    <td>{getDesignationLabel(member.designation_type, member.designation_custom)}</td>
+                    <td>
+                      <div style={{ display: 'flex', flexDirection: 'column' }}>
+                        <strong className="staff-name-text">{member.name}</strong>
+                        <span className="staff-sub-text">S/O, W/O: {member.father_husband_name}</span>
+                      </div>
+                    </td>
+                    <td>
+                      <span className="staff-desig-text">
+                        {getDesignationLabel(member.designation_type, member.designation_custom)}
+                      </span>
+                    </td>
                     <td>
                       <span className="staff-badge" style={genderBadgeStyle(member.gender)}>
                         {genderLabel(member.gender)}
@@ -207,6 +244,7 @@ export default function StaffListPage() {
                     </td>
                     <td>
                       <a href={`tel:${member.contact_number}`} className="staff-phone-link">
+                        <Phone size={12} style={{ display: 'inline', marginRight: 4 }} />
                         {member.contact_number}
                       </a>
                     </td>
@@ -217,12 +255,12 @@ export default function StaffListPage() {
                           target="_blank"
                           rel="noopener noreferrer"
                           className="staff-wa-btn"
-                          title="Open WhatsApp"
+                          title="Open WhatsApp chat"
                         >
-                          <MessageCircle size={16} />
+                          <MessageCircle size={15} />
                         </a>
                       ) : (
-                        <span style={{ color: 'rgba(255,255,255,0.2)' }}>—</span>
+                        <span style={{ color: 'rgba(255,255,255,0.25)' }}>—</span>
                       )}
                     </td>
                     <td>
@@ -233,26 +271,26 @@ export default function StaffListPage() {
                             width: 6,
                             height: 6,
                             borderRadius: '50%',
-                            background: member.is_active ? '#16a34a' : '#9ca3af',
-                            marginRight: 4,
+                            background: member.is_active ? '#4ade80' : '#9ca3af',
+                            marginRight: 5,
                           }}
                         />
                         {member.is_active ? 'Active' : 'Inactive'}
                       </span>
                     </td>
                     <td>
-                      <div className="staff-actions">
+                      <div className="staff-actions" style={{ justifyContent: 'center' }}>
                         <button
                           className="staff-action-btn view"
                           onClick={() => router.push(`/staff/${member.id}`)}
-                          title="View profile"
+                          title="View complete profile"
                         >
                           <Eye size={13} /> View
                         </button>
                         <button
                           className="staff-action-btn edit"
                           onClick={() => router.push(`/staff/${member.id}/edit`)}
-                          title="Edit"
+                          title="Edit staff details"
                         >
                           <Edit3 size={13} /> Edit
                         </button>
@@ -260,7 +298,7 @@ export default function StaffListPage() {
                           <button
                             className="staff-action-btn deactivate"
                             onClick={() => handleDeactivate(member)}
-                            title="Deactivate"
+                            title="Deactivate staff record"
                           >
                             <UserX size={13} /> Deactivate
                           </button>
