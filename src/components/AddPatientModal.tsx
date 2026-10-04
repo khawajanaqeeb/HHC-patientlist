@@ -86,6 +86,10 @@ export const AddPatientModal: React.FC<AddPatientModalProps> = ({
   const [googleAddressLocation, setGoogleAddressLocation] = useState('');
   const [packageId, setPackageId] = useState<number | null>(null);
 
+  // Doctors list from staff management
+  const [doctors, setDoctors] = useState<{ id: string; name: string; staff_id: string }[]>([]);
+  const [customDoctor, setCustomDoctor] = useState(false);
+
   // Search & Feedback States
   const [searchField, setSearchField] = useState<SearchField>('name');
   const [searchValue, setSearchValue] = useState('');
@@ -98,8 +102,19 @@ export const AddPatientModal: React.FC<AddPatientModalProps> = ({
     setMode(initialMode);
     setSelectedPatient(patient);
     setSearchValue('');
+    setCustomDoctor(false);
     setError('');
     setSuccessMsg('');
+
+    // Fetch active doctors from Staff database
+    fetch('/api/staff?designation=doctor&status=active')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data?.staff) {
+          setDoctors(data.staff);
+        }
+      })
+      .catch(() => {});
   }, [isOpen, initialMode, patient]);
 
   useEffect(() => {
@@ -412,11 +427,50 @@ export const AddPatientModal: React.FC<AddPatientModalProps> = ({
                   </label>
                   <label>
                     <span className="label-text-wrap"><Stethoscope size={13} /> Assigned Doctor</span>
-                    <input
-                      value={assignedDoctor}
-                      onChange={(event) => setAssignedDoctor(event.target.value)}
-                      placeholder="e.g. Dr. Sarah Ahmed"
-                    />
+                    {doctors.length > 0 ? (
+                      <select
+                        value={customDoctor ? '__OTHER__' : assignedDoctor}
+                        onChange={(event) => {
+                          const val = event.target.value;
+                          if (val === '__OTHER__') {
+                            setCustomDoctor(true);
+                            setAssignedDoctor('');
+                          } else {
+                            setCustomDoctor(false);
+                            setAssignedDoctor(val);
+                          }
+                        }}
+                      >
+                        <option value="">-- Select Doctor --</option>
+                        {doctors.map((d) => {
+                          const docName = d.name.startsWith('Dr.') ? d.name : `Dr. ${d.name}`;
+                          return (
+                            <option key={d.id} value={docName}>
+                              {docName} ({d.staff_id})
+                            </option>
+                          );
+                        })}
+                        {assignedDoctor && !doctors.some((d) => d.name === assignedDoctor || `Dr. ${d.name}` === assignedDoctor) && !customDoctor && (
+                          <option value={assignedDoctor}>{assignedDoctor}</option>
+                        )}
+                        <option value="__OTHER__">+ Enter Custom Doctor Name</option>
+                      </select>
+                    ) : (
+                      <input
+                        value={assignedDoctor}
+                        onChange={(event) => setAssignedDoctor(event.target.value)}
+                        placeholder="e.g. Dr. Sarah Ahmed"
+                      />
+                    )}
+                    {customDoctor && (
+                      <input
+                        style={{ marginTop: 6 }}
+                        value={assignedDoctor}
+                        onChange={(event) => setAssignedDoctor(event.target.value)}
+                        placeholder="Enter doctor's full name"
+                        autoFocus
+                      />
+                    )}
                   </label>
                   <label>
                     <span className="label-text-wrap">Assigned Package</span>
