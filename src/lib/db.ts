@@ -139,7 +139,7 @@ export async function getMonthPatients(monthId: string): Promise<PatientMonthDat
 
   let rows: any[] | null = null;
   const extendedQuery = await db.from('month_patients')
-    .select('patient_id, name, subscriber, subscriber_email, father_husband_name, dob, gender, address, google_address_location, assigned_doctor, package_id, med_given, visits_json')
+    .select('patient_id, name, subscriber, subscriber_email, father_husband_name, dob, gender, address, google_address_location, assigned_doctor, package_id, med_given, visits_json, photo_path')
     .eq('month_id', monthId)
     .order('sort_order')
     .order('patient_id');
@@ -169,6 +169,7 @@ export async function getMonthPatients(monthId: string): Promise<PatientMonthDat
     assignedDoctor: String(row.assigned_doctor || ''),
     packageId: row.package_id === null ? null : Number(row.package_id),
     medGiven: Number(row.med_given || 0),
+    photo_path: row.photo_path || null,
     v: normalizeVisits(row.visits_json, daysInMonth),
   }));
 }
@@ -194,6 +195,7 @@ export async function updatePatient(monthId: string, patientId: number, data: Pa
   if ('address' in data) payload.address = data.address ?? '';
   if ('googleAddressLocation' in data) payload.google_address_location = data.googleAddressLocation ?? '';
   if ('assignedDoctor' in data) payload.assigned_doctor = data.assignedDoctor ?? '';
+  if ('photo_path' in data) payload.photo_path = data.photo_path ?? null;
 
   const { error } = await db.from('month_patients').update(payload).eq('month_id', monthId).eq('patient_id', patientId);
   if (error) {

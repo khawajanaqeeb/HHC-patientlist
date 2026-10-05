@@ -38,6 +38,7 @@ export interface PatientMonthData {
   assignedDoctor?: string;
   packageId: number | null;
   medGiven: number;
+  photo_path?: string | null;
   v: DayVisits[]; // Array of length `daysInMonth`
 }
 

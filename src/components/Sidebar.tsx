@@ -94,6 +94,14 @@ export default function Sidebar({
 
   const patientActions = [
     {
+      label: 'Patient Directory',
+      icon: <Users size={16} />,
+      onClick: () => {
+        if (typeof window !== 'undefined') window.location.href = '/patients';
+      },
+      title: 'View All Patients Directory',
+    },
+    {
       label: 'Enter Visit Data',
       icon: <ClipboardEdit size={16} />,
       onClick: () => handleAction(onOpenEnterVisit),
