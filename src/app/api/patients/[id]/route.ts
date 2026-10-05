@@ -84,3 +84,28 @@ export async function PATCH(
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
+
+// DELETE /api/patients/[id]
+export async function DELETE(
+  _request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params;
+    const db = getSupabase();
+    const patientId = Number(id);
+    if (isNaN(patientId)) {
+      return NextResponse.json({ error: 'Invalid patient ID.' }, { status: 400 });
+    }
+
+    const { error } = await db
+      .from('month_patients')
+      .delete()
+      .eq('patient_id', patientId);
+
+    if (error) throw new Error(error.message);
+    return NextResponse.json({ success: true });
+  } catch (err: any) {
+    return NextResponse.json({ error: err.message }, { status: 500 });
+  }
+}

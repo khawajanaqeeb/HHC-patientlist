@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
   UserRound, Search, Filter, Eye, ArrowLeft, Calendar, Stethoscope,
-  Edit3, UserX, UserCheck,
+  Edit3, UserX, UserCheck, Trash2, AlertTriangle, X,
 } from 'lucide-react';
 import { getInitials, getPatientAvatarColor } from '@/lib/staffConstants';
 
@@ -69,6 +69,10 @@ export default function PatientListPage() {
   const [monthFilter, setMonthFilter] = useState('');
   const [availableMonths, setAvailableMonths] = useState<string[]>([]);
 
+  // Delete modal state
+  const [deletingPatient, setDeletingPatient] = useState<PatientRow | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
   // Load available months for the filter dropdown
   useEffect(() => {
     fetch('/api/months')
@@ -125,6 +129,23 @@ export default function PatientListPage() {
       loadPatients();
     } catch (err: any) {
       alert(err.message || 'Action failed');
+    }
+  };
+
+  const handleDeletePatient = async () => {
+    if (!deletingPatient) return;
+    setIsDeleting(true);
+    try {
+      const res = await fetch(`/api/patients/${deletingPatient.patient_id}`, {
+        method: 'DELETE',
+      });
+      if (!res.ok) throw new Error('Failed to delete patient');
+      setDeletingPatient(null);
+      loadPatients();
+    } catch (err: any) {
+      alert(err.message || 'Deletion failed');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -335,6 +356,14 @@ export default function PatientListPage() {
                           {isActive ? <UserX size={13} /> : <UserCheck size={13} />}
                           {isActive ? ' Deactivate' : ' Activate'}
                         </button>
+                        <button
+                          className="staff-action-btn deactivate"
+                          style={{ background: 'rgba(239, 68, 68, 0.12)', color: '#ef4444', borderColor: 'rgba(239, 68, 68, 0.3)' }}
+                          onClick={() => setDeletingPatient(patient)}
+                          title="Delete patient permanently"
+                        >
+                          <Trash2 size={13} /> Delete
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -342,6 +371,65 @@ export default function PatientListPage() {
               })}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {/* Delete Patient Confirmation Modal */}
+      {deletingPatient && (
+        <div className="modal-overlay" onClick={() => setDeletingPatient(null)}>
+          <div className="modal-box" style={{ maxWidth: 440 }} onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header" style={{ borderBottom: '1px solid rgba(239, 68, 68, 0.2)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#ef4444' }}>
+                <AlertTriangle size={20} />
+                <h3 style={{ margin: 0, color: '#ef4444' }}>Delete Patient Record</h3>
+              </div>
+              <button className="modal-close" onClick={() => setDeletingPatient(null)}>
+                <X size={16} />
+              </button>
+            </div>
+            <div className="modal-body" style={{ gap: 12, padding: '18px 0 6px 0' }}>
+              <p style={{ color: '#e2e8f0', fontSize: '0.92rem', lineHeight: '1.5', margin: 0 }}>
+                Are you sure you want to permanently delete patient{' '}
+                <strong style={{ color: '#fff' }}>{deletingPatient.name}</strong> (P-{String(deletingPatient.patient_id).padStart(3, '0')})?
+              </p>
+              <div style={{
+                background: 'rgba(239, 68, 68, 0.1)',
+                border: '1px solid rgba(239, 68, 68, 0.25)',
+                borderRadius: 8,
+                padding: '10px 12px',
+                color: '#fca5a5',
+                fontSize: '0.82rem',
+                lineHeight: '1.4',
+              }}>
+                <strong>Warning:</strong> This will remove all visit history, profile details, and records for this patient across all months. This action cannot be undone.
+              </div>
+            </div>
+            <div className="modal-footer" style={{ marginTop: 16, display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
+              <button
+                type="button"
+                className="btn-secondary"
+                onClick={() => setDeletingPatient(null)}
+                disabled={isDeleting}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="btn-primary"
+                onClick={handleDeletePatient}
+                disabled={isDeleting}
+                style={{
+                  background: 'linear-gradient(135deg, #dc2626, #b91c1c)',
+                  borderColor: '#ef4444',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 6,
+                }}
+              >
+                <Trash2 size={14} /> {isDeleting ? 'Deleting…' : 'Delete Permanently'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
