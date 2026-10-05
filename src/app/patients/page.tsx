@@ -132,14 +132,37 @@ export default function PatientListPage() {
     }
   };
 
-  const handleDeletePatient = async () => {
+  const confirmAndDelete = async (patient: PatientRow) => {
+    const confirmed = window.confirm(
+      `⚠️ WARNING: Delete patient "${patient.name}" (P-${String(patient.patient_id).padStart(3, '0')})?\n\nThis will permanently remove all profile details and visit records for this patient across all months. This action cannot be undone.`
+    );
+    if (!confirmed) return;
+
+    try {
+      const res = await fetch(`/api/patients/${patient.patient_id}`, {
+        method: 'DELETE',
+      });
+      if (!res.ok) {
+        const { error } = await res.json();
+        throw new Error(error || 'Failed to delete patient');
+      }
+      loadPatients();
+    } catch (err: any) {
+      alert(err.message || 'Deletion failed');
+    }
+  };
+
+  const handleDeleteFromModal = async () => {
     if (!deletingPatient) return;
     setIsDeleting(true);
     try {
       const res = await fetch(`/api/patients/${deletingPatient.patient_id}`, {
         method: 'DELETE',
       });
-      if (!res.ok) throw new Error('Failed to delete patient');
+      if (!res.ok) {
+        const { error } = await res.json();
+        throw new Error(error || 'Failed to delete patient');
+      }
       setDeletingPatient(null);
       loadPatients();
     } catch (err: any) {
@@ -358,8 +381,8 @@ export default function PatientListPage() {
                         </button>
                         <button
                           className="staff-action-btn deactivate"
-                          style={{ background: 'rgba(239, 68, 68, 0.12)', color: '#ef4444', borderColor: 'rgba(239, 68, 68, 0.3)' }}
-                          onClick={() => setDeletingPatient(patient)}
+                          style={{ background: 'rgba(239, 68, 68, 0.15)', color: '#ef4444', borderColor: 'rgba(239, 68, 68, 0.4)' }}
+                          onClick={() => confirmAndDelete(patient)}
                           title="Delete patient permanently"
                         >
                           <Trash2 size={13} /> Delete
@@ -376,19 +399,19 @@ export default function PatientListPage() {
 
       {/* Delete Patient Confirmation Modal */}
       {deletingPatient && (
-        <div className="modal-overlay" onClick={() => setDeletingPatient(null)}>
-          <div className="modal-box" style={{ maxWidth: 440 }} onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header" style={{ borderBottom: '1px solid rgba(239, 68, 68, 0.2)' }}>
+        <div className="mbg" onClick={() => setDeletingPatient(null)}>
+          <div className="modal" style={{ maxWidth: 440, padding: 20 }} onClick={(e) => e.stopPropagation()}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#ef4444' }}>
                 <AlertTriangle size={20} />
-                <h3 style={{ margin: 0, color: '#ef4444' }}>Delete Patient Record</h3>
+                <h3 style={{ margin: 0, color: '#ef4444', fontSize: '1.1rem' }}>Delete Patient Record</h3>
               </div>
-              <button className="modal-close" onClick={() => setDeletingPatient(null)}>
+              <button className="icon-btn" onClick={() => setDeletingPatient(null)}>
                 <X size={16} />
               </button>
             </div>
-            <div className="modal-body" style={{ gap: 12, padding: '18px 0 6px 0' }}>
-              <p style={{ color: '#e2e8f0', fontSize: '0.92rem', lineHeight: '1.5', margin: 0 }}>
+            <div style={{ gap: 12, padding: '8px 0' }}>
+              <p style={{ color: '#e2e8f0', fontSize: '0.92rem', lineHeight: '1.5', margin: '0 0 10px 0' }}>
                 Are you sure you want to permanently delete patient{' '}
                 <strong style={{ color: '#fff' }}>{deletingPatient.name}</strong> (P-{String(deletingPatient.patient_id).padStart(3, '0')})?
               </p>
@@ -404,10 +427,10 @@ export default function PatientListPage() {
                 <strong>Warning:</strong> This will remove all visit history, profile details, and records for this patient across all months. This action cannot be undone.
               </div>
             </div>
-            <div className="modal-footer" style={{ marginTop: 16, display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
+            <div style={{ marginTop: 16, display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
               <button
                 type="button"
-                className="btn-secondary"
+                className="btn sec"
                 onClick={() => setDeletingPatient(null)}
                 disabled={isDeleting}
               >
@@ -415,12 +438,12 @@ export default function PatientListPage() {
               </button>
               <button
                 type="button"
-                className="btn-primary"
-                onClick={handleDeletePatient}
+                className="btn btn-danger"
+                onClick={handleDeleteFromModal}
                 disabled={isDeleting}
                 style={{
                   background: 'linear-gradient(135deg, #dc2626, #b91c1c)',
-                  borderColor: '#ef4444',
+                  color: '#fff',
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: 6,
