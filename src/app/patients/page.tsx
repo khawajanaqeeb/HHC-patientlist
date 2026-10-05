@@ -4,8 +4,8 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
-  UserRound, Search, Filter, Eye, Users, ArrowLeft, Calendar, Stethoscope,
-  Edit3, UserX, UserCheck, X, Save, MapPin, Mail,
+  UserRound, Search, Filter, Eye, ArrowLeft, Calendar, Stethoscope,
+  Edit3, UserX, UserCheck,
 } from 'lucide-react';
 import { getInitials, getPatientAvatarColor } from '@/lib/staffConstants';
 
@@ -69,12 +69,6 @@ export default function PatientListPage() {
   const [monthFilter, setMonthFilter] = useState('');
   const [availableMonths, setAvailableMonths] = useState<string[]>([]);
 
-  // Editing state
-  const [editingPatient, setEditingPatient] = useState<PatientRow | null>(null);
-  const [editForm, setEditForm] = useState<Partial<PatientRow>>({});
-  const [savingEdit, setSavingEdit] = useState(false);
-  const [editError, setEditError] = useState('');
-
   // Load available months for the filter dropdown
   useEffect(() => {
     fetch('/api/months')
@@ -131,33 +125,6 @@ export default function PatientListPage() {
       loadPatients();
     } catch (err: any) {
       alert(err.message || 'Action failed');
-    }
-  };
-
-  const handleOpenEdit = (patient: PatientRow) => {
-    setEditingPatient(patient);
-    setEditForm({ ...patient });
-    setEditError('');
-  };
-
-  const handleSaveEdit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editingPatient) return;
-    setSavingEdit(true);
-    setEditError('');
-    try {
-      const res = await fetch(`/api/patients/${editingPatient.patient_id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(editForm),
-      });
-      if (!res.ok) throw new Error('Failed to save patient changes');
-      setEditingPatient(null);
-      loadPatients();
-    } catch (err: any) {
-      setEditError(err.message || 'Error saving changes');
-    } finally {
-      setSavingEdit(false);
     }
   };
 
@@ -355,7 +322,7 @@ export default function PatientListPage() {
                         </button>
                         <button
                           className="staff-action-btn edit"
-                          onClick={() => handleOpenEdit(patient)}
+                          onClick={() => router.push(`/patients/${patient.patient_id}/edit`)}
                           title="Edit patient details"
                         >
                           <Edit3 size={13} /> Edit
@@ -375,129 +342,6 @@ export default function PatientListPage() {
               })}
             </tbody>
           </table>
-        </div>
-      )}
-
-      {/* Edit Patient Modal */}
-      {editingPatient && (
-        <div className="modal-overlay" onClick={() => setEditingPatient(null)}>
-          <div className="modal-box" style={{ maxWidth: 520 }} onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h3>Edit Patient — P-{String(editingPatient.patient_id).padStart(3, '0')}</h3>
-              <button className="modal-close" onClick={() => setEditingPatient(null)}>
-                <X size={16} />
-              </button>
-            </div>
-            <form onSubmit={handleSaveEdit} className="modal-body" style={{ gap: 14 }}>
-              {editError && (
-                <div style={{ color: '#f87171', fontSize: '0.82rem', background: 'rgba(239, 68, 68, 0.1)', padding: '8px 12px', borderRadius: 6 }}>
-                  {editError}
-                </div>
-              )}
-              <div className="form-group">
-                <label className="form-label">Full Name *</label>
-                <input
-                  type="text"
-                  required
-                  className="form-input"
-                  value={editForm.name || ''}
-                  onChange={(e) => setEditForm((f) => ({ ...f, name: e.target.value }))}
-                />
-              </div>
-              <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                <div className="form-group">
-                  <label className="form-label">Subscriber Name</label>
-                  <input
-                    type="text"
-                    className="form-input"
-                    value={editForm.subscriber || ''}
-                    onChange={(e) => setEditForm((f) => ({ ...f, subscriber: e.target.value }))}
-                  />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Subscriber Email</label>
-                  <input
-                    type="email"
-                    className="form-input"
-                    value={editForm.subscriber_email || ''}
-                    onChange={(e) => setEditForm((f) => ({ ...f, subscriber_email: e.target.value }))}
-                  />
-                </div>
-              </div>
-              <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                <div className="form-group">
-                  <label className="form-label">Father / Husband Name</label>
-                  <input
-                    type="text"
-                    className="form-input"
-                    value={editForm.father_husband_name || ''}
-                    onChange={(e) => setEditForm((f) => ({ ...f, father_husband_name: e.target.value }))}
-                  />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Gender</label>
-                  <select
-                    className="form-input"
-                    value={editForm.gender || ''}
-                    onChange={(e) => setEditForm((f) => ({ ...f, gender: e.target.value }))}
-                  >
-                    <option value="">Select Gender</option>
-                    <option value="male">Male</option>
-                    <option value="female">Female</option>
-                    <option value="other">Other</option>
-                  </select>
-                </div>
-              </div>
-              <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                <div className="form-group">
-                  <label className="form-label">Date of Birth</label>
-                  <input
-                    type="date"
-                    className="form-input"
-                    value={editForm.dob || ''}
-                    onChange={(e) => setEditForm((f) => ({ ...f, dob: e.target.value }))}
-                  />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Assigned Doctor</label>
-                  <input
-                    type="text"
-                    className="form-input"
-                    placeholder="Dr. Name"
-                    value={editForm.assigned_doctor || ''}
-                    onChange={(e) => setEditForm((f) => ({ ...f, assigned_doctor: e.target.value }))}
-                  />
-                </div>
-              </div>
-              <div className="form-group">
-                <label className="form-label">Address</label>
-                <textarea
-                  rows={2}
-                  className="form-input"
-                  value={editForm.address || ''}
-                  onChange={(e) => setEditForm((f) => ({ ...f, address: e.target.value }))}
-                />
-              </div>
-              <div className="form-group">
-                <label className="form-label">Google Maps Link</label>
-                <input
-                  type="url"
-                  className="form-input"
-                  placeholder="https://maps.google.com/..."
-                  value={editForm.google_address_location || ''}
-                  onChange={(e) => setEditForm((f) => ({ ...f, google_address_location: e.target.value }))}
-                />
-              </div>
-              <div className="modal-footer" style={{ marginTop: 12, display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
-                <button type="button" className="btn-secondary" onClick={() => setEditingPatient(null)}>
-                  Cancel
-                </button>
-                <button type="submit" className="btn-primary" disabled={savingEdit} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                  <Save size={14} /> {savingEdit ? 'Saving…' : 'Save Changes'}
-                </button>
-              </div>
-            </form>
-          </div>
         </div>
       )}
     </div>

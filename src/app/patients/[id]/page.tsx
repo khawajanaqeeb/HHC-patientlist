@@ -206,11 +206,11 @@ export default function PatientProfilePage() {
 
           <div className="staff-profile-card-actions">
             <Link
-              href="/"
+              href={`/patients/${patient.patient_id}/edit`}
               className="btn-staff-edit"
               style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
             >
-              <Edit3 size={14} /> Edit in Visit Sheet
+              <Edit3 size={14} /> Edit Patient Profile
             </Link>
           </div>
         </aside>
