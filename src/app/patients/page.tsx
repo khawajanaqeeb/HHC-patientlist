@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
   UserRound, Search, Filter, Eye, Users, ArrowLeft, Calendar, Stethoscope,
+  Edit3, UserX, UserCheck, X, Save, MapPin, Mail,
 } from 'lucide-react';
 import { getInitials, getPatientAvatarColor } from '@/lib/staffConstants';
 
@@ -23,6 +24,7 @@ interface PatientRow {
   package_id: number | null;
   med_given: number;
   photo_path: string | null;
+  is_active: boolean;
 }
 
 async function fetchBatchSignedUrls(paths: (string | null | undefined)[]): Promise<Record<string, string>> {
@@ -48,6 +50,11 @@ const genderBadgeStyle = (gender: string) => {
   return { background: 'rgba(71, 85, 105, 0.1)', color: '#334155', border: '1px solid rgba(71, 85, 105, 0.25)' };
 };
 
+const statusBadgeStyle = (active: boolean) =>
+  active
+    ? { background: 'rgba(21, 128, 61, 0.12)', color: '#15803d', border: '1px solid rgba(21, 128, 61, 0.3)' }
+    : { background: 'rgba(100, 116, 139, 0.12)', color: '#475569', border: '1px solid rgba(100, 116, 139, 0.25)' };
+
 const genderLabel = (g: string) => g === 'male' ? 'Male' : g === 'female' ? 'Female' : g || '—';
 
 export default function PatientListPage() {
@@ -58,8 +65,15 @@ export default function PatientListPage() {
 
   const [search, setSearch] = useState('');
   const [genderFilter, setGenderFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
   const [monthFilter, setMonthFilter] = useState('');
   const [availableMonths, setAvailableMonths] = useState<string[]>([]);
+
+  // Editing state
+  const [editingPatient, setEditingPatient] = useState<PatientRow | null>(null);
+  const [editForm, setEditForm] = useState<Partial<PatientRow>>({});
+  const [savingEdit, setSavingEdit] = useState(false);
+  const [editError, setEditError] = useState('');
 
   // Load available months for the filter dropdown
   useEffect(() => {
@@ -79,6 +93,7 @@ export default function PatientListPage() {
       const params = new URLSearchParams();
       if (search) params.set('search', search);
       if (genderFilter) params.set('gender', genderFilter);
+      if (statusFilter) params.set('status', statusFilter);
       if (monthFilter) params.set('month', monthFilter);
 
       const res = await fetch(`/api/patients/all?${params}`);
@@ -94,17 +109,62 @@ export default function PatientListPage() {
     } finally {
       setLoading(false);
     }
-  }, [search, genderFilter, monthFilter]);
+  }, [search, genderFilter, statusFilter, monthFilter]);
 
   useEffect(() => {
     const timer = setTimeout(() => loadPatients(), search ? 300 : 0);
     return () => clearTimeout(timer);
   }, [loadPatients, search]);
 
+  const handleToggleActive = async (patient: PatientRow) => {
+    const nextStatus = !patient.is_active;
+    const actionName = nextStatus ? 'activate' : 'deactivate';
+    if (!confirm(`Are you sure you want to ${actionName} patient "${patient.name}"?`)) return;
+
+    try {
+      const res = await fetch(`/api/patients/${patient.patient_id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ is_active: nextStatus }),
+      });
+      if (!res.ok) throw new Error(`Failed to ${actionName} patient`);
+      loadPatients();
+    } catch (err: any) {
+      alert(err.message || 'Action failed');
+    }
+  };
+
+  const handleOpenEdit = (patient: PatientRow) => {
+    setEditingPatient(patient);
+    setEditForm({ ...patient });
+    setEditError('');
+  };
+
+  const handleSaveEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingPatient) return;
+    setSavingEdit(true);
+    setEditError('');
+    try {
+      const res = await fetch(`/api/patients/${editingPatient.patient_id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editForm),
+      });
+      if (!res.ok) throw new Error('Failed to save patient changes');
+      setEditingPatient(null);
+      loadPatients();
+    } catch (err: any) {
+      setEditError(err.message || 'Error saving changes');
+    } finally {
+      setSavingEdit(false);
+    }
+  };
+
   const totalCount = patients.length;
+  const activeCount = useMemo(() => patients.filter((p) => p.is_active !== false).length, [patients]);
   const maleCount = useMemo(() => patients.filter((p) => p.gender === 'male').length, [patients]);
   const femaleCount = useMemo(() => patients.filter((p) => p.gender === 'female').length, [patients]);
-  const withDoctorCount = useMemo(() => patients.filter((p) => p.assigned_doctor?.trim()).length, [patients]);
 
   const formatMonth = (id: string) => {
     if (!id) return '';
@@ -141,16 +201,16 @@ export default function PatientListPage() {
           <span className="staff-stat-val" style={{ color: '#60a5fa' }}>{totalCount}</span>
         </div>
         <div className="staff-stat-card">
+          <span className="staff-stat-label">Active Patients</span>
+          <span className="staff-stat-val" style={{ color: '#4ade80' }}>{activeCount}</span>
+        </div>
+        <div className="staff-stat-card">
           <span className="staff-stat-label">Male</span>
           <span className="staff-stat-val" style={{ color: '#38bdf8' }}>{maleCount}</span>
         </div>
         <div className="staff-stat-card">
           <span className="staff-stat-label">Female</span>
           <span className="staff-stat-val" style={{ color: '#f472b6' }}>{femaleCount}</span>
-        </div>
-        <div className="staff-stat-card">
-          <span className="staff-stat-label">With Doctor</span>
-          <span className="staff-stat-val" style={{ color: '#a78bfa' }}>{withDoctorCount}</span>
         </div>
       </div>
 
@@ -172,6 +232,11 @@ export default function PatientListPage() {
             <option value="male">Male</option>
             <option value="female">Female</option>
           </select>
+          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="staff-filter-select">
+            <option value="">All Status</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+          </select>
           <select value={monthFilter} onChange={(e) => setMonthFilter(e.target.value)} className="staff-filter-select">
             <option value="">All Months</option>
             {availableMonths.map((m) => (
@@ -189,7 +254,7 @@ export default function PatientListPage() {
           <UserRound size={46} style={{ color: 'rgba(255,255,255,0.3)', marginBottom: 12 }} />
           <h3>No patients found</h3>
           <p>
-            {search || genderFilter || monthFilter
+            {search || genderFilter || statusFilter || monthFilter
               ? 'No records match your current filters.'
               : 'Patients appear here once they are registered in a visit month.'}
           </p>
@@ -209,6 +274,7 @@ export default function PatientListPage() {
                 <th>Gender</th>
                 <th>Date of Birth</th>
                 <th><Stethoscope size={13} style={{ display: 'inline', marginRight: 4 }} />Doctor</th>
+                <th>Status</th>
                 <th><Calendar size={13} style={{ display: 'inline', marginRight: 4 }} />Last Month</th>
                 <th style={{ textAlign: 'center' }}>Actions</th>
               </tr>
@@ -217,6 +283,8 @@ export default function PatientListPage() {
               {patients.map((patient) => {
                 const colors = getPatientAvatarColor(patient.patient_id);
                 const photoUrl = patient.photo_path ? photoUrls[patient.photo_path] : null;
+                const isActive = patient.is_active !== false;
+
                 return (
                   <tr key={patient.patient_id}>
                     <td>
@@ -259,6 +327,21 @@ export default function PatientListPage() {
                       <span className="staff-desig-text">{patient.assigned_doctor || '—'}</span>
                     </td>
                     <td>
+                      <span className="staff-badge" style={statusBadgeStyle(isActive)}>
+                        <span
+                          style={{
+                            display: 'inline-block',
+                            width: 6,
+                            height: 6,
+                            borderRadius: '50%',
+                            background: isActive ? '#4ade80' : '#9ca3af',
+                            marginRight: 5,
+                          }}
+                        />
+                        {isActive ? 'Active' : 'Inactive'}
+                      </span>
+                    </td>
+                    <td>
                       <span className="staff-desig-text">{formatMonth(patient.month_id)}</span>
                     </td>
                     <td>
@@ -270,6 +353,21 @@ export default function PatientListPage() {
                         >
                           <Eye size={13} /> View
                         </button>
+                        <button
+                          className="staff-action-btn edit"
+                          onClick={() => handleOpenEdit(patient)}
+                          title="Edit patient details"
+                        >
+                          <Edit3 size={13} /> Edit
+                        </button>
+                        <button
+                          className={`staff-action-btn ${isActive ? 'deactivate' : 'edit'}`}
+                          onClick={() => handleToggleActive(patient)}
+                          title={isActive ? 'Deactivate patient record' : 'Reactivate patient record'}
+                        >
+                          {isActive ? <UserX size={13} /> : <UserCheck size={13} />}
+                          {isActive ? ' Deactivate' : ' Activate'}
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -277,6 +375,129 @@ export default function PatientListPage() {
               })}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {/* Edit Patient Modal */}
+      {editingPatient && (
+        <div className="modal-overlay" onClick={() => setEditingPatient(null)}>
+          <div className="modal-box" style={{ maxWidth: 520 }} onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Edit Patient — P-{String(editingPatient.patient_id).padStart(3, '0')}</h3>
+              <button className="modal-close" onClick={() => setEditingPatient(null)}>
+                <X size={16} />
+              </button>
+            </div>
+            <form onSubmit={handleSaveEdit} className="modal-body" style={{ gap: 14 }}>
+              {editError && (
+                <div style={{ color: '#f87171', fontSize: '0.82rem', background: 'rgba(239, 68, 68, 0.1)', padding: '8px 12px', borderRadius: 6 }}>
+                  {editError}
+                </div>
+              )}
+              <div className="form-group">
+                <label className="form-label">Full Name *</label>
+                <input
+                  type="text"
+                  required
+                  className="form-input"
+                  value={editForm.name || ''}
+                  onChange={(e) => setEditForm((f) => ({ ...f, name: e.target.value }))}
+                />
+              </div>
+              <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <div className="form-group">
+                  <label className="form-label">Subscriber Name</label>
+                  <input
+                    type="text"
+                    className="form-input"
+                    value={editForm.subscriber || ''}
+                    onChange={(e) => setEditForm((f) => ({ ...f, subscriber: e.target.value }))}
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Subscriber Email</label>
+                  <input
+                    type="email"
+                    className="form-input"
+                    value={editForm.subscriber_email || ''}
+                    onChange={(e) => setEditForm((f) => ({ ...f, subscriber_email: e.target.value }))}
+                  />
+                </div>
+              </div>
+              <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <div className="form-group">
+                  <label className="form-label">Father / Husband Name</label>
+                  <input
+                    type="text"
+                    className="form-input"
+                    value={editForm.father_husband_name || ''}
+                    onChange={(e) => setEditForm((f) => ({ ...f, father_husband_name: e.target.value }))}
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Gender</label>
+                  <select
+                    className="form-input"
+                    value={editForm.gender || ''}
+                    onChange={(e) => setEditForm((f) => ({ ...f, gender: e.target.value }))}
+                  >
+                    <option value="">Select Gender</option>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
+              </div>
+              <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <div className="form-group">
+                  <label className="form-label">Date of Birth</label>
+                  <input
+                    type="date"
+                    className="form-input"
+                    value={editForm.dob || ''}
+                    onChange={(e) => setEditForm((f) => ({ ...f, dob: e.target.value }))}
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Assigned Doctor</label>
+                  <input
+                    type="text"
+                    className="form-input"
+                    placeholder="Dr. Name"
+                    value={editForm.assigned_doctor || ''}
+                    onChange={(e) => setEditForm((f) => ({ ...f, assigned_doctor: e.target.value }))}
+                  />
+                </div>
+              </div>
+              <div className="form-group">
+                <label className="form-label">Address</label>
+                <textarea
+                  rows={2}
+                  className="form-input"
+                  value={editForm.address || ''}
+                  onChange={(e) => setEditForm((f) => ({ ...f, address: e.target.value }))}
+                />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Google Maps Link</label>
+                <input
+                  type="url"
+                  className="form-input"
+                  placeholder="https://maps.google.com/..."
+                  value={editForm.google_address_location || ''}
+                  onChange={(e) => setEditForm((f) => ({ ...f, google_address_location: e.target.value }))}
+                />
+              </div>
+              <div className="modal-footer" style={{ marginTop: 12, display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
+                <button type="button" className="btn-secondary" onClick={() => setEditingPatient(null)}>
+                  Cancel
+                </button>
+                <button type="submit" className="btn-primary" disabled={savingEdit} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                  <Save size={14} /> {savingEdit ? 'Saving…' : 'Save Changes'}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
     </div>

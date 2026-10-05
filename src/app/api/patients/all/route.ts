@@ -1,4 +1,4 @@
-﻿import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
 function getSupabase() {
@@ -15,11 +15,12 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const search = searchParams.get('search')?.toLowerCase() || '';
     const genderFilter = searchParams.get('gender') || '';
+    const statusFilter = searchParams.get('status') || '';
     const monthFilter = searchParams.get('month') || '';
 
     let query = db
       .from('month_patients')
-      .select('patient_id, month_id, name, subscriber, subscriber_email, father_husband_name, dob, gender, address, google_address_location, assigned_doctor, package_id, med_given, photo_path, visits_json')
+      .select('patient_id, month_id, name, subscriber, subscriber_email, father_husband_name, dob, gender, address, google_address_location, assigned_doctor, package_id, med_given, photo_path, is_active, visits_json')
       .order('month_id', { ascending: false })
       .order('patient_id');
 
@@ -30,7 +31,10 @@ export async function GET(request: NextRequest) {
     const { data, error } = await query;
     if (error) throw new Error(error.message);
 
-    const rows = data || [];
+    const rows = (data || []).map((r) => ({
+      ...r,
+      is_active: r.is_active ?? true,
+    }));
 
     // Deduplicate: keep only the most recent entry per patient_id (since month_id descending)
     const seen = new Set<number>();
@@ -53,6 +57,11 @@ export async function GET(request: NextRequest) {
     }
     if (genderFilter) {
       filtered = filtered.filter((r) => r.gender === genderFilter);
+    }
+    if (statusFilter === 'active') {
+      filtered = filtered.filter((r) => r.is_active !== false);
+    } else if (statusFilter === 'inactive') {
+      filtered = filtered.filter((r) => r.is_active === false);
     }
 
     return NextResponse.json({ patients: filtered });

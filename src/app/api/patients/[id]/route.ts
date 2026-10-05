@@ -22,7 +22,7 @@ export async function GET(
 
     const { data, error } = await db
       .from('month_patients')
-      .select('patient_id, month_id, name, subscriber, subscriber_email, father_husband_name, dob, gender, address, google_address_location, assigned_doctor, package_id, med_given, photo_path, visits_json')
+      .select('patient_id, month_id, name, subscriber, subscriber_email, father_husband_name, dob, gender, address, google_address_location, assigned_doctor, package_id, med_given, photo_path, is_active, visits_json')
       .eq('patient_id', patientId)
       .order('month_id', { ascending: false })
       .limit(1)
@@ -31,13 +31,16 @@ export async function GET(
     if (error) throw new Error(error.message);
     if (!data) return NextResponse.json({ error: 'Patient not found.' }, { status: 404 });
 
+    // Default is_active to true if null
+    const patientData = { ...data, is_active: data.is_active ?? true };
+
     const { data: allMonths } = await db
       .from('month_patients')
       .select('month_id')
       .eq('patient_id', patientId)
       .order('month_id', { ascending: false });
 
-    return NextResponse.json({ patient: data, months: (allMonths || []).map((r: any) => r.month_id) });
+    return NextResponse.json({ patient: patientData, months: (allMonths || []).map((r: any) => r.month_id) });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
@@ -59,6 +62,7 @@ export async function PATCH(
 
     const update: Record<string, unknown> = {};
     if ('photo_path' in body) update.photo_path = body.photo_path ?? null;
+    if (body.is_active !== undefined) update.is_active = Boolean(body.is_active);
     if (body.name !== undefined) update.name = String(body.name).trim();
     if (body.subscriber !== undefined) update.subscriber = String(body.subscriber).trim();
     if (body.gender !== undefined) update.gender = body.gender || '';
