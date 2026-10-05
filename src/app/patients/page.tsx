@@ -5,9 +5,11 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
   UserRound, Search, Filter, Eye, ArrowLeft, Calendar, Stethoscope,
-  Edit3, UserX, UserCheck, Trash2, AlertTriangle, X,
+  Edit3, UserX, UserCheck, Trash2, UserPlus,
 } from 'lucide-react';
 import { getInitials, getPatientAvatarColor } from '@/lib/staffConstants';
+import { AddPatientModal } from '@/components/AddPatientModal';
+import { Package } from '@/lib/types';
 
 interface PatientRow {
   patient_id: number;
@@ -68,18 +70,27 @@ export default function PatientListPage() {
   const [statusFilter, setStatusFilter] = useState('');
   const [monthFilter, setMonthFilter] = useState('');
   const [availableMonths, setAvailableMonths] = useState<string[]>([]);
+  const [packages, setPackages] = useState<Package[]>([]);
 
-  // Delete modal state
-  const [deletingPatient, setDeletingPatient] = useState<PatientRow | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
+  // Add Patient Modal state
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
-  // Load available months for the filter dropdown
+  // Load available months and packages
   useEffect(() => {
     fetch('/api/months')
       .then((r) => r.json())
       .then(({ months }) => {
         if (Array.isArray(months)) {
           setAvailableMonths(months.map((m: any) => m.id).sort().reverse());
+        }
+      })
+      .catch(() => {});
+
+    fetch('/api/packages')
+      .then((r) => r.json())
+      .then(({ packages: pkgs }) => {
+        if (Array.isArray(pkgs)) {
+          setPackages(pkgs);
         }
       })
       .catch(() => {});
@@ -152,24 +163,41 @@ export default function PatientListPage() {
     }
   };
 
-  const handleDeleteFromModal = async () => {
-    if (!deletingPatient) return;
-    setIsDeleting(true);
-    try {
-      const res = await fetch(`/api/patients/${deletingPatient.patient_id}`, {
-        method: 'DELETE',
-      });
-      if (!res.ok) {
-        const { error } = await res.json();
-        throw new Error(error || 'Failed to delete patient');
-      }
-      setDeletingPatient(null);
-      loadPatients();
-    } catch (err: any) {
-      alert(err.message || 'Deletion failed');
-    } finally {
-      setIsDeleting(false);
+  const handleAddPatient = async (
+    name: string,
+    subscriber: string,
+    packageId: number | null,
+    _patientId?: number,
+    extra?: {
+      subscriberEmail?: string;
+      fatherHusbandName?: string;
+      dob?: string;
+      gender?: string;
+      address?: string;
+      googleAddressLocation?: string;
+      assignedDoctor?: string;
     }
+  ) => {
+    const targetMonthId = monthFilter || availableMonths[0] || new Date().toISOString().slice(0, 7);
+
+    const res = await fetch('/api/patients', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        monthId: targetMonthId,
+        name,
+        subscriber,
+        packageId,
+        ...extra,
+      }),
+    });
+
+    if (!res.ok) {
+      const { error } = await res.json();
+      throw new Error(error || 'Failed to add patient');
+    }
+
+    loadPatients();
   };
 
   const totalCount = patients.length;
@@ -183,6 +211,9 @@ export default function PatientListPage() {
     const d = new Date(Number(y), Number(m) - 1, 1);
     return d.toLocaleString('en-PK', { month: 'long', year: 'numeric' });
   };
+
+  const currentMonthLabel = availableMonths.length > 0 ? formatMonth(availableMonths[0]) : 'Current Month';
+  const currentMonthId = availableMonths[0] || new Date().toISOString().slice(0, 7);
 
   return (
     <div className="staff-page">
@@ -202,6 +233,14 @@ export default function PatientListPage() {
             <ArrowLeft size={16} />
             Patient Visit Sheet
           </Link>
+          <button
+            className="btn-staff-add"
+            onClick={() => setIsAddModalOpen(true)}
+            title="Register a new patient"
+          >
+            <UserPlus size={16} />
+            Add Patient
+          </button>
         </div>
       </div>
 
@@ -269,9 +308,13 @@ export default function PatientListPage() {
               ? 'No records match your current filters.'
               : 'Patients appear here once they are registered in a visit month.'}
           </p>
-          <Link href="/" className="btn-staff-add" style={{ marginTop: 16, display: 'inline-flex' }}>
-            <ArrowLeft size={14} /> Go to Visit Sheet
-          </Link>
+          <button
+            className="btn-staff-add"
+            style={{ marginTop: 16, display: 'inline-flex' }}
+            onClick={() => setIsAddModalOpen(true)}
+          >
+            <UserPlus size={14} /> Add Patient
+          </button>
         </div>
       ) : (
         <div className="staff-table-wrapper">
@@ -397,64 +440,14 @@ export default function PatientListPage() {
         </div>
       )}
 
-      {/* Delete Patient Confirmation Modal */}
-      {deletingPatient && (
-        <div className="mbg" onClick={() => setDeletingPatient(null)}>
-          <div className="modal" style={{ maxWidth: 440, padding: 20 }} onClick={(e) => e.stopPropagation()}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#ef4444' }}>
-                <AlertTriangle size={20} />
-                <h3 style={{ margin: 0, color: '#ef4444', fontSize: '1.1rem' }}>Delete Patient Record</h3>
-              </div>
-              <button className="icon-btn" onClick={() => setDeletingPatient(null)}>
-                <X size={16} />
-              </button>
-            </div>
-            <div style={{ gap: 12, padding: '8px 0' }}>
-              <p style={{ color: '#e2e8f0', fontSize: '0.92rem', lineHeight: '1.5', margin: '0 0 10px 0' }}>
-                Are you sure you want to permanently delete patient{' '}
-                <strong style={{ color: '#fff' }}>{deletingPatient.name}</strong> (P-{String(deletingPatient.patient_id).padStart(3, '0')})?
-              </p>
-              <div style={{
-                background: 'rgba(239, 68, 68, 0.1)',
-                border: '1px solid rgba(239, 68, 68, 0.25)',
-                borderRadius: 8,
-                padding: '10px 12px',
-                color: '#fca5a5',
-                fontSize: '0.82rem',
-                lineHeight: '1.4',
-              }}>
-                <strong>Warning:</strong> This will remove all visit history, profile details, and records for this patient across all months. This action cannot be undone.
-              </div>
-            </div>
-            <div style={{ marginTop: 16, display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
-              <button
-                type="button"
-                className="btn sec"
-                onClick={() => setDeletingPatient(null)}
-                disabled={isDeleting}
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                className="btn btn-danger"
-                onClick={handleDeleteFromModal}
-                disabled={isDeleting}
-                style={{
-                  background: 'linear-gradient(135deg, #dc2626, #b91c1c)',
-                  color: '#fff',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 6,
-                }}
-              >
-                <Trash2 size={14} /> {isDeleting ? 'Deleting…' : 'Delete Permanently'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Add Patient Modal */}
+      <AddPatientModal
+        isOpen={isAddModalOpen}
+        currentMonth={{ id: currentMonthId, label: currentMonthLabel }}
+        packages={packages}
+        onClose={() => setIsAddModalOpen(false)}
+        onAdd={handleAddPatient}
+      />
     </div>
   );
 }
