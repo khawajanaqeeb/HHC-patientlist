@@ -3534,8 +3534,26 @@ main {
   backdrop-filter: blur(16px);
   border: 1px solid rgba(255, 255, 255, 0.16);
   border-radius: 14px;
-  overflow: hidden;
+  overflow-x: auto;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.35);
+}
+
+.staff-table-wrapper::-webkit-scrollbar {
+  height: 8px;
+}
+
+.staff-table-wrapper::-webkit-scrollbar-track {
+  background: rgba(15, 45, 75, 0.6);
+  border-radius: 0 0 14px 14px;
+}
+
+.staff-table-wrapper::-webkit-scrollbar-thumb {
+  background: rgba(56, 189, 248, 0.35);
+  border-radius: 4px;
+}
+
+.staff-table-wrapper::-webkit-scrollbar-thumb:hover {
+  background: rgba(56, 189, 248, 0.6);
 }
 
 .staff-table {
