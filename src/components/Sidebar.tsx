@@ -296,22 +296,19 @@ export default function Sidebar({
       )}
 
       {/* ── 3. Accounts Tab ── */}
-      <button
-        className="sidebar-tab"
-        style={{ marginTop: 4 }}
-        onClick={() => {
-          if (typeof window !== 'undefined') window.location.href = '/accounts';
-        }}
-        title="Accounts & Finance"
-      >
-        <span className="sidebar-tab-icon"><BookOpen size={16} style={{ color: '#fbbf24' }} /></span>
-        {isOpen && (
+      {isOpen ? (
+        <button
+          className="sidebar-tab"
+          style={{ marginTop: 4 }}
+          onClick={() => {
+            if (typeof window !== 'undefined') window.location.href = '/accounts';
+          }}
+          title="Accounts & Finance"
+        >
+          <span className="sidebar-tab-icon"><BookOpen size={16} style={{ color: '#fbbf24' }} /></span>
           <span className="sidebar-tab-label">Accounts</span>
-        )}
-      </button>
-
-      {/* Icon-only for Accounts when collapsed */}
-      {!isOpen && (
+        </button>
+      ) : (
         <div className="icon-only-actions" style={{ marginTop: 4 }}>
           <button
             className="icon-only-btn"

@@ -8,10 +8,10 @@ function getSupabase() {
 }
 
 // PATCH /api/accounts/[id] — update or deactivate an account
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const body = await req.json();
-    const { id } = params;
+    const { id } = await params;
     const db = getSupabase();
     const { data, error } = await db
       .from('accounts')
