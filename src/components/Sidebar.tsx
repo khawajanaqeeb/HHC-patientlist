@@ -17,6 +17,7 @@ import {
   AlertTriangle,
   PanelLeftOpen,
   PanelLeftClose,
+  BookOpen,
 } from 'lucide-react';
 
 interface Props {
@@ -290,6 +291,37 @@ export default function Sidebar({
             style={{ color: '#6ee7b7' }}
           >
             <Users size={16} />
+          </button>
+        </div>
+      )}
+
+      {/* ── 3. Accounts Tab ── */}
+      <button
+        className="sidebar-tab"
+        style={{ marginTop: 4 }}
+        onClick={() => {
+          if (typeof window !== 'undefined') window.location.href = '/accounts';
+        }}
+        title="Accounts & Finance"
+      >
+        <span className="sidebar-tab-icon"><BookOpen size={16} style={{ color: '#fbbf24' }} /></span>
+        {isOpen && (
+          <span className="sidebar-tab-label">Accounts</span>
+        )}
+      </button>
+
+      {/* Icon-only for Accounts when collapsed */}
+      {!isOpen && (
+        <div className="icon-only-actions" style={{ marginTop: 4 }}>
+          <button
+            className="icon-only-btn"
+            onClick={() => {
+              if (typeof window !== 'undefined') window.location.href = '/accounts';
+            }}
+            title="Accounts & Finance"
+            style={{ color: '#fbbf24' }}
+          >
+            <BookOpen size={16} />
           </button>
         </div>
       )}
