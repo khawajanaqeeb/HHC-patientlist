@@ -6,12 +6,13 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { username, password } = body || {};
 
-    if (!validateCredentials(username, password)) {
+    const session = validateCredentials(username, password);
+    if (!session) {
       return NextResponse.json({ error: 'Invalid username or password' }, { status: 401 });
     }
 
-    const token = await createSessionToken();
-    const response = NextResponse.json({ success: true, username: 'admin-hhc' });
+    const token = await createSessionToken(session);
+    const response = NextResponse.json({ success: true, username: session.user, role: session.role });
     
     response.cookies.set({
       name: COOKIE_NAME,

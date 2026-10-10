@@ -28,6 +28,7 @@ export function useAppData({ flashStatus, clearSearch, resetTable }: AppDataCall
   const [usdToPkrRate, setUsdToPkrRate] = useState(DEFAULT_USD_TO_PKR_RATE);
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(true);
+  const [isReadOnly, setIsReadOnly] = useState<boolean>(false);
 
   // Active abort controller for loadData requests to prevent race conditions
   const activeAbortControllerRef = useRef<AbortController | null>(null);
@@ -42,6 +43,8 @@ export function useAppData({ flashStatus, clearSearch, resetTable }: AppDataCall
     try {
       const res = await fetch('/api/auth/check');
       if (res.ok) {
+        const info = await res.json().catch(() => null) as { role?: string } | null;
+        setIsReadOnly(info?.role !== 'super_admin');
         setIsAuthenticated(true);
         return true;
       } else {
@@ -177,7 +180,8 @@ export function useAppData({ flashStatus, clearSearch, resetTable }: AppDataCall
     }
   };
 
-  const handleLoginSuccess = () => {
+  const handleLoginSuccess = async () => {
+    await checkAuth();
     setIsAuthenticated(true);
     let initialMonthId: string | undefined;
     if (typeof window !== 'undefined') {
@@ -443,6 +447,7 @@ export function useAppData({ flashStatus, clearSearch, resetTable }: AppDataCall
     usdToPkrRate,
     loading,
     isAuthenticated,
+    isReadOnly,
     handleLoginSuccess,
     handleLogout,
     loadData,

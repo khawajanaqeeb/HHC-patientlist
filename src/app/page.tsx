@@ -35,7 +35,7 @@ export default function PatientVisitSheetPage() {
   const {
     currentMonth, availableMonths, packages, patients,
     currency, setCurrency, usdToPkrRate, loading,
-    isAuthenticated, handleLoginSuccess, handleLogout,
+    isAuthenticated, isReadOnly, handleLoginSuccess, handleLogout,
     loadData,
     handleSelectMonth, handleCreateMonth, handleOpenInNewWindow,
     handleSavePatient, handleDeletePatient,
@@ -119,6 +119,11 @@ export default function PatientVisitSheetPage() {
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
+            {isReadOnly && (
+              <span className="save-status" style={{ color: '#b71c1c', fontWeight: 600 }}>
+                🔒 Read-only account — log in as Super Admin to add, edit or delete
+              </span>
+            )}
             {saveStatus && (
               <span className="save-status" style={{ color: saveStatusColor }}>
                 {saveStatus}

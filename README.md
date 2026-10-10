@@ -62,8 +62,12 @@ SUPABASE_SERVICE_ROLE_KEY=your-server-only-service-role-key
 ADMIN_USERNAME=your-admin-username
 ADMIN_PASSWORD=your-admin-password
 AUTH_SECRET=a-long-random-secret
+SUPER_ADMIN_USERNAME=super-admin
+SUPER_ADMIN_PASSWORD=your-super-admin-password
 ```
 See `.env.example`. Set the same variables in Vercel for online deployments. Never commit `.env`.
+
+**Roles:** `ADMIN_USERNAME`/`ADMIN_PASSWORD` is a **read-only** account (view only). `SUPER_ADMIN_USERNAME`/`SUPER_ADMIN_PASSWORD` is the **Super Admin** with full add/edit/delete rights.
 
 ### 4. Create Desktop Shortcut
 Right-click `create-shortcut.ps1` ➔ **Run with PowerShell** (or run `powershell -ExecutionPolicy Bypass -File .\create-shortcut.ps1`).

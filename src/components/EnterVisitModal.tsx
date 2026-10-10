@@ -263,13 +263,16 @@ export const EnterVisitModal: React.FC<EnterVisitModalProps> = ({
         }),
       });
 
-      if (!res.ok) throw new Error('Failed to save patient visit data');
+      if (!res.ok) {
+        const errData = await res.json().catch(() => null) as { error?: string } | null;
+        throw new Error(errData?.error || 'Failed to save patient visit data');
+      }
 
       setSaveMsg(`✔ Saved successfully for ${selectedPatient.name}`);
       setSaveMsgColor('#2e7d32');
       onRefresh();
-    } catch {
-      setSaveMsg('⚠ Save failed. Please try again.');
+    } catch (err: unknown) {
+      setSaveMsg(`⚠ ${err instanceof Error ? err.message : 'Save failed. Please try again.'}`);
       setSaveMsgColor('#b71c1c');
     } finally {
       setSaving(false);

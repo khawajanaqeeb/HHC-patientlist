@@ -164,7 +164,11 @@ src/app/
 - **`GET /api/patient-visited?date=YYYY-MM-DD`**: Patients visited on a given date.
 
 ### Authentication
-All `/api/*` routes except login/logout/auth-check are protected by `src/middleware.ts` (session cookie). Required env vars: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `ADMIN_USERNAME`, `ADMIN_PASSWORD`, `AUTH_SECRET` (see `.env.example`). Set them in Vercel too for online deployments.
+All `/api/*` routes except login/logout/auth-check are protected by `src/middleware.ts` (session cookie). Required env vars: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `ADMIN_USERNAME`, `ADMIN_PASSWORD`, `AUTH_SECRET`, `SUPER_ADMIN_USERNAME`, `SUPER_ADMIN_PASSWORD` (see `.env.example`). Set them in Vercel too for online deployments.
+
+**Roles** (signed into the session cookie, enforced in `middleware.ts`):
+- `ADMIN_USERNAME` / `ADMIN_PASSWORD` → **viewer**: read-only. Any non-GET API request returns `403` (except `POST /api/photos/signed-urls`).
+- `SUPER_ADMIN_USERNAME` (default `super-admin`) / `SUPER_ADMIN_PASSWORD` → **super_admin**: full add/edit/delete rights.
 
 ---
 
