@@ -59,7 +59,11 @@ Create a `.env.local` file in the project root:
 ```env
 SUPABASE_URL=https://your-project.supabase.co
 SUPABASE_SERVICE_ROLE_KEY=your-server-only-service-role-key
+ADMIN_USERNAME=your-admin-username
+ADMIN_PASSWORD=your-admin-password
+AUTH_SECRET=a-long-random-secret
 ```
+See `.env.example`. Set the same variables in Vercel for online deployments. Never commit `.env`.
 
 ### 4. Create Desktop Shortcut
 Right-click `create-shortcut.ps1` ➔ **Run with PowerShell** (or run `powershell -ExecutionPolicy Bypass -File .\create-shortcut.ps1`).
@@ -83,6 +87,17 @@ Execute all migration SQL files in `supabase/migrations/` in order inside **Supa
 5. `20261006000000_add_patient_photo_path.sql` — `photo_path` column for patient avatars.
 6. `20261006100000_add_patient_is_active.sql` — `is_active` status column for patients.
 
+Also required: `20260930000000_add_sv_flu_opd_to_packages.sql`, `20261005000000_add_father_husband_name_type.sql`, `20261007000000_create_accounts_chart.sql`. Run **all** files in `supabase/migrations/` in filename order — missing columns can cause fields to be silently dropped.
+
+---
+
+## 🩺 Troubleshooting: Data Not Saving
+
+- Confirm `SUPABASE_URL` points to the project you are viewing in the Supabase dashboard.
+- Confirm all migrations were applied.
+- Restart `npm run dev` after changing code or `.env`.
+- Inspect the `PATCH /api/patients/...` response (browser F12 ➔ Network) and the terminal for errors.
+
 ---
 
 ## 📦 Storage Buckets
@@ -102,7 +117,7 @@ HHC-patientlist/
 ├── create-shortcut.ps1           # Desktop shortcut installer
 ├── run-app.bat                   # Standalone Edge app runner
 ├── supabase/
-│   └── migrations/               # SQL migrations in order (1 through 6)
+│   └── migrations/               # SQL migrations — run all, in filename order
 └── src/
     ├── app/
     │   ├── page.tsx               # Patient Visit Sheet (Daily tracking matrix)
