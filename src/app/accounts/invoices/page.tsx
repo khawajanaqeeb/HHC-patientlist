@@ -449,9 +449,15 @@ export default function InvoicesPage() {
                   <tr key={inv.id} className={inv.status === 'cancelled' ? 'inactive' : ''}>
                     {/* Invoice Number */}
                     <td>
-                      <strong style={{ color: '#0284c7', fontFamily: 'monospace' }}>
-                        {inv.invoice_number}
-                      </strong>
+                      <button
+                        onClick={() => router.push(`/accounts/invoices/${inv.id}`)}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, textAlign: 'left' }}
+                        title="Click to view full invoice"
+                      >
+                        <strong style={{ color: '#0284c7', fontFamily: 'monospace', textDecoration: 'underline' }}>
+                          {inv.invoice_number}
+                        </strong>
+                      </button>
                     </td>
 
                     {/* Subscriber */}
@@ -508,6 +514,15 @@ export default function InvoicesPage() {
 
                     {/* Actions */}
                     <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
+                      <button
+                        className="btn-accounts-ghost"
+                        style={{ padding: '4px 9px', fontSize: '0.72rem', marginRight: '6px' }}
+                        onClick={() => router.push(`/accounts/invoices/${inv.id}`)}
+                        title="View printable invoice"
+                      >
+                        <Printer size={12} /> View
+                      </button>
+
                       {Number(inv.balance_pkr) > 0 && inv.status !== 'cancelled' && (
                         <button
                           className="btn-accounts-primary"
