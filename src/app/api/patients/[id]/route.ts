@@ -60,6 +60,10 @@ export async function PATCH(
       return NextResponse.json({ error: 'Invalid patient ID.' }, { status: 400 });
     }
 
+    // Accept both snake_case (profile pages) and camelCase (visit sheet) keys
+    const pick = (snake: string, camel: string) =>
+      body[snake] !== undefined ? body[snake] : body[camel];
+
     const update: Record<string, unknown> = {};
     if ('photo_path' in body) update.photo_path = body.photo_path ?? null;
     if (body.is_active !== undefined) update.is_active = Boolean(body.is_active);
@@ -68,17 +72,44 @@ export async function PATCH(
     if (body.gender !== undefined) update.gender = body.gender || '';
     if (body.dob !== undefined) update.dob = body.dob || '';
     if (body.address !== undefined) update.address = body.address || '';
-    if (body.assigned_doctor !== undefined) update.assigned_doctor = body.assigned_doctor || '';
-    if (body.subscriber_email !== undefined) update.subscriber_email = body.subscriber_email || '';
-    if (body.father_husband_name !== undefined) update.father_husband_name = body.father_husband_name || '';
-    if (body.google_address_location !== undefined) update.google_address_location = body.google_address_location || '';
+    const doctor = pick('assigned_doctor', 'assignedDoctor');
+    if (doctor !== undefined) update.assigned_doctor = doctor || '';
+    const email = pick('subscriber_email', 'subscriberEmail');
+    if (email !== undefined) update.subscriber_email = email || '';
+    const fh = pick('father_husband_name', 'fatherHusbandName');
+    if (fh !== undefined) update.father_husband_name = fh || '';
+    const loc = pick('google_address_location', 'googleAddressLocation');
+    if (loc !== undefined) update.google_address_location = loc || '';
 
-    const { error } = await db
-      .from('month_patients')
-      .update(update)
-      .eq('patient_id', patientId);
+    if ('packageId' in body || 'package_id' in body) {
+      const pkg = pick('package_id', 'packageId');
+      if (pkg !== null && pkg !== undefined && (!Number.isInteger(Number(pkg)) || Number(pkg) < 1)) {
+        return NextResponse.json({ error: 'Invalid package ID.' }, { status: 400 });
+      }
+      update.package_id = pkg === null || pkg === undefined ? null : Number(pkg);
+    }
+    const med = pick('med_given', 'medGiven');
+    if (med !== undefined) update.med_given = Math.max(0, Number(med) || 0);
+    if (body.v !== undefined) {
+      if (!Array.isArray(body.v)) {
+        return NextResponse.json({ error: 'Invalid visits data.' }, { status: 400 });
+      }
+      update.visits_json = body.v;
+    }
+
+    if (Object.keys(update).length === 0) {
+      return NextResponse.json({ success: true });
+    }
+
+    const monthId = typeof body.monthId === 'string' ? body.monthId : null;
+    let query = db.from('month_patients').update(update).eq('patient_id', patientId);
+    if (monthId) query = query.eq('month_id', monthId);
+    const { data: updated, error } = await query.select('patient_id');
 
     if (error) throw new Error(error.message);
+    if (!updated || updated.length === 0) {
+      return NextResponse.json({ error: 'Patient not found.' }, { status: 404 });
+    }
     return NextResponse.json({ success: true });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
@@ -87,7 +118,7 @@ export async function PATCH(
 
 // DELETE /api/patients/[id]
 export async function DELETE(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
@@ -98,10 +129,11 @@ export async function DELETE(
       return NextResponse.json({ error: 'Invalid patient ID.' }, { status: 400 });
     }
 
-    const { error } = await db
-      .from('month_patients')
-      .delete()
-      .eq('patient_id', patientId);
+    // Scope to the current month when provided (visit sheet); otherwise delete everywhere
+    const monthId = new URL(request.url).searchParams.get('monthId');
+    let query = db.from('month_patients').delete().eq('patient_id', patientId);
+    if (monthId) query = query.eq('month_id', monthId);
+    const { error } = await query;
 
     if (error) throw new Error(error.message);
     return NextResponse.json({ success: true });
