@@ -91,7 +91,7 @@ export const PatientVisitedModal: React.FC<PatientVisitedModalProps> = ({ isOpen
             <table className="patient-search-table">
               <thead>
                 <tr>
-                  <th>S.No</th><th>Patient</th><th>Subscriber</th><th>Package</th><th>Price</th>
+                  <th>S.No</th><th>Patient</th><th>Subscriber</th><th>Plan</th><th>Price</th>
                   <th>Doctor</th><th>Nurse+Physio</th><th>Nurse</th><th>Physio</th><th>Psycho</th><th>SV</th><th>FV</th><th>OPD</th>
                   <th>Doctor rem.</th><th>Nurse+Physio rem.</th><th>Nurse rem.</th><th>Physio rem.</th><th>Psycho rem.</th><th>SV rem.</th><th>FV rem.</th><th>OPD rem.</th>
                 </tr>
@@ -102,8 +102,8 @@ export const PatientVisitedModal: React.FC<PatientVisitedModalProps> = ({ isOpen
                     <td>{resultIndex + 1}</td>
                     <td>{patient.name}</td>
                     <td>{patient.subscriber || '—'}</td>
-                    <td>{patient.packageName || '—'}</td>
-                    <td>{patient.packagePrice === null ? '—' : patient.packagePrice.toLocaleString()}</td>
+                    <td>{patient.planName || patient.packageName || '—'}</td>
+                    <td>{(patient.planPrice ?? patient.packagePrice) === null ? '—' : (patient.planPrice ?? patient.packagePrice)?.toLocaleString()}</td>
                     {[0, 1, 2, 3, 4, 5, 6, 7].map((index) => (
                       <td key={index}>{patient.visited[index as 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7] === '✔' ? <Check size={14} /> : '—'}</td>
                     ))}

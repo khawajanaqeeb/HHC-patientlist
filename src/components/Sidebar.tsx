@@ -116,10 +116,10 @@ export default function Sidebar({
       title: 'Register Patient',
     },
     {
-      label: 'Packages',
+      label: 'Plans',
       icon: <Package2 size={16} />,
       onClick: () => handleAction(onOpenPackages),
-      title: 'Packages',
+      title: 'Plans',
     },
     {
       label: 'Print Sheet',

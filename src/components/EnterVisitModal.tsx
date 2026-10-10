@@ -314,7 +314,7 @@ export const EnterVisitModal: React.FC<EnterVisitModalProps> = ({
               {(['name', 'date', 'subscriber', 'package'] as SearchField[]).map((field) => (
                 <label key={field}>
                   <input type="checkbox" checked={searchFields[field]} onChange={() => toggleSearchField(field)} />
-                  {field === 'package' ? 'Package' : field[0].toUpperCase() + field.slice(1)}
+                  {field === 'package' ? 'Plan' : field[0].toUpperCase() + field.slice(1)}
                 </label>
               ))}
             </div>
@@ -392,7 +392,7 @@ export const EnterVisitModal: React.FC<EnterVisitModalProps> = ({
           </div>
 
           <div className="ev-field">
-            <label className="ev-label" htmlFor="ev-package">Assigned Package</label>
+            <label className="ev-label" htmlFor="ev-package">Assigned Plan</label>
             <select
               id="ev-package"
               className="ev-select"

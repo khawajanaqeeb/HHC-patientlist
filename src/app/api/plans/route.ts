@@ -6,10 +6,10 @@ import { validatePackageList } from '@/lib/validation';
 export async function GET() {
   try {
     const plans = await getPlans();
-    return NextResponse.json({ packages: plans, plans });
+    return NextResponse.json({ plans, packages: plans });
   } catch (error: any) {
-    console.error('Error getting packages:', error);
-    return NextResponse.json({ error: error.message || 'Failed to get packages' }, { status: 500 });
+    console.error('Error getting plans:', error);
+    return NextResponse.json({ error: error.message || 'Failed to get plans' }, { status: 500 });
   }
 }
 
@@ -26,9 +26,9 @@ export async function POST(request: NextRequest) {
 
     await savePlans(plans);
     const updated = await getPlans();
-    return NextResponse.json({ success: true, packages: updated, plans: updated });
+    return NextResponse.json({ success: true, plans: updated, packages: updated });
   } catch (error: any) {
-    console.error('Error saving packages:', error);
-    return NextResponse.json({ error: error.message || 'Failed to save packages' }, { status: 500 });
+    console.error('Error saving plans:', error);
+    return NextResponse.json({ error: error.message || 'Failed to save plans' }, { status: 500 });
   }
 }

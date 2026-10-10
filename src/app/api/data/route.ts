@@ -30,13 +30,14 @@ export async function GET(request: NextRequest) {
       daysInMonth: getDaysInMonth(defaultYear, defaultMonthNum)
     };
 
-    const packages = await getPackages();
+    const plans = await getPackages();
     const patients = await getMonthPatients(monthId);
 
     return NextResponse.json({
       currentMonth,
       availableMonths: months,
-      packages,
+      plans,
+      packages: plans,
       patients
     });
   } catch (error: any) {

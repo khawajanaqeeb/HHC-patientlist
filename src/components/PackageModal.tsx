@@ -53,7 +53,7 @@ export const PackageModal: React.FC<PackageModalProps> = ({
       ...prev,
       {
         id: nextId,
-        name: `New Package ${prev.length + 1}`,
+        name: `New Plan ${prev.length + 1}`,
         price: 0,
         doc: 0,
         nurPhy: 0,
@@ -74,7 +74,7 @@ export const PackageModal: React.FC<PackageModalProps> = ({
     if (
       isUsed &&
       !window.confirm(
-        `"${pkg.name}" is assigned to one or more patients. Delete it anyway? Their package assignment will be cleared.`
+        `"${pkg.name}" is assigned to one or more patients. Delete it anyway? Their plan assignment will be cleared.`
       )
     ) {
       return;
@@ -85,7 +85,7 @@ export const PackageModal: React.FC<PackageModalProps> = ({
 
   const handleSave = () => {
     onSave(pkgList);
-    setSavedMsg('✓ Packages saved successfully!');
+    setSavedMsg('✓ Plans saved successfully!');
     setTimeout(() => setSavedMsg(''), 3000);
   };
 
@@ -93,7 +93,7 @@ export const PackageModal: React.FC<PackageModalProps> = ({
     <div className="mbg">
       <div className="modal package-manager-modal">
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
-          <h2 style={{ margin: 0 }}>⚙ Package Definitions</h2>
+          <h2 style={{ margin: 0 }}>⚙ Health Plan Definitions</h2>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
             <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.75rem', fontWeight: 600, color: 'var(--teal)', cursor: 'pointer' }}>
               💱 Price in:
@@ -106,7 +106,7 @@ export const PackageModal: React.FC<PackageModalProps> = ({
                 <option value="USD">Dollar ($)</option>
               </select>
             </label>
-            <button className="icon-btn" onClick={onClose} aria-label="Close package manager"><X size={19} /></button>
+            <button className="icon-btn" onClick={onClose} aria-label="Close plan manager"><X size={19} /></button>
           </div>
         </div>
         {savedMsg && (
@@ -124,13 +124,13 @@ export const PackageModal: React.FC<PackageModalProps> = ({
           </div>
         )}
         <p style={{ fontSize: '0.71rem', color: '#666', marginBottom: '10px' }}>
-          Set monthly visit allocations per package. These auto-populate the Total columns when a package is selected for a patient.
+          Set monthly visit allocations per health plan. These auto-populate the Total columns when a plan is selected for a patient.
         </p>
 
         <table className="ptbl">
           <thead>
             <tr>
-              <th>Package Name</th>
+              <th>Plan Name</th>
               <th style={{ background: '#2e7d32' }}>
                 💰 Price ({currency === 'USD' ? '$' : 'Rs.'})
               </th>
@@ -306,7 +306,7 @@ export const PackageModal: React.FC<PackageModalProps> = ({
 
         <div style={{ marginTop: '10px' }}>
           <button className="btn" onClick={handleAddRow}>
-            <Plus size={13} /> Add Package
+            <Plus size={13} /> Add Plan
           </button>
         </div>
 

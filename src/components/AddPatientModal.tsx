@@ -301,12 +301,12 @@ export const AddPatientModal: React.FC<AddPatientModalProps> = ({
                   )}
                 </label>
                 <label>
-                  <span className="label-text-wrap">Assigned Package</span>
+                  <span className="label-text-wrap">Assigned Plan</span>
                   <select
                     value={packageId ?? ''}
                     onChange={(event) => setPackageId(event.target.value ? Number(event.target.value) : null)}
                   >
-                    <option value="">No package</option>
+                    <option value="">No plan</option>
                     {packages.map((item) => (
                       <option key={item.id} value={item.id}>{item.name}</option>
                     ))}

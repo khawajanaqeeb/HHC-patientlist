@@ -71,6 +71,8 @@ export async function GET(request: NextRequest) {
         id: patient.id,
         name: patient.name,
         subscriber: patient.subscriber,
+        planName: patientPackage?.name || null,
+        planPrice: patientPackage ? Number(patientPackage.price || 0) : null,
         packageName: patientPackage?.name || null,
         packagePrice: patientPackage ? Number(patientPackage.price || 0) : null,
         visited: patient.v[dayIndex] as DayVisits,

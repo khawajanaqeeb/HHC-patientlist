@@ -23,6 +23,7 @@ interface PatientRecord {
   google_address_location: string;
   assigned_doctor: string;
   package_id: number | null;
+  plan_id?: number | null;
   med_given: number;
   photo_path: string | null;
 }
@@ -262,10 +263,10 @@ export default function PatientProfilePage() {
                   <strong><a href={`mailto:${patient.subscriber_email}`} className="staff-phone-link">{patient.subscriber_email}</a></strong>
                 </div>
               )}
-              {patient.package_id && (
+              {(patient.plan_id || patient.package_id) && (
                 <div className="staff-detail-row">
-                  <span><Package2 size={13} /> Package ID</span>
-                  <strong>#{patient.package_id}</strong>
+                  <span><Package2 size={13} /> Assigned Plan ID</span>
+                  <strong>#{patient.plan_id || patient.package_id}</strong>
                 </div>
               )}
             </div>

@@ -65,8 +65,13 @@ All database migrations are located in `supabase/migrations/` and must be execut
 ### Migration 6: `20261006100000_add_patient_is_active.sql`
 - Adds `is_active` (boolean, default true) to `month_patients` to enable patient active/inactive status toggling.
 
+### Migration 7: `20261011100000_unify_plans_schema.sql`
+- Unifies `packages` to `plans` schema.
+- Adds health plan attributes: `billing_cycle`, `revenue_account_id`, `lab_tests`, `is_active`.
+- Adds backwards-compatible view `public.packages` and automatic sync trigger for `month_patients.plan_id` and `package_id`.
+
 ### Other migrations (also required)
-- `20260930000000_add_sv_flu_opd_to_packages.sql` — adds `sv`, `flu`, `opd` allocation columns to `packages`.
+- `20260930000000_add_sv_flu_opd_to_packages.sql` — adds `sv`, `flu`, `opd` allocation columns.
 - `20261005000000_add_father_husband_name_type.sql` — adds `father_husband_name_type` to `staff_members`.
 - `20261007000000_create_accounts_chart.sql` — creates the chart-of-accounts table used by `/accounts`.
 

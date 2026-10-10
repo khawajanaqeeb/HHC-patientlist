@@ -1,5 +1,5 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import { Package, PatientMonthData, MonthInfo, DayVisits } from './types';
+import { Plan, Package, PatientMonthData, MonthInfo, DayVisits } from './types';
 import { getDaysInMonth, getMonthLabel, getDefaultMonthId } from './calendar';
 
 function normalizeDayVisits(raw: unknown): DayVisits {
@@ -53,17 +53,21 @@ export async function getMonth(monthId: string): Promise<MonthInfo | null> {
   return { id: String(data.id), year: Number(data.year), month: Number(data.month), label: String(data.label), daysInMonth: Number(data.days_in_month) };
 }
 
-export async function getPackages(): Promise<Package[]> {
+export async function getPlans(): Promise<Plan[]> {
   const db = getSupabase();
   let rows: any[] | null = null;
-  const query = await db.from('packages').select('id, name, price, doc, nur_phy, nur, phy, psy, med, sv, flu, opd').order('sort_order').order('id');
-  if (query.error) {
-    // Fallback if sv, flu, opd columns do not exist on database yet
-    const fallback = await db.from('packages').select('id, name, price, doc, nur_phy, nur, phy, psy, med').order('sort_order').order('id');
-    throwIfError(fallback.error);
-    rows = fallback.data;
+  const queryPlans = await db.from('plans').select('id, name, price, doc, nur_phy, nur, phy, psy, med, sv, flu, opd, lab_tests, billing_cycle, revenue_account_id, is_active').order('sort_order').order('id');
+  if (!queryPlans.error && queryPlans.data) {
+    rows = queryPlans.data;
   } else {
-    rows = query.data;
+    const query = await db.from('packages').select('id, name, price, doc, nur_phy, nur, phy, psy, med, sv, flu, opd').order('sort_order').order('id');
+    if (query.error) {
+      const fallback = await db.from('packages').select('id, name, price, doc, nur_phy, nur, phy, psy, med').order('sort_order').order('id');
+      throwIfError(fallback.error);
+      rows = fallback.data;
+    } else {
+      rows = query.data;
+    }
   }
   return (rows || []).map((row: any) => ({
     id: Number(row.id),
@@ -78,45 +82,65 @@ export async function getPackages(): Promise<Package[]> {
     sv: Number(row.sv || 0),
     flu: Number(row.flu || 0),
     opd: Number(row.opd || 0),
+    lab_tests: Number(row.lab_tests || 0),
+    billing_cycle: row.billing_cycle || 'monthly',
+    revenue_account_id: row.revenue_account_id || null,
+    is_active: row.is_active !== false,
   }));
 }
 
-export async function savePackages(packages: Package[]) {
+export const getPackages = getPlans;
+
+export async function savePlans(plans: Plan[]) {
   const db = getSupabase();
-  const existing = await db.from('packages').select('id');
+  let targetTable = 'plans';
+  const testTable = await db.from('plans').select('id').limit(1);
+  if (testTable.error) {
+    targetTable = 'packages';
+  }
+
+  const existing = await db.from(targetTable).select('id');
   throwIfError(existing.error);
-  const retainedIds = new Set(packages.map((pkg) => pkg.id).filter((id) => id > 0));
+  const retainedIds = new Set(plans.map((pkg) => pkg.id).filter((id) => id > 0));
   const removedIds = (existing.data || []).map((row) => Number(row.id)).filter((id) => !retainedIds.has(id));
 
   if (removedIds.length) {
-    const { error: patientError } = await db.from('month_patients').update({ package_id: null }).in('package_id', removedIds);
-    throwIfError(patientError);
-    const { error: deleteError } = await db.from('packages').delete().in('id', removedIds);
+    await db.from('month_patients').update({ package_id: null }).in('package_id', removedIds);
+    const { error: deleteError } = await db.from(targetTable).delete().in('id', removedIds);
     throwIfError(deleteError);
   }
 
-  if (!packages.length) return;
+  if (!plans.length) return;
   
-  // Try upserting with sv, flu, opd first
-  const { error } = await db.from('packages').upsert(packages.map((pkg, index) => ({
-    id: pkg.id,
-    name: pkg.name.trim(),
-    price: pkg.price || 0,
-    doc: pkg.doc || 0,
-    nur_phy: pkg.nurPhy || 0,
-    nur: pkg.nur || 0,
-    phy: pkg.phy || 0,
-    psy: pkg.psy || 0,
-    med: pkg.med || 0,
-    sv: pkg.sv || 0,
-    flu: pkg.flu || 0,
-    opd: pkg.opd || 0,
-    sort_order: index,
-  })), { onConflict: 'id' });
+  const payload = plans.map((pkg, index) => {
+    const item: Record<string, any> = {
+      id: pkg.id,
+      name: pkg.name.trim(),
+      price: pkg.price || 0,
+      doc: pkg.doc || 0,
+      nur_phy: pkg.nurPhy || 0,
+      nur: pkg.nur || 0,
+      phy: pkg.phy || 0,
+      psy: pkg.psy || 0,
+      med: pkg.med || 0,
+      sv: pkg.sv || 0,
+      flu: pkg.flu || 0,
+      opd: pkg.opd || 0,
+      sort_order: index,
+    };
+    if (targetTable === 'plans') {
+      item.lab_tests = pkg.lab_tests || 0;
+      item.billing_cycle = pkg.billing_cycle || 'monthly';
+      if (pkg.revenue_account_id) item.revenue_account_id = pkg.revenue_account_id;
+      item.is_active = pkg.is_active !== false;
+    }
+    return item;
+  });
+
+  const { error } = await db.from(targetTable).upsert(payload, { onConflict: 'id' });
 
   if (error) {
-    // If sv, flu, opd columns don't exist yet on DB, fallback without them
-    const fallback = await db.from('packages').upsert(packages.map((pkg, index) => ({
+    const fallback = await db.from(targetTable).upsert(plans.map((pkg, index) => ({
       id: pkg.id,
       name: pkg.name.trim(),
       price: pkg.price || 0,
@@ -131,6 +155,8 @@ export async function savePackages(packages: Package[]) {
     throwIfError(fallback.error);
   }
 }
+
+export const savePackages = savePlans;
 
 export async function getMonthPatients(monthId: string): Promise<PatientMonthData[]> {
   const db = getSupabase();
@@ -167,7 +193,8 @@ export async function getMonthPatients(monthId: string): Promise<PatientMonthDat
     address: String(row.address || ''),
     googleAddressLocation: String(row.google_address_location || ''),
     assignedDoctor: String(row.assigned_doctor || ''),
-    packageId: row.package_id === null ? null : Number(row.package_id),
+    planId: row.plan_id ? Number(row.plan_id) : (row.package_id === null ? null : Number(row.package_id)),
+    packageId: row.plan_id ? Number(row.plan_id) : (row.package_id === null ? null : Number(row.package_id)),
     medGiven: Number(row.med_given || 0),
     photo_path: row.photo_path || null,
     v: normalizeVisits(row.visits_json, daysInMonth),
@@ -180,10 +207,13 @@ export async function updatePatient(monthId: string, patientId: number, data: Pa
   throwIfError(current.error);
   if (!current.data) return;
 
+  const selectedPlanId = 'planId' in data ? data.planId : ('packageId' in data ? data.packageId : current.data.package_id);
+
   const payload: Record<string, any> = {
     name: data.name ?? current.data.name,
     subscriber: data.subscriber ?? current.data.subscriber,
-    package_id: 'packageId' in data ? data.packageId : current.data.package_id,
+    package_id: selectedPlanId,
+    plan_id: selectedPlanId,
     med_given: data.medGiven ?? current.data.med_given,
     visits_json: data.v ?? current.data.visits_json,
   };
@@ -199,7 +229,8 @@ export async function updatePatient(monthId: string, patientId: number, data: Pa
 
   const { error } = await db.from('month_patients').update(payload).eq('month_id', monthId).eq('patient_id', patientId);
   if (error) {
-    // Fallback if extended columns do not exist yet on DB
+    // Fallback if extended columns or plan_id do not exist yet on DB
+    delete payload.plan_id;
     delete payload.subscriber_email;
     delete payload.father_husband_name;
     delete payload.dob;
@@ -225,6 +256,7 @@ export async function addPatient(
     address?: string;
     googleAddressLocation?: string;
     assignedDoctor?: string;
+    planId?: number | null;
   }
 ): Promise<PatientMonthData> {
   const db = getSupabase();
@@ -237,13 +269,15 @@ export async function addPatient(
 
   const id = maxData && maxData.length > 0 ? Number(maxData[0].patient_id) + 1 : 1;
   const visits = Array.from({ length: month?.daysInMonth || 30 }, () => ['', '', '', '', '', '', '', '']);
+  const selectedPlanId = extra?.planId !== undefined ? extra.planId : packageId;
 
   const payload: Record<string, any> = {
     month_id: monthId,
     patient_id: id,
     name,
     subscriber,
-    package_id: packageId,
+    package_id: selectedPlanId,
+    plan_id: selectedPlanId,
     med_given: 0,
     visits_json: visits,
     sort_order: id - 1,
@@ -258,7 +292,8 @@ export async function addPatient(
 
   const { error } = await db.from('month_patients').insert(payload);
   if (error) {
-    // Fallback without extended fields
+    // Fallback without extended fields or plan_id
+    delete payload.plan_id;
     delete payload.subscriber_email;
     delete payload.father_husband_name;
     delete payload.dob;

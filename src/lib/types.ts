@@ -10,7 +10,7 @@ export type DayVisits = [
   VisitValue  // 7: OPD
 ];
 
-export interface Package {
+export interface Plan {
   id: number;
   name: string;
   price: number;
@@ -19,11 +19,17 @@ export interface Package {
   nur: number;    // Nurse
   phy: number;    // Physio
   psy: number;
-  med: number;
+  med: number;    // Medicine limit in PKR
   sv?: number;   // SV (Symptom Visit)
   flu?: number;  // Annual Flu Vaccination
   opd?: number;  // OPD
+  lab_tests?: number;
+  billing_cycle?: string; // e.g. 'monthly' | 'quarterly' | 'annual'
+  revenue_account_id?: string | null;
+  is_active?: boolean;
 }
+
+export type Package = Plan;
 
 export interface PatientMonthData {
   id: number;
@@ -36,6 +42,7 @@ export interface PatientMonthData {
   address?: string;
   googleAddressLocation?: string;
   assignedDoctor?: string;
+  planId?: number | null;
   packageId: number | null;
   medGiven: number;
   photo_path?: string | null;
@@ -58,7 +65,8 @@ export interface WeekDefinition {
 export interface AppStateData {
   currentMonth: MonthInfo;
   availableMonths: MonthInfo[];
-  packages: Package[];
+  plans: Plan[];
+  packages: Plan[];
   patients: PatientMonthData[];
 }
 
@@ -66,6 +74,8 @@ export interface PatientVisitSearchResult {
   id: number;
   name: string;
   subscriber: string;
+  planName: string | null;
+  planPrice: number | null;
   packageName: string | null;
   packagePrice: number | null;
   visited: DayVisits;

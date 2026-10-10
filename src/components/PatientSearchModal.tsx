@@ -131,7 +131,7 @@ export const PatientSearchModal: React.FC<PatientSearchModalProps> = ({
             {(['name', 'date', 'subscriber', 'package'] as SearchField[]).map((field) => (
               <label className="search-criterion" key={field}>
                 <input type="checkbox" checked={fields[field]} onChange={() => toggleField(field)} />
-                <span>{field === 'package' ? 'Package' : field[0].toUpperCase() + field.slice(1)}</span>
+                <span>{field === 'package' ? 'Plan' : field[0].toUpperCase() + field.slice(1)}</span>
               </label>
             ))}
           </div>
@@ -157,14 +157,14 @@ export const PatientSearchModal: React.FC<PatientSearchModalProps> = ({
             )}
             {fields.package && (
               <fieldset className="search-package-fieldset">
-                <legend>Package</legend>
+                <legend>Plan</legend>
                 <div className="search-package-options">
                   {packages.length > 0 ? packages.map((item) => (
                     <label className="search-package-option" key={item.id}>
                       <input type="checkbox" checked={selectedPackages.includes(item.id)} onChange={() => togglePackage(item.id)} />
                       <span>{item.name}</span>
                     </label>
-                  )) : <span className="search-empty-option">No packages available</span>}
+                  )) : <span className="search-empty-option">No plans available</span>}
                 </div>
               </fieldset>
             )}

@@ -168,7 +168,7 @@ export const VisitTable: React.FC<VisitTableProps> = ({
             </th>
             <th rowSpan={4} style={{ minWidth: '96px', width: '96px' }}>
               <button className="sb" onClick={() => onSort('pkg')}>
-                Package <span>{getSortIcon('pkg')}</span>
+                Plan <span>{getSortIcon('pkg')}</span>
               </button>
             </th>
             <th rowSpan={4} className="pkg-price-th" style={{ minWidth: '78px', fontSize: '0.7rem' }}>

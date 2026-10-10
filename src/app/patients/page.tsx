@@ -86,9 +86,10 @@ export default function PatientListPage() {
       })
       .catch(() => {});
 
-    fetch('/api/packages')
+    fetch('/api/plans')
       .then((r) => r.json())
-      .then(({ packages: pkgs }) => {
+      .then((data) => {
+        const pkgs = data.plans || data.packages;
         if (Array.isArray(pkgs)) {
           setPackages(pkgs);
         }

@@ -86,7 +86,8 @@ export function useAppData({ flashStatus, clearSearch, resetTable }: AppDataCall
       const data = await res.json();
       setCurrentMonth(data.currentMonth);
       setAvailableMonths(data.availableMonths || []);
-      setPackages(data.packages || []);
+      const planList = data.plans || data.packages || [];
+      setPackages(planList);
       setPatients(data.patients || []);
       setIsAuthenticated(true);
 
@@ -343,28 +344,29 @@ export function useAppData({ flashStatus, clearSearch, resetTable }: AppDataCall
 
   const handleSavePackages = async (newPackages: Package[]) => {
     try {
-      const res = await fetch('/api/packages', {
+      const res = await fetch('/api/plans', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ packages: newPackages }),
+        body: JSON.stringify({ plans: newPackages }),
       });
       if (res.status === 401) {
         setIsAuthenticated(false);
         return;
       }
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed to save packages');
-      setPackages(data.packages);
-      callbacksRef.current.flashStatus('✔ Packages updated', '#2e7d32');
+      if (!res.ok) throw new Error(data.error || 'Failed to save plans');
+      const updatedList = data.plans || data.packages || [];
+      setPackages(updatedList);
+      callbacksRef.current.flashStatus('✔ Plans updated', '#2e7d32');
     } catch (err: unknown) {
-      alert(err instanceof Error ? err.message : 'Could not save packages');
+      alert(err instanceof Error ? err.message : 'Could not save plans');
     }
   };
 
   // ── Data operations ─────────────────────────────────────────────────────────
 
   const handleReset = async () => {
-    if (!window.confirm(`Reset all visit data and package selections for ${currentMonth.label}?`)) return;
+    if (!window.confirm(`Reset all visit data and plan selections for ${currentMonth.label}?`)) return;
     try {
       const res = await fetch('/api/reset', {
         method: 'POST',
@@ -426,7 +428,7 @@ export function useAppData({ flashStatus, clearSearch, resetTable }: AppDataCall
         }
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || 'Failed to import');
-        setPackages(data.packages);
+        setPackages(data.plans || data.packages);
         setPatients(data.patients);
         callbacksRef.current.flashStatus('⬆ Imported successfully', '#2e7d32');
       } catch (err: unknown) {
@@ -440,6 +442,7 @@ export function useAppData({ flashStatus, clearSearch, resetTable }: AppDataCall
   return {
     currentMonth,
     availableMonths,
+    plans: packages,
     packages,
     patients,
     currency,
@@ -456,6 +459,7 @@ export function useAppData({ flashStatus, clearSearch, resetTable }: AppDataCall
     handleOpenInNewWindow,
     handleSavePatient,
     handleDeletePatient,
+    handleSavePlans: handleSavePackages,
     handleSavePackages,
     handleReset,
     handleExport,
