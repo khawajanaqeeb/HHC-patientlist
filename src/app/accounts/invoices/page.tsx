@@ -254,6 +254,33 @@ export default function InvoicesPage() {
     }
   };
 
+  /* ── Batch Generate Invoices for Month ── */
+  const [batchLoading, setBatchLoading] = useState(false);
+  const handleBatchGenerateInvoices = async () => {
+    if (!confirm('Auto-generate monthly care invoices for all patients enrolled in the current active month?')) return;
+    setBatchLoading(true);
+    try {
+      const res = await fetch('/api/invoices/generate-monthly', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ monthId: '2026-10' }),
+      });
+      const json = await res.json();
+      if (!res.ok || json.error) throw new Error(json.error || 'Failed to generate monthly invoices');
+
+      if (json.created_count === 0) {
+        showToast('All enrolled patients for this month are already invoiced or have no active plan.');
+      } else {
+        showToast(`Successfully created ${json.created_count} invoices totaling Rs ${json.total_billed_pkr?.toLocaleString()}!`);
+      }
+      loadData();
+    } catch (err: any) {
+      showToast(err.message, 'error');
+    } finally {
+      setBatchLoading(false);
+    }
+  };
+
   return (
     <div className="accounts-page">
       {/* ── Page Header ── */}
@@ -296,6 +323,24 @@ export default function InvoicesPage() {
             <TrendingUp size={12} color="#fbbf24" />
             1 USD = {usdToPkrRate.toFixed(2)} PKR
           </span>
+
+          <button
+            className="btn-accounts-ghost"
+            onClick={handleBatchGenerateInvoices}
+            disabled={batchLoading}
+            style={{ color: '#fbbf24', borderColor: 'rgba(251, 191, 36, 0.4)' }}
+            title="Auto-generate monthly care invoices for all active enrolled patients"
+          >
+            {batchLoading ? (
+              <>
+                <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> Generating…
+              </>
+            ) : (
+              <>
+                <Sparkles size={14} /> Auto-Generate from Active Month
+              </>
+            )}
+          </button>
 
           <button className="btn-accounts-primary" onClick={() => setModalOpen(true)}>
             <Plus size={15} />
@@ -413,9 +458,27 @@ export default function InvoicesPage() {
           <FileText size={48} />
           <h3>No invoices found</h3>
           <p>Generate an invoice for subscriber health plans, excess medicines, or labs.</p>
-          <button className="btn-accounts-primary" onClick={() => setModalOpen(true)}>
-            <Plus size={15} /> Generate Invoice
-          </button>
+          <div style={{ display: 'flex', gap: '10px', marginTop: '8px' }}>
+            <button
+              className="btn-accounts-ghost"
+              onClick={handleBatchGenerateInvoices}
+              disabled={batchLoading}
+              style={{ color: '#fbbf24', borderColor: 'rgba(251, 191, 36, 0.4)' }}
+            >
+              {batchLoading ? (
+                <>
+                  <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> Generating…
+                </>
+              ) : (
+                <>
+                  <Sparkles size={14} /> Auto-Generate from Active Month (October 2026)
+                </>
+              )}
+            </button>
+            <button className="btn-accounts-primary" onClick={() => setModalOpen(true)}>
+              <Plus size={15} /> Generate Single Invoice
+            </button>
+          </div>
         </div>
       ) : (
         <div className="accounts-table-wrapper">
