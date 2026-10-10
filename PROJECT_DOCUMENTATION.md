@@ -66,9 +66,27 @@ All database migrations are located in `supabase/migrations/` and must be execut
 - Adds `is_active` (boolean, default true) to `month_patients` to enable patient active/inactive status toggling.
 
 ### Migration 7: `20261011100000_unify_plans_schema.sql`
-- Unifies `packages` to `plans` schema.
+- Unifies `packages` to `plans` schema across the application.
 - Adds health plan attributes: `billing_cycle`, `revenue_account_id`, `lab_tests`, `is_active`.
 - Adds backwards-compatible view `public.packages` and automatic sync trigger for `month_patients.plan_id` and `package_id`.
+
+### Migration 8: `20261011110000_create_subscribers_and_patients.sql`
+- Creates master `subscribers` and `patients` tables (Option A architecture).
+- Adds `master_patient_id` foreign key on `month_patients` linking monthly records to individual patients.
+- Backfills historical patients and subscribers from existing visit sheet data.
+- Adds `sync_month_patient_master_link` trigger to automatically link or register new patients and subscribers.
+
+### Migration 9: `20261011120000_accounting_core_schema.sql`
+- Complete core accounting database schema:
+  - Seeds account `4070` (Medicine Revenue - Excess Billing).
+  - Creates sequence generators: `hhc_subscription_seq`, `hhc_invoice_seq`, `hhc_payment_seq`, `hhc_journal_seq`.
+  - Creates `subscriptions` table (recurring contracts, status, billing cycle, price, recognized revenue).
+  - Creates `medicine_dispensing` table (linked to patient ID, tracking medicine units, unit price, and invoice link).
+  - Creates `lab_orders` table (linked to patient ID, diagnostic tests, partner lab, and invoice link).
+  - Creates `invoices` & `invoice_line_items` tables (`HHC-INV-YYYY-NNNN`, plan fee, excess medicine, lab tests, discount, tax, balance, status).
+  - Creates `payments` table (`HHC-PAY-YYYY-NNNN`, amount, payment method, destination account, invoice link).
+  - Creates `journal_entries` & `journal_entry_lines` tables (`HHC-JNL-YYYY-NNNN`, balanced debits and credits, audit trail).
+  - Creates `revenue_recognitions` table (period month, subscription, recognition date, amount).
 
 ### Other migrations (also required)
 - `20260930000000_add_sv_flu_opd_to_packages.sql` — adds `sv`, `flu`, `opd` allocation columns.
@@ -81,7 +99,7 @@ All database migrations are located in `supabase/migrations/` and must be execut
 
 ## 📁 3. Core Modules & Page Routing Structure
 
-The application is structured into three primary workflow modules:
+The application is structured into four primary workflow modules:
 
 ```
 src/app/
@@ -92,12 +110,90 @@ src/app/
 │       ├── page.tsx               # Individual Patient Profile & Multi-Month Visit History
 │       └── edit/
 │           └── page.tsx           # Dedicated Edit Patient Profile Page
-└── staff/
-    ├── page.tsx                   # 3. Master Staff Directory (Doctors, Nurses, Physios, Staff)
-    ├── new/
-    │   └── page.tsx               # Register New Staff Member Page
-    └── [id]/
-        ├── page.tsx               # Individual Staff Profile (Identity, contact, location map iframe)
+├── staff/
+│   ├── page.tsx                   # 3. Master Staff Directory (Doctors, Nurses, Physios, Staff)
+│   ├── new/
+│   │   └── page.tsx               # Register New Staff Member Page
+│   └── [id]/
+│       ├── page.tsx               # Individual Staff Profile (Identity, contact, location map iframe)
+│       └── edit/
+│           └── page.tsx           # Edit Staff Member Page (Photo upload, credentials, maps location)
+└── accounts/                      # 4. Complete Accounting & Finance Module
+    ├── page.tsx                   # Executive Dashboard (MRR, Collections, AR, Recent Activity)
+    ├── chart-of-accounts/page.tsx # Chart of Accounts (Assets, Liabilities, Equity, Revenue, Expenses)
+    ├── plans/page.tsx             # Health Plans (Clinical inclusions, medicine limit, PKR/USD)
+    ├── subscriptions/page.tsx     # Recurring Subscriptions (Contract tracking, Earned vs Unearned)
+    ├── invoices/page.tsx          # Subscriber Invoices (Plan fees, excess medicine, lab charges)
+    ├── payments/page.tsx          # Cash & Bank Payments Received (AR relief, receipt vouchers)
+    ├── journal/page.tsx           # Double-Entry General Ledger (Auto & manual balanced journals)
+    └── reports/
+        ├── income-statement/page.tsx  # P&L (Revenues, clinical costs, operating expenses, net profit)
+        ├── balance-sheet/page.tsx     # Balance Sheet (Assets = Liabilities + Equity with current profit)
+        ├── mrr/page.tsx               # MRR Analytics (MRR, ARR, ARPU, plan contribution breakdown)
+        └── revenue-recognition/page.tsx # Revenue Recognition Engine (Unearned liability relief)
+```
+
+### Module 1: Patient Visit Sheet (`/`)
+- **Purpose**: Daily operational visit matrix for active month.
+- **Key Features**:
+  - Month switching dropdown & month creator modal.
+  - Interactive daily visit checkmarks per care type (Doctor, Nurse+Physio, Nurse, Physio, Psychiatrist).
+  - Quota counters and live balance indicators.
+  - Enter Visit modal (`EnterVisitModal.tsx`).
+  - Package editor modal (`PackageModal.tsx`).
+  - Register New Patient modal (`AddPatientModal.tsx`).
+
+### Module 2: Master Patient Directory (`/patients`)
+- **Purpose**: Master registry of all patients across all months.
+- **Key Features**:
+  - Search bar (by name, subscriber, doctor, ID).
+  - Filters: Gender, Status (`Active` / `Inactive`), Month.
+  - Quick summary stat cards (Total, Active, Male, Female).
+  - **Row Action Buttons**:
+    - **View**: Navigates to `/patients/[id]`.
+    - **Edit**: Navigates to `/patients/[id]/edit`.
+    - **Deactivate / Activate**: Toggles `is_active` status.
+    - **Delete**: Triggers deletion warning modal & removes patient records.
+  - Header **`+ Add Patient`** button: Opens `AddPatientModal` to register new patients.
+
+### Module 3: Staff Management (`/staff`)
+- **Purpose**: Directory of all HHC personnel and doctors.
+- **Key Features**:
+  - Auto-generated Staff IDs (`STF-001`, `DOC-002`).
+  - Avatar photo uploads (`staff-photos` Supabase storage bucket).
+  - One-click Phone call (`tel:`) and WhatsApp chat (`https://wa.me/...`) links.
+  - Google Maps iframe preview for staff residential locations.
+  - Filter by Designation type (Doctor, Nurse, Physio, etc.) and Status.
+
+### Module 4: Accounts & Finance (`/accounts`)
+- **Purpose**: Comprehensive accounting system adhering to standard double-entry principles.
+- **Key Features**:
+  - **Single Concept "Plan"**: Standardized across entire UI and database.
+  - **Currency**: PKR base currency with real-time live USD conversion toggle using `/api/exchange-rate`.
+  - **Automatic Journal Entries**:
+    - Invoice Issued: Debit 1110 AR, Credit 2050 Unearned Revenue (plan fee), Credit 4070 (excess medicine), Credit 4060 (labs).
+    - Payment Received: Debit 1010/1020 Cash/Bank, Credit 1110 AR.
+    - Monthly Recognition: Debit 2050 Unearned Revenue, Credit Plan Revenue Account.
+  - **Medicine Excess & Lab Tracking**: Automatic billing when medicine consumed exceeds plan limit.
+  - **Financial Reports**: Income Statement, Balance Sheet (balanced with Current Period Profit), MRR Dashboard.
+
+---
+
+## 🌐 4. API Endpoints Reference
+
+### Accounts & Billing API
+- **`GET / POST /api/plans`**: Health plans management with clinical inclusions and revenue account mapping.
+- **`GET / POST /api/subscribers`**: Subscriber management (payers).
+- **`GET / POST /api/subscriptions`**, **`PATCH / DELETE /api/subscriptions/[id]`**: Subscription contracts.
+- **`GET / POST /api/medicine-dispensing`**: Track medicine dispensed to patients with unit prices.
+- **`GET / POST /api/lab-orders`**: Track diagnostic lab tests per patient.
+- **`GET / POST /api/invoices`**, **`GET / PATCH / DELETE /api/invoices/[id]`**: Generate monthly invoices and auto-post journals.
+- **`GET / POST /api/payments`**: Record cash/bank receipts and relieve accounts receivable.
+- **`GET / POST /api/journal`**: Double-entry general ledger entries and manual balanced postings.
+- **`GET / POST /api/revenue-recognition`**: Idempotent monthly revenue recognition engine.
+- **`GET /api/reports/income-statement`**: Profit and loss statement with date filtering.
+- **`GET /api/reports/balance-sheet`**: Balance sheet with current period earnings balancing.
+- **`GET /api/exchange-rate`**: Live USD ⇄ PKR exchange rate feed.
         └── edit/
             └── page.tsx           # Edit Staff Member Page (Photo upload, credentials, maps location)
 ```
